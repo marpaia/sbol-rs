@@ -1,0 +1,65 @@
+<rdf:RDF
+    xmlns:SO="https://identifiers.org/SO:"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:EDAM="https://identifiers.org/edam:"
+    xmlns:sbol="http://sbols.org/v3#"
+    xmlns="https://example.org/sbol-rs/fixtures/"
+    xmlns:CHEBI="https://identifiers.org/CHEBI:"
+    xmlns:prov="http://www.w3.org/ns/prov#"
+    xmlns:SBO="https://identifiers.org/SBO:"
+    xmlns:GO="https://identifiers.org/GO:"
+    xmlns:om="http://www.ontology-of-units-of-measure.org/resource/om-2/"
+   xml:base="https://example.org/sbol-rs/fixtures/">
+   <sbol:Collection rdf:about="promoter_library">
+      <sbol:member>
+         <sbol:Component rdf:about="promoter_b"/>
+      </sbol:member>
+      <sbol:member>
+         <sbol:Component rdf:about="promoter_a"/>
+      </sbol:member>
+      <sbol:hasNamespace rdf:resource="../fixtures"/>
+      <sbol:displayId>promoter_library</sbol:displayId>
+   </sbol:Collection>
+   <sbol:Component rdf:about="template_component">
+      <sbol:type rdf:resource="https://identifiers.org/SBO:0000251"/>
+      <sbol:role rdf:resource="https://identifiers.org/SO:0000167"/>
+      <sbol:hasNamespace rdf:resource="../fixtures"/>
+      <sbol:hasFeature>
+         <sbol:SubComponent rdf:about="template_component/promoter_slot">
+            <sbol:instanceOf>
+               <sbol:Component rdf:about="promoter_a"/>
+            </sbol:instanceOf>
+            <sbol:displayId>promoter_slot</sbol:displayId>
+         </sbol:SubComponent>
+      </sbol:hasFeature>
+      <sbol:displayId>template_component</sbol:displayId>
+   </sbol:Component>
+   <sbol:Component rdf:about="promoter_b">
+      <sbol:type rdf:resource="https://identifiers.org/SBO:0000251"/>
+      <sbol:role rdf:resource="https://identifiers.org/SO:0000167"/>
+      <sbol:hasNamespace rdf:resource="../fixtures"/>
+      <sbol:displayId>promoter_b</sbol:displayId>
+   </sbol:Component>
+   <sbol:Component rdf:about="promoter_a">
+      <sbol:type rdf:resource="https://identifiers.org/SBO:0000251"/>
+      <sbol:role rdf:resource="https://identifiers.org/SO:0000167"/>
+      <sbol:hasNamespace rdf:resource="../fixtures"/>
+      <sbol:displayId>promoter_a</sbol:displayId>
+   </sbol:Component>
+   <sbol:CombinatorialDerivation rdf:about="promoter_derivation">
+      <sbol:template rdf:resource="template_component"/>
+      <sbol:strategy rdf:resource="http://sbols.org/v3#enumerate"/>
+      <sbol:hasVariableFeature>
+         <sbol:VariableFeature rdf:about="promoter_derivation/promoter_slot">
+            <sbol:variantCollection rdf:resource="promoter_library"/>
+            <sbol:variant rdf:resource="promoter_b"/>
+            <sbol:variant rdf:resource="promoter_a"/>
+            <sbol:variable rdf:resource="template_component/promoter_slot"/>
+            <sbol:displayId>promoter_slot</sbol:displayId>
+            <sbol:cardinality rdf:resource="http://sbols.org/v3#one"/>
+         </sbol:VariableFeature>
+      </sbol:hasVariableFeature>
+      <sbol:hasNamespace rdf:resource="../fixtures"/>
+      <sbol:displayId>promoter_derivation</sbol:displayId>
+   </sbol:CombinatorialDerivation>
+</rdf:RDF>

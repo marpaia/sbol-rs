@@ -1,0 +1,23 @@
+[package]
+name = "sbol-rdf"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/sbol-rdf"
+license.workspace = true
+description = "RDF primitives and multi-format (Turtle, RDF/XML, JSON-LD, N-Triples) I/O used by the sbol crate."
+keywords = ["sbol", "rdf", "turtle", "synthetic-biology"]
+categories = ["parser-implementations", "science"]
+readme = "README.md"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+oxjsonld.workspace = true
+oxrdf.workspace = true
+oxrdfio.workspace = true
+thiserror.workspace = true

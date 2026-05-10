@@ -1,0 +1,105 @@
+PREFIX sbol: <http://sbols.org/v3#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX SBO: <https://identifiers.org/SBO:>
+PREFIX SO: <https://identifiers.org/SO:>
+PREFIX EDAM: <https://identifiers.org/edam:>
+
+<https://example.org/lab/seq_dna> a sbol:Sequence ;
+    sbol:displayId "seq_dna" ;
+    sbol:hasNamespace <https://example.org/lab> ;
+    sbol:elements "ATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGC" ;
+    sbol:encoding EDAM:format_1207 .
+
+<https://example.org/lab/seq_prom> a sbol:Sequence ;
+    sbol:displayId "seq_prom" ;
+    sbol:hasNamespace <https://example.org/lab> ;
+    sbol:elements "TTTACAGCTAGCTCAGTCCTAGGTATAGTGCTAGC" ;
+    sbol:encoding EDAM:format_1207 .
+
+<https://example.org/lab/promoter> a sbol:Component ;
+    sbol:displayId "promoter" ;
+    sbol:hasNamespace <https://example.org/lab> ;
+    sbol:type SBO:0000251 ;
+    sbol:role SO:0000167 ;
+    sbol:hasSequence <https://example.org/lab/seq_prom> .
+
+<https://example.org/lab/cds> a sbol:Component ;
+    sbol:displayId "cds" ;
+    sbol:hasNamespace <https://example.org/lab> ;
+    sbol:type SBO:0000251 ;
+    sbol:role SO:0000316 ;
+    sbol:hasSequence <https://example.org/lab/seq_dna> .
+
+<https://example.org/lab/composite> a sbol:Component ;
+    sbol:displayId "composite" ;
+    sbol:hasNamespace <https://example.org/lab> ;
+    sbol:type SBO:0000251 ;
+    sbol:role SO:0000704 ;
+    sbol:hasFeature <https://example.org/lab/composite/sub_prom> ;
+    sbol:hasFeature <https://example.org/lab/composite/sub_cds> ;
+    sbol:hasConstraint <https://example.org/lab/composite/c1> .
+
+<https://example.org/lab/composite/sub_prom> a sbol:SubComponent ;
+    sbol:displayId "sub_prom" ;
+    sbol:instanceOf <https://example.org/lab/promoter> .
+
+<https://example.org/lab/composite/sub_cds> a sbol:SubComponent ;
+    sbol:displayId "sub_cds" ;
+    sbol:instanceOf <https://example.org/lab/cds> .
+
+<https://example.org/lab/composite/c1> a sbol:Constraint ;
+    sbol:displayId "c1" ;
+    sbol:restriction <http://sbols.org/v3#precedes> ;
+    sbol:subject <https://example.org/lab/composite/sub_prom> ;
+    sbol:object <https://example.org/lab/composite/sub_cds> .
+
+<https://example.org/lab/regulatory> a sbol:Component ;
+    sbol:displayId "regulatory" ;
+    sbol:hasNamespace <https://example.org/lab> ;
+    sbol:type SBO:0000251 ;
+    sbol:role SO:0000167 ;
+    sbol:hasInteraction <https://example.org/lab/regulatory/i1> .
+
+<https://example.org/lab/regulatory/i1> a sbol:Interaction ;
+    sbol:displayId "i1" ;
+    sbol:type SBO:0000169 ;
+    sbol:hasParticipation <https://example.org/lab/regulatory/i1/p1> .
+
+<https://example.org/lab/regulatory/i1/p1> a sbol:Participation ;
+    sbol:displayId "p1" ;
+    sbol:role SBO:0000252 ;
+    sbol:participant <https://example.org/lab/composite/sub_prom> .
+
+<https://example.org/lab/template> a sbol:Component ;
+    sbol:displayId "template" ;
+    sbol:hasNamespace <https://example.org/lab> ;
+    sbol:type SBO:0000251 ;
+    sbol:role SO:0000704 ;
+    sbol:hasFeature <https://example.org/lab/template/var_cds> .
+
+<https://example.org/lab/template/var_cds> a sbol:SubComponent ;
+    sbol:displayId "var_cds" ;
+    sbol:instanceOf <https://example.org/lab/cds> .
+
+<https://example.org/lab/library> a sbol:CombinatorialDerivation ;
+    sbol:displayId "library" ;
+    sbol:hasNamespace <https://example.org/lab> ;
+    sbol:strategy <http://sbols.org/v3#enumerate> ;
+    sbol:template <https://example.org/lab/template> ;
+    sbol:hasVariableFeature <https://example.org/lab/library/vf_cds> .
+
+<https://example.org/lab/library/vf_cds> a sbol:VariableFeature ;
+    sbol:displayId "vf_cds" ;
+    sbol:cardinality <http://sbols.org/v3#one> ;
+    sbol:variable <https://example.org/lab/template/var_cds> ;
+    sbol:variant <https://example.org/lab/cds> .
+
+<https://example.org/lab/manifest> a sbol:Collection ;
+    sbol:displayId "manifest" ;
+    sbol:hasNamespace <https://example.org/lab> ;
+    sbol:member <https://example.org/lab/promoter> ;
+    sbol:member <https://example.org/lab/cds> ;
+    sbol:member <https://example.org/lab/composite> ;
+    sbol:member <https://example.org/lab/regulatory> ;
+    sbol:member <https://example.org/lab/template> ;
+    sbol:member <https://example.org/lab/library> .

@@ -1,0 +1,25 @@
+[package]
+name = "sbol-ontology"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+description = "Offline ontology facts (EDAM, SBO, SO, GO, CHEBI, CL) for SBOL 3 validation, plus a runtime cache for opt-in extension ontologies (NCIT, custom)."
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/sbol-ontology"
+license.workspace = true
+readme = "README.md"
+keywords = ["sbol", "ontology", "synthetic-biology"]
+categories = ["science", "data-structures"]
+exclude = ["src/bin/"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+sha2 = "0.11"
+ureq = "3.3"
+
+[dev-dependencies]
+tempfile = "3"

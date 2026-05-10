@@ -1,0 +1,13 @@
+/target
+/tests/fixtures/sbol3/
+__pycache__/
+*.pyc
+.env
+
+# proptest failure persistence
+*.proptest-regressions
+
+# cargo-fuzz corpus and crash artifacts
+/fuzz/target/
+/fuzz/corpus/
+/fuzz/artifacts/

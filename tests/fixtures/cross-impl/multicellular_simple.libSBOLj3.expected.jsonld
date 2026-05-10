@@ -1,0 +1,261 @@
+{
+    "@graph": [
+        {
+            "@id": "https://sbolstandard.org/examples/MulticellularSystem/ComponentReference2",
+            "sbol:refersTo": {
+                "@id": "https://sbolstandard.org/examples/ReceiverSystem/SubComponent2"
+            },
+            "sbol:inChildOf": {
+                "@id": "https://sbolstandard.org/examples/MulticellularSystem/SubComponent2"
+            },
+            "sbol:displayId": "ComponentReference2",
+            "@type": "sbol:ComponentReference"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/ReceiverSystem/SubComponent2",
+            "sbol:instanceOf": {
+                "@id": "https://sbolstandard.org/examples/AHL"
+            },
+            "sbol:displayId": "SubComponent2",
+            "@type": "sbol:SubComponent"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/MulticellularSystem/SubComponent2",
+            "sbol:instanceOf": {
+                "@id": "https://sbolstandard.org/examples/ReceiverSystem"
+            },
+            "sbol:displayId": "SubComponent2",
+            "@type": "sbol:SubComponent"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/ReceiverSystem",
+            "sbol:hasFeature": [
+                {
+                    "@id": "https://sbolstandard.org/examples/ReceiverSystem/SubComponent1"
+                },
+                {
+                    "@id": "https://sbolstandard.org/examples/ReceiverSystem/SubComponent2"
+                }
+            ],
+            "sbol:hasNamespace": {
+                "@id": "https://sbolstandard.org/examples"
+            },
+            "sbol:type": {
+                "@id": "SBO:0000241"
+            },
+            "sbol:hasConstraint": {
+                "@id": "https://sbolstandard.org/examples/ReceiverSystem/Constraint1"
+            },
+            "sbol:displayId": "ReceiverSystem",
+            "sbol:role": {
+                "@id": "SBO:0000289"
+            },
+            "@type": "sbol:Component",
+            "sbol:description": "Receiver System",
+            "sbol:name": "ReceiverSystem"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/OrganismB",
+            "sbol:type": {
+                "@id": "GO:0005623"
+            },
+            "sbol:role": {
+                "@id": "SBO:0000290"
+            },
+            "sbol:name": "OrganismB",
+            "sbol:hasNamespace": {
+                "@id": "https://sbolstandard.org/examples"
+            },
+            "sbol:displayId": "OrganismB",
+            "sbol:description": "Organism B",
+            "@type": "sbol:Component"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/ReceiverSystem/SubComponent1",
+            "sbol:instanceOf": {
+                "@id": "https://sbolstandard.org/examples/OrganismB"
+            },
+            "sbol:displayId": "SubComponent1",
+            "@type": "sbol:SubComponent"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/SenderSystem/SubComponent2",
+            "sbol:instanceOf": {
+                "@id": "https://sbolstandard.org/examples/AHL"
+            },
+            "sbol:displayId": "SubComponent2",
+            "@type": "sbol:SubComponent"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/AHL",
+            "sbol:type": {
+                "@id": "SBO:0000247"
+            },
+            "sbol:role": {
+                "@id": "CHEBI:35224"
+            },
+            "sbol:name": "AHL",
+            "sbol:hasNamespace": {
+                "@id": "https://sbolstandard.org/examples"
+            },
+            "sbol:displayId": "AHL",
+            "sbol:description": "AHL",
+            "@type": "sbol:Component"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/SenderSystem/Constraint1",
+            "sbol:subject": {
+                "@id": "https://sbolstandard.org/examples/SenderSystem/SubComponent1"
+            },
+            "sbol:restriction": {
+                "@id": "sbol:contains"
+            },
+            "sbol:object": {
+                "@id": "https://sbolstandard.org/examples/SenderSystem/SubComponent2"
+            },
+            "sbol:displayId": "Constraint1",
+            "@type": "sbol:Constraint"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/SenderSystem/SubComponent1",
+            "sbol:instanceOf": {
+                "@id": "https://sbolstandard.org/examples/OrganismA"
+            },
+            "sbol:displayId": "SubComponent1",
+            "@type": "sbol:SubComponent"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/ReceiverSystem/Constraint1",
+            "sbol:subject": {
+                "@id": "https://sbolstandard.org/examples/ReceiverSystem/SubComponent1"
+            },
+            "sbol:restriction": {
+                "@id": "sbol:contains"
+            },
+            "sbol:object": {
+                "@id": "https://sbolstandard.org/examples/ReceiverSystem/SubComponent2"
+            },
+            "sbol:displayId": "Constraint1",
+            "@type": "sbol:Constraint"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/MulticellularSystem/ComponentReference1",
+            "sbol:refersTo": {
+                "@id": "https://sbolstandard.org/examples/SenderSystem/SubComponent2"
+            },
+            "sbol:inChildOf": {
+                "@id": "https://sbolstandard.org/examples/MulticellularSystem/SubComponent1"
+            },
+            "sbol:displayId": "ComponentReference1",
+            "@type": "sbol:ComponentReference"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/MulticellularSystem/SubComponent1",
+            "sbol:instanceOf": {
+                "@id": "https://sbolstandard.org/examples/SenderSystem"
+            },
+            "sbol:displayId": "SubComponent1",
+            "@type": "sbol:SubComponent"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/SenderSystem",
+            "sbol:description": "Sender System",
+            "sbol:role": {
+                "@id": "SBO:0000289"
+            },
+            "sbol:hasFeature": [
+                {
+                    "@id": "https://sbolstandard.org/examples/SenderSystem/SubComponent2"
+                },
+                {
+                    "@id": "https://sbolstandard.org/examples/SenderSystem/SubComponent1"
+                }
+            ],
+            "sbol:type": {
+                "@id": "SBO:0000241"
+            },
+            "sbol:hasConstraint": {
+                "@id": "https://sbolstandard.org/examples/SenderSystem/Constraint1"
+            },
+            "sbol:hasNamespace": {
+                "@id": "https://sbolstandard.org/examples"
+            },
+            "sbol:displayId": "SenderSystem",
+            "sbol:name": "SenderSystem",
+            "@type": "sbol:Component"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/OrganismA",
+            "sbol:type": {
+                "@id": "GO:0005623"
+            },
+            "sbol:role": {
+                "@id": "SBO:0000290"
+            },
+            "sbol:name": "OrganismA",
+            "sbol:hasNamespace": {
+                "@id": "https://sbolstandard.org/examples"
+            },
+            "sbol:displayId": "OrganismA",
+            "sbol:description": "Organism A",
+            "@type": "sbol:Component"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/MulticellularSystem",
+            "sbol:hasFeature": [
+                {
+                    "@id": "https://sbolstandard.org/examples/MulticellularSystem/ComponentReference2"
+                },
+                {
+                    "@id": "https://sbolstandard.org/examples/MulticellularSystem/SubComponent2"
+                },
+                {
+                    "@id": "https://sbolstandard.org/examples/MulticellularSystem/SubComponent1"
+                },
+                {
+                    "@id": "https://sbolstandard.org/examples/MulticellularSystem/ComponentReference1"
+                }
+            ],
+            "sbol:type": {
+                "@id": "SBO:0000241"
+            },
+            "sbol:hasNamespace": {
+                "@id": "https://sbolstandard.org/examples"
+            },
+            "sbol:name": "MulticellularSystem",
+            "sbol:description": "Multicellular System",
+            "sbol:role": {
+                "@id": "SBO:0000289"
+            },
+            "sbol:displayId": "MulticellularSystem",
+            "@type": "sbol:Component",
+            "sbol:hasConstraint": {
+                "@id": "https://sbolstandard.org/examples/MulticellularSystem/Constraint1"
+            }
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/MulticellularSystem/Constraint1",
+            "sbol:subject": {
+                "@id": "https://sbolstandard.org/examples/MulticellularSystem/ComponentReference1"
+            },
+            "sbol:restriction": {
+                "@id": "sbol:verifyIdentical"
+            },
+            "sbol:object": {
+                "@id": "https://sbolstandard.org/examples/MulticellularSystem/ComponentReference2"
+            },
+            "sbol:displayId": "Constraint1",
+            "@type": "sbol:Constraint"
+        }
+    ],
+    "@context": {
+        "SBO": "https://identifiers.org/SBO:",
+        "CHEBI": "https://identifiers.org/CHEBI:",
+        "GO": "https://identifiers.org/GO:",
+        "sbol": "http://sbols.org/v3#",
+        "EDAM": "https://identifiers.org/edam:",
+        "SO": "https://identifiers.org/SO:",
+        "prov": "http://www.w3.org/ns/prov#",
+        "om": "http://www.ontology-of-units-of-measure.org/resource/om-2/"
+    }
+}

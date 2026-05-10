@@ -1,0 +1,42 @@
+[package]
+name = "sbol-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+sbol = { path = "../crates/sbol" }
+
+[[bin]]
+name = "read_turtle"
+path = "fuzz_targets/read_turtle.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "round_trip"
+path = "fuzz_targets/round_trip.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "validate"
+path = "fuzz_targets/validate.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "round_trip_validate"
+path = "fuzz_targets/round_trip_validate.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]

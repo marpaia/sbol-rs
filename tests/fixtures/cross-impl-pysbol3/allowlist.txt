@@ -1,0 +1,10 @@
+# Reference filenames for which sbol-rs and pySBOL3 produce different —
+# but both spec-compliant — output. The cross_impl_pysbol3 test skips
+# entries in this list. Each entry must be accompanied by a `#` comment
+# block above it explaining the rationale and pointing at the spec
+# section or upstream issue that permits the divergence.
+#
+# Format: one bare filename per line, e.g. `component.pySBOL3.expected.ttl`.
+#
+# No entries yet — populate as reference outputs are generated and
+# divergences are diagnosed.

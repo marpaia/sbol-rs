@@ -1,0 +1,71 @@
+BASE   <https://sbolstandard.org/examples/>
+PREFIX :      <https://sbolstandard.org/examples/>
+PREFIX CHEBI: <https://identifiers.org/CHEBI:>
+PREFIX EDAM:  <https://identifiers.org/edam:>
+PREFIX GO:    <https://identifiers.org/GO:>
+PREFIX SBO:   <https://identifiers.org/SBO:>
+PREFIX SO:    <https://identifiers.org/SO:>
+PREFIX om:    <http://www.ontology-of-units-of-measure.org/resource/om-2/>
+PREFIX prov:  <http://www.w3.org/ns/prov#>
+PREFIX sbol:  <http://sbols.org/v3#>
+
+om:millimole  a            om:PrefixedUnit , sbol:TopLevel;
+        sbol:displayId     "millimole";
+        sbol:hasNamespace  <http://www.ontology-of-units-of-measure.org/resource/om-2>;
+        sbol:name          "millimole";
+        om:hasPrefix       om:milli;
+        om:hasUnit         om:mole;
+        om:label           "millimole";
+        om:symbol          "mmol" .
+
+om:milli  a                om:SIPrefix , sbol:TopLevel;
+        sbol:displayId     "milli";
+        sbol:hasNamespace  <http://www.ontology-of-units-of-measure.org/resource/om-2>;
+        sbol:name          "milli";
+        om:hasFactor       "0.001";
+        om:label           "milli";
+        om:symbol          "m" .
+
+<M9_Glucose_CAA/ExternallyDefined1>
+        a                sbol:ExternallyDefined;
+        sbol:definition  CHEBI:3312;
+        sbol:displayId   "ExternallyDefined1";
+        sbol:hasMeasure  <M9_Glucose_CAA/ExternallyDefined1/measure1>;
+        sbol:type        SBO:0000247 .
+
+om:litre  a                om:SingularUnit , sbol:TopLevel;
+        sbol:displayId     "litre";
+        sbol:hasNamespace  <http://www.ontology-of-units-of-measure.org/resource/om-2>;
+        sbol:name          "liter";
+        om:label           "liter";
+        om:symbol          "l" .
+
+om:millimolePerLitre  a    om:UnitDivision , sbol:TopLevel;
+        sbol:displayId     "millimolePerLitre";
+        sbol:hasNamespace  <http://www.ontology-of-units-of-measure.org/resource/om-2>;
+        sbol:name          "millimolar";
+        om:hasDenominator  om:litre;
+        om:hasNumerator    om:millimole;
+        om:label           "millimolar";
+        om:symbol          "mmol/l" .
+
+:M9_Glucose_CAA  a         sbol:Component;
+        sbol:description   "M9 Glucose CAA growth media";
+        sbol:displayId     "M9_Glucose_CAA";
+        sbol:hasFeature    <M9_Glucose_CAA/ExternallyDefined1>;
+        sbol:hasNamespace  </examples>;
+        sbol:name          "M9 Glucose CAA";
+        sbol:type          SBO:0000241 .
+
+<M9_Glucose_CAA/ExternallyDefined1/measure1>
+        a                     om:Measure , sbol:Identified;
+        sbol:displayId        "measure1";
+        om:hasNumericalValue  "0.1";
+        om:hasUnit            om:millimolePerLitre .
+
+om:mole  a                 om:SingularUnit , sbol:TopLevel;
+        sbol:displayId     "mole";
+        sbol:hasNamespace  <http://www.ontology-of-units-of-measure.org/resource/om-2>;
+        sbol:name          "mole";
+        om:label           "mole";
+        om:symbol          "mol" .

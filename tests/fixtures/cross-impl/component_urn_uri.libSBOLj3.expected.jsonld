@@ -1,0 +1,21 @@
+{
+    "@id": "urn:uuid:c75fa522-daae-4b85-8ed1-21ad3a15af24",
+    "sbol:type": {
+        "@id": "SBO:0000252"
+    },
+    "sbol:name": "TetR",
+    "sbol:hasNamespace": {
+        "@id": "urn:uuid:193a1ac3-3181-4d93-98c3-a8ea4766e635"
+    },
+    "@type": "sbol:Component",
+    "@context": {
+        "SBO": "https://identifiers.org/SBO:",
+        "CHEBI": "https://identifiers.org/CHEBI:",
+        "GO": "https://identifiers.org/GO:",
+        "sbol": "http://sbols.org/v3#",
+        "EDAM": "https://identifiers.org/edam:",
+        "SO": "https://identifiers.org/SO:",
+        "prov": "http://www.w3.org/ns/prov#",
+        "om": "http://www.ontology-of-units-of-measure.org/resource/om-2/"
+    }
+}

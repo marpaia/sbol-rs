@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Rust
+        run: |
+          rustup toolchain install 1.93 --profile minimal
+          rustup default 1.93
+          rustup component add rustfmt clippy
+
+      - name: Restore ontology cache
+        id: ontology-cache
+        uses: actions/cache@v5
+        with:
+          path: target/ontology-cache
+          key: ontology-cache-${{ runner.os }}-${{ hashFiles('crates/sbol-ontology/src/bin/bootstrap-ontology-cache.rs', 'crates/sbol-ontology/src/bin/generate-ontology-facts.rs', 'crates/sbol-ontology/data/ontology_sources.tsv') }}
+
+      - name: Bootstrap ontology cache
+        if: steps.ontology-cache.outputs.cache-hit != 'true'
+        run: cargo run -p sbol-ontology --bin bootstrap-ontology-cache -- --cache target/ontology-cache
+
+      - name: Restore SBOLTestSuite fixture cache
+        uses: actions/cache@v5
+        with:
+          path: tests/fixtures/sbol3
+          key: sboltestsuite-${{ runner.os }}-0044284331b2f915a6e4b9d50e1cbf3ea2f62dcd
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Lint
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test --workspace
+
+      - name: Check ontology facts
+        run: cargo run -p sbol-ontology --bin generate-ontology-facts -- --cache target/ontology-cache --check
+
+  fuzz-build:
+    name: fuzz-build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install nightly Rust
+        run: |
+          rustup toolchain install nightly --profile minimal
+          rustup default nightly
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz
+
+      - name: Build fuzz targets
+        working-directory: fuzz
+        run: cargo fuzz build

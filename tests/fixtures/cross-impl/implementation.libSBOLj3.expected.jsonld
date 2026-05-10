@@ -1,0 +1,41 @@
+{
+    "@graph": [
+        {
+            "@id": "https://sbolstandard.org/examples/impl1",
+            "sbol:hasNamespace": {
+                "@id": "https://sbolstandard.org/examples"
+            },
+            "sbol:displayId": "impl1",
+            "sbol:built": {
+                "@id": "https://sbolstandard.org/examples/TetR_protein"
+            },
+            "@type": "sbol:Implementation"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/TetR_protein",
+            "sbol:type": {
+                "@id": "SBO:0000252"
+            },
+            "sbol:role": {
+                "@id": "GO:0003700"
+            },
+            "sbol:name": "TetR",
+            "sbol:hasNamespace": {
+                "@id": "https://sbolstandard.org/examples"
+            },
+            "sbol:displayId": "TetR_protein",
+            "sbol:description": "TetR protein",
+            "@type": "sbol:Component"
+        }
+    ],
+    "@context": {
+        "SBO": "https://identifiers.org/SBO:",
+        "CHEBI": "https://identifiers.org/CHEBI:",
+        "GO": "https://identifiers.org/GO:",
+        "sbol": "http://sbols.org/v3#",
+        "EDAM": "https://identifiers.org/edam:",
+        "SO": "https://identifiers.org/SO:",
+        "prov": "http://www.w3.org/ns/prov#",
+        "om": "http://www.ontology-of-units-of-measure.org/resource/om-2/"
+    }
+}

@@ -1,0 +1,17 @@
+BASE   <https://sbolstandard.org/examples/>
+PREFIX :      <https://sbolstandard.org/examples/>
+PREFIX CHEBI: <https://identifiers.org/CHEBI:>
+PREFIX EDAM:  <https://identifiers.org/edam:>
+PREFIX GO:    <https://identifiers.org/GO:>
+PREFIX SBO:   <https://identifiers.org/SBO:>
+PREFIX SO:    <https://identifiers.org/SO:>
+PREFIX om:    <http://www.ontology-of-units-of-measure.org/resource/om-2/>
+PREFIX prov:  <http://www.w3.org/ns/prov#>
+PREFIX sbol:  <http://sbols.org/v3#>
+
+:CodonOptimisationProtocol
+        a                  prov:Plan , sbol:TopLevel;
+        sbol:description   "Optimisation protocol to improve the translation of mRNAs.";
+        sbol:displayId     "CodonOptimisationProtocol";
+        sbol:hasNamespace  </examples>;
+        sbol:name          "Codon Optimisation Protocol" .

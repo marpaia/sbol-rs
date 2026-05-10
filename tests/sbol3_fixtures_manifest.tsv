@@ -1,0 +1,34 @@
+path	format	expectation	coverage
+SBOLTestSuite/SBOL3/BBa_F2620_PoPSReceiver/BBa_F2620_PoPSReceiver.ttl	turtle	valid	complex BioBrick design
+SBOLTestSuite/SBOL3/combine2020/combine2020.ttl	turtle	valid	COMBINE 2020 tutorial design
+SBOLTestSuite/SBOL3/entity/annotation/annotation.ttl	turtle	valid	custom annotations
+SBOLTestSuite/SBOL3/entity/attachment/attachment.ttl	turtle	valid	Attachment
+SBOLTestSuite/SBOL3/entity/collection/collection.ttl	turtle	valid	Collection
+SBOLTestSuite/SBOL3/entity/combinatorialderivation/combinatorialderivation.ttl	turtle	valid	CombinatorialDerivation
+SBOLTestSuite/SBOL3/entity/component/component.ttl	turtle	valid	Component
+SBOLTestSuite/SBOL3/entity/component_urn_uri/component_urn_uri.ttl	turtle	valid	URN and URI identity handling
+SBOLTestSuite/SBOL3/entity/componentreference/componentreference.ttl	turtle	valid	ComponentReference
+SBOLTestSuite/SBOL3/entity/constraint/constraint.ttl	turtle	valid	Constraint
+SBOLTestSuite/SBOL3/entity/cut/cut.ttl	turtle	valid	Cut
+SBOLTestSuite/SBOL3/entity/experiment/experiment.ttl	turtle	valid	Experiment
+SBOLTestSuite/SBOL3/entity/externallydefined/externallydefined.ttl	turtle	valid	ExternallyDefined
+SBOLTestSuite/SBOL3/entity/implementation/implementation.ttl	turtle	valid	Implementation
+SBOLTestSuite/SBOL3/entity/interaction/interaction.ttl	turtle	valid	Interaction
+SBOLTestSuite/SBOL3/entity/interface/interface.ttl	turtle	valid	Interface
+SBOLTestSuite/SBOL3/entity/localsubcomponent/localsubcomponent.ttl	turtle	valid	LocalSubComponent
+SBOLTestSuite/SBOL3/entity/model/model.ttl	turtle	valid	Model
+SBOLTestSuite/SBOL3/entity/participation/participation.ttl	turtle	valid	Participation
+SBOLTestSuite/SBOL3/entity/range/range.ttl	turtle	valid	Range
+SBOLTestSuite/SBOL3/entity/sequencefeature/sequencefeature.ttl	turtle	valid	SequenceFeature
+SBOLTestSuite/SBOL3/entity/subcomponent/subcomponent.ttl	turtle	valid	SubComponent
+SBOLTestSuite/SBOL3/measurement_entity/measurement/measurement.ttl	turtle	valid	OM Measure and units
+SBOLTestSuite/SBOL3/measurement_entity/measurement_using_units_From_OM/measurement_using_units_From_OM.ttl	turtle	valid	OM external units
+SBOLTestSuite/SBOL3/multicellular/multicellular.ttl	turtle	valid	multicellular design
+SBOLTestSuite/SBOL3/multicellular_simple/multicellular_simple.ttl	turtle	valid	simple multicellular design
+SBOLTestSuite/SBOL3/provenance_entity/activity/activity.ttl	turtle	valid	PROV Activity
+SBOLTestSuite/SBOL3/provenance_entity/agent/agent.ttl	turtle	valid	PROV Agent
+SBOLTestSuite/SBOL3/provenance_entity/plan/plan.ttl	turtle	valid	PROV Plan
+SBOLTestSuite/SBOL3/toggle_switch/toggle_switch.ttl	turtle	valid	toggle switch design
+SBOLTestSuite/SBOL3/toggle_switch_v2/toggle_switch_v2.ttl	turtle	valid	toggle switch v2 design
+local/experimental_data.ttl	turtle	valid	ExperimentalData
+local/variable_feature.ttl	turtle	valid	VariableFeature

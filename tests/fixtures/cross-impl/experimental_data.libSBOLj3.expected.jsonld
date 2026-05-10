@@ -1,0 +1,50 @@
+{
+    "@graph": [
+        {
+            "@id": "https://example.org/sbol-rs/fixtures/sample_measurements_csv",
+            "sbol:source": {
+                "@id": "https://example.org/sbol-rs/fixtures/sample_measurements.csv"
+            },
+            "sbol:hasNamespace": {
+                "@id": "https://example.org/sbol-rs/fixtures"
+            },
+            "sbol:format": {
+                "@id": "EDAM:format_3752"
+            },
+            "sbol:displayId": "sample_measurements_csv",
+            "@type": "sbol:Attachment"
+        },
+        {
+            "@id": "https://example.org/sbol-rs/fixtures/sample_measurements",
+            "sbol:hasNamespace": {
+                "@id": "https://example.org/sbol-rs/fixtures"
+            },
+            "sbol:hasAttachment": {
+                "@id": "https://example.org/sbol-rs/fixtures/sample_measurements_csv"
+            },
+            "sbol:displayId": "sample_measurements",
+            "@type": "sbol:ExperimentalData"
+        },
+        {
+            "@id": "https://example.org/sbol-rs/fixtures/characterization",
+            "sbol:member": {
+                "@id": "https://example.org/sbol-rs/fixtures/sample_measurements"
+            },
+            "sbol:hasNamespace": {
+                "@id": "https://example.org/sbol-rs/fixtures"
+            },
+            "sbol:displayId": "characterization",
+            "@type": "sbol:Experiment"
+        }
+    ],
+    "@context": {
+        "SBO": "https://identifiers.org/SBO:",
+        "CHEBI": "https://identifiers.org/CHEBI:",
+        "GO": "https://identifiers.org/GO:",
+        "sbol": "http://sbols.org/v3#",
+        "EDAM": "https://identifiers.org/edam:",
+        "SO": "https://identifiers.org/SO:",
+        "prov": "http://www.w3.org/ns/prov#",
+        "om": "http://www.ontology-of-units-of-measure.org/resource/om-2/"
+    }
+}

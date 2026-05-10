@@ -1,0 +1,7 @@
+# ontology	source_url	version	license	retrieved	raw_sha256	fact_sha256	notes
+EDAM	http://edamontology.org/EDAM.owl	latest stable	CC BY-SA 4.0	2026-05-10	bootstrap-cache	embedded-snapshot	Official EDAM URI page identifies EDAM.owl and EDAM.obo as machine-understandable stable downloads.
+SBO	http://purl.obolibrary.org/obo/sbo.owl	28:08:2021 03:13	Artistic License 2.0	2026-05-10	bootstrap-cache	embedded-snapshot	OBO Foundry and BioPortal list SBO as an OWL ontology with this version and license.
+SO	http://purl.obolibrary.org/obo/so.owl	current	CC BY 4.0	2026-05-10	bootstrap-cache	embedded-snapshot	OBO Foundry lists SO OWL and OBO products and license.
+GO	http://purl.obolibrary.org/obo/go/go-basic.obo	current	CC BY 4.0	2026-05-10	bootstrap-cache	embedded-snapshot	Gene Ontology recommends go-basic for annotation tools.
+CHEBI	http://purl.obolibrary.org/obo/chebi.owl	current	CC BY 4.0	2026-05-10	bootstrap-cache	embedded-snapshot	ChEBI OBO/OWL source used for future role/type compatibility slices.
+CL	http://purl.obolibrary.org/obo/cl/cl-basic.obo	current	CC BY 4.0	2026-05-12	bootstrap-cache	embedded-snapshot	Cell Ontology basic OBO subset used for Component.type cell-type classification in multicellular designs.

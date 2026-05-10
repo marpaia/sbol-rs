@@ -1,0 +1,122 @@
+{
+    "@graph": [
+        {
+            "@id": "https://example.org/sbol-rs/fixtures/promoter_b",
+            "sbol:type": {
+                "@id": "SBO:0000251"
+            },
+            "sbol:role": {
+                "@id": "SO:0000167"
+            },
+            "sbol:hasNamespace": {
+                "@id": "https://example.org/sbol-rs/fixtures"
+            },
+            "sbol:displayId": "promoter_b",
+            "@type": "sbol:Component"
+        },
+        {
+            "@id": "https://example.org/sbol-rs/fixtures/template_component",
+            "sbol:type": {
+                "@id": "SBO:0000251"
+            },
+            "sbol:role": {
+                "@id": "SO:0000167"
+            },
+            "sbol:hasNamespace": {
+                "@id": "https://example.org/sbol-rs/fixtures"
+            },
+            "sbol:hasFeature": {
+                "@id": "https://example.org/sbol-rs/fixtures/template_component/promoter_slot"
+            },
+            "sbol:displayId": "template_component",
+            "@type": "sbol:Component"
+        },
+        {
+            "@id": "https://example.org/sbol-rs/fixtures/template_component/promoter_slot",
+            "sbol:instanceOf": {
+                "@id": "https://example.org/sbol-rs/fixtures/promoter_a"
+            },
+            "sbol:displayId": "promoter_slot",
+            "@type": "sbol:SubComponent"
+        },
+        {
+            "@id": "https://example.org/sbol-rs/fixtures/promoter_a",
+            "sbol:type": {
+                "@id": "SBO:0000251"
+            },
+            "sbol:role": {
+                "@id": "SO:0000167"
+            },
+            "sbol:hasNamespace": {
+                "@id": "https://example.org/sbol-rs/fixtures"
+            },
+            "sbol:displayId": "promoter_a",
+            "@type": "sbol:Component"
+        },
+        {
+            "@id": "https://example.org/sbol-rs/fixtures/promoter_library",
+            "sbol:member": [
+                {
+                    "@id": "https://example.org/sbol-rs/fixtures/promoter_b"
+                },
+                {
+                    "@id": "https://example.org/sbol-rs/fixtures/promoter_a"
+                }
+            ],
+            "sbol:hasNamespace": {
+                "@id": "https://example.org/sbol-rs/fixtures"
+            },
+            "sbol:displayId": "promoter_library",
+            "@type": "sbol:Collection"
+        },
+        {
+            "@id": "https://example.org/sbol-rs/fixtures/promoter_derivation/promoter_slot",
+            "sbol:variantCollection": {
+                "@id": "https://example.org/sbol-rs/fixtures/promoter_library"
+            },
+            "sbol:variant": [
+                {
+                    "@id": "https://example.org/sbol-rs/fixtures/promoter_b"
+                },
+                {
+                    "@id": "https://example.org/sbol-rs/fixtures/promoter_a"
+                }
+            ],
+            "sbol:variable": {
+                "@id": "https://example.org/sbol-rs/fixtures/template_component/promoter_slot"
+            },
+            "sbol:displayId": "promoter_slot",
+            "sbol:cardinality": {
+                "@id": "sbol:one"
+            },
+            "@type": "sbol:VariableFeature"
+        },
+        {
+            "@id": "https://example.org/sbol-rs/fixtures/promoter_derivation",
+            "sbol:template": {
+                "@id": "https://example.org/sbol-rs/fixtures/template_component"
+            },
+            "sbol:strategy": {
+                "@id": "sbol:enumerate"
+            },
+            "sbol:hasVariableFeature": {
+                "@id": "https://example.org/sbol-rs/fixtures/promoter_derivation/promoter_slot"
+            },
+            "sbol:hasNamespace": {
+                "@id": "https://example.org/sbol-rs/fixtures"
+            },
+            "sbol:displayId": "promoter_derivation",
+            "@type": "sbol:CombinatorialDerivation"
+        }
+    ],
+    "@context": {
+        "SBO": "https://identifiers.org/SBO:",
+        "CHEBI": "https://identifiers.org/CHEBI:",
+        "GO": "https://identifiers.org/GO:",
+        "sbol": "http://sbols.org/v3#",
+        "EDAM": "https://identifiers.org/edam:",
+        "SO": "https://identifiers.org/SO:",
+        "prov": "http://www.w3.org/ns/prov#",
+        "om": "http://www.ontology-of-units-of-measure.org/resource/om-2/"
+    }
+}

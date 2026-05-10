@@ -1,0 +1,47 @@
+{
+    "@graph": [
+        {
+            "@id": "https://sbolstandard.org/examples/toggle_switch",
+            "sbol:type": {
+                "@id": "SBO:0000241"
+            },
+            "sbol:name": "Toggle Switch",
+            "sbol:hasNamespace": {
+                "@id": "https://sbolstandard.org/examples"
+            },
+            "sbol:hasModel": {
+                "@id": "https://sbolstandard.org/examples/model1"
+            },
+            "sbol:displayId": "toggle_switch",
+            "sbol:description": "Toggle Switch genetic circuit",
+            "@type": "sbol:Component"
+        },
+        {
+            "@id": "https://sbolstandard.org/examples/model1",
+            "sbol:source": {
+                "@id": "http://virtualparts.org"
+            },
+            "sbol:language": {
+                "@id": "EDAM:format_2585"
+            },
+            "sbol:hasNamespace": {
+                "@id": "https://sbolstandard.org"
+            },
+            "sbol:framework": {
+                "@id": "SBO:0000062"
+            },
+            "sbol:displayId": "model1",
+            "@type": "sbol:Model"
+        }
+    ],
+    "@context": {
+        "SBO": "https://identifiers.org/SBO:",
+        "CHEBI": "https://identifiers.org/CHEBI:",
+        "GO": "https://identifiers.org/GO:",
+        "sbol": "http://sbols.org/v3#",
+        "EDAM": "https://identifiers.org/edam:",
+        "SO": "https://identifiers.org/SO:",
+        "prov": "http://www.w3.org/ns/prov#",
+        "om": "http://www.ontology-of-units-of-measure.org/resource/om-2/"
+    }
+}

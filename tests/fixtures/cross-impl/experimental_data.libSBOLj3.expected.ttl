@@ -1,0 +1,27 @@
+BASE   <https://example.org/sbol-rs/fixtures/>
+PREFIX :      <https://example.org/sbol-rs/fixtures/>
+PREFIX CHEBI: <https://identifiers.org/CHEBI:>
+PREFIX EDAM:  <https://identifiers.org/edam:>
+PREFIX GO:    <https://identifiers.org/GO:>
+PREFIX SBO:   <https://identifiers.org/SBO:>
+PREFIX SO:    <https://identifiers.org/SO:>
+PREFIX om:    <http://www.ontology-of-units-of-measure.org/resource/om-2/>
+PREFIX prov:  <http://www.w3.org/ns/prov#>
+PREFIX sbol:  <http://sbols.org/v3#>
+
+:sample_measurements_csv
+        a                  sbol:Attachment;
+        sbol:displayId     "sample_measurements_csv";
+        sbol:format        EDAM:format_3752;
+        sbol:hasNamespace  <../fixtures>;
+        sbol:source        :sample_measurements.csv .
+
+:sample_measurements  a     sbol:ExperimentalData;
+        sbol:displayId      "sample_measurements";
+        sbol:hasAttachment  :sample_measurements_csv;
+        sbol:hasNamespace   <../fixtures> .
+
+:characterization  a       sbol:Experiment;
+        sbol:displayId     "characterization";
+        sbol:hasNamespace  <../fixtures>;
+        sbol:member        :sample_measurements .
