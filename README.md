@@ -1,9 +1,11 @@
 ![sbol-rs: a Rust implementation of SBOL](docs/images/sbol-rs.png)
 
 `sbol-rs` is a Rust implementation of the Synthetic Biology Open Language
-(SBOL 3.1.0): a typed API for reading, building, and rewriting SBOL
-documents, with offline validation against all 109 machine-checkable
-SBOL 3.1.0 rules.
+(SBOL 3.1.0). SBOL is the community standard for the exchange of
+synthetic biology designs across registries, design-automation tools,
+and laboratory automation pipelines. `sbol-rs` exposes a typed API for
+reading, building, and rewriting SBOL documents, with offline validation
+against all 109 machine-checkable rules.
 
 New to the codebase? Start with the [**crate guide**](docs/crate-guide.md).
 
