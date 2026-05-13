@@ -54,16 +54,16 @@ fn main() {
         let head = git_dir.join("HEAD");
         if head.exists() {
             println!("cargo:rerun-if-changed={}", head.display());
-            if let Ok(contents) = fs::read_to_string(&head) {
-                if let Some(ref_path) = contents.strip_prefix("ref: ").map(str::trim) {
-                    let ref_file = git_dir.join(ref_path);
-                    if ref_file.exists() {
-                        println!("cargo:rerun-if-changed={}", ref_file.display());
-                    }
-                    let packed_refs = git_dir.join("packed-refs");
-                    if packed_refs.exists() {
-                        println!("cargo:rerun-if-changed={}", packed_refs.display());
-                    }
+            if let Ok(contents) = fs::read_to_string(&head)
+                && let Some(ref_path) = contents.strip_prefix("ref: ").map(str::trim)
+            {
+                let ref_file = git_dir.join(ref_path);
+                if ref_file.exists() {
+                    println!("cargo:rerun-if-changed={}", ref_file.display());
+                }
+                let packed_refs = git_dir.join("packed-refs");
+                if packed_refs.exists() {
+                    println!("cargo:rerun-if-changed={}", packed_refs.display());
                 }
             }
         }
@@ -103,12 +103,12 @@ fn find_git_dir() -> Option<PathBuf> {
         }
         if candidate.is_file() {
             // git worktree: `.git` is a file pointing at the real gitdir.
-            if let Ok(contents) = fs::read_to_string(&candidate) {
-                if let Some(path) = contents.strip_prefix("gitdir: ").map(str::trim) {
-                    let resolved = cur.join(path);
-                    if resolved.exists() {
-                        return Some(resolved);
-                    }
+            if let Ok(contents) = fs::read_to_string(&candidate)
+                && let Some(path) = contents.strip_prefix("gitdir: ").map(str::trim)
+            {
+                let resolved = cur.join(path);
+                if resolved.exists() {
+                    return Some(resolved);
                 }
             }
         }
