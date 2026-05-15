@@ -93,7 +93,6 @@ pub(crate) const SBOL_MERGE_ROLES: &str = "http://sbols.org/v3#mergeRoles";
 pub(crate) const SBOL_OVERRIDE_ROLES: &str = "http://sbols.org/v3#overrideRoles";
 pub(crate) const SBOL_ENUMERATE: &str = "http://sbols.org/v3#enumerate";
 pub(crate) const SBOL_SAMPLE: &str = "http://sbols.org/v3#sample";
-pub(crate) const SBOL_ZERO: &str = "http://sbols.org/v3#zero";
 pub(crate) const SBOL_ONE: &str = "http://sbols.org/v3#one";
 pub(crate) const SBOL_ZERO_OR_ONE: &str = "http://sbols.org/v3#zeroOrOne";
 pub(crate) const SBOL_ONE_OR_MORE: &str = "http://sbols.org/v3#oneOrMore";
@@ -203,7 +202,6 @@ pub(crate) const ROLE_INTEGRATION_IRIS: &[&str] = &[SBOL_MERGE_ROLES, SBOL_OVERR
 pub(crate) const COMBINATORIAL_DERIVATION_STRATEGY_IRIS: &[&str] = &[SBOL_ENUMERATE, SBOL_SAMPLE];
 
 pub(crate) const VARIABLE_FEATURE_CARDINALITY_IRIS: &[&str] = &[
-    SBOL_ZERO,
     SBOL_ONE,
     SBOL_ZERO_OR_ONE,
     SBOL_ONE_OR_MORE,
@@ -249,7 +247,6 @@ pub(crate) const KNOWN_SBOL_VALUE_IRIS: &[&str] = &[
     SBOL_OVERRIDE_ROLES,
     SBOL_ENUMERATE,
     SBOL_SAMPLE,
-    SBOL_ZERO,
     SBOL_ONE,
     SBOL_ZERO_OR_ONE,
     SBOL_ONE_OR_MORE,

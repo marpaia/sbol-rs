@@ -111,6 +111,12 @@ pub fn cases() -> Vec<RuleCase> {
             ),
         },
         RuleCase {
+            name: "VariableFeature cardinality sbol:zero is not in Table 14",
+            rule: "sbol3-12201",
+            severity: Error,
+            body: derivation_body("", "sbol:cardinality sbol:zero;"),
+        },
+        RuleCase {
             name: "VariableFeature variable outside template",
             rule: "sbol3-12202",
             severity: Error,
@@ -202,6 +208,31 @@ fn derivation_body(
     sbol:template :template .
 <derivation/variable_feature> a sbol:VariableFeature;
     sbol:cardinality <https://example.org/bad-cardinality>;
+    sbol:displayId "variable_feature";
+    sbol:variable <template/feature>;
+    sbol:variant :variant .
+"#
+        }
+        ("", "sbol:cardinality sbol:zero;") => {
+            r#":variant a sbol:Component;
+    sbol:displayId "variant";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/feature> a sbol:SubComponent;
+    sbol:displayId "feature";
+    sbol:instanceOf :variant .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation/variable_feature>;
+    sbol:template :template .
+<derivation/variable_feature> a sbol:VariableFeature;
+    sbol:cardinality sbol:zero;
     sbol:displayId "variable_feature";
     sbol:variable <template/feature>;
     sbol:variant :variant .

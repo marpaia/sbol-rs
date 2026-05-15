@@ -576,7 +576,6 @@ impl<'a> DerivationResolver<'a> {
 
     pub(crate) fn cardinality_allows(&self, cardinality: Option<&Iri>, count: usize) -> bool {
         match cardinality.map(Iri::as_str) {
-            Some(SBOL_ZERO) => count == 0,
             Some(SBOL_ONE) => count == 1,
             Some(SBOL_ZERO_OR_ONE) => count <= 1,
             Some(SBOL_ONE_OR_MORE) => count >= 1,

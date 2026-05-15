@@ -8,6 +8,22 @@ crates: breaking changes are permitted between minor versions
 
 ## [Unreleased]
 
+### Fixed
+
+- **`sbol`**: reject `http://sbols.org/v3#zero` as a `VariableFeature`
+  cardinality. SBOL 3.1.0 Table 14 enumerates only `zeroOrOne`, `one`,
+  `zeroOrMore`, and `oneOrMore`; the previous build accepted `#zero` and
+  treated it as "count must be 0" via `cardinality_allows`. Rule
+  `sbol3-12201` now reports the value as an unsupported cardinality.
+
+### Removed
+
+- **`sbol`**: `sbol::constants::CARDINALITY_ZERO`. The constant pointed
+  at an IRI that is not in SBOL 3.1.0 Table 14 and is therefore invalid
+  as a `VariableFeature.cardinality` value. Use `CARDINALITY_ZERO_OR_ONE`
+  or `CARDINALITY_ZERO_OR_MORE` instead, depending on the intended
+  semantics.
+
 ## [0.1.0]
 
 Initial release. All four workspace crates (`sbol`, `sbol-rdf`,

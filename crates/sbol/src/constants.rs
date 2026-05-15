@@ -92,7 +92,6 @@ pub const STRATEGY_SAMPLE: Iri = Iri::from_static(vocab::SBOL_SAMPLE);
 
 // === VariableFeature.cardinality values ===
 
-pub const CARDINALITY_ZERO: Iri = Iri::from_static(vocab::SBOL_ZERO);
 pub const CARDINALITY_ONE: Iri = Iri::from_static(vocab::SBOL_ONE);
 pub const CARDINALITY_ZERO_OR_ONE: Iri = Iri::from_static(vocab::SBOL_ZERO_OR_ONE);
 pub const CARDINALITY_ONE_OR_MORE: Iri = Iri::from_static(vocab::SBOL_ONE_OR_MORE);
