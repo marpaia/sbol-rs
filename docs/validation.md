@@ -31,7 +31,7 @@ The validator is honest about its scope. SBOL 3.1.0 has 149 validation
 rules, but they are not all the same shape. Appendix B (p.2837–2840)
 marks 40 rules with the ▲ symbol: weak-REQUIRED conditions that the
 spec itself says are NOT to be machine-reported. Of the remaining 109
-machine-checkable rules, **108 are fully implemented (99.1%)**. The
+machine-checkable rules, **all 109 are fully implemented (100%)**. The
 [conformance report](conformance.md) carries the per-rule details and
 the freshness is enforced in CI.
 
@@ -60,11 +60,11 @@ three are implementations; the last two record what's missing.
 
 | Status | Count | What it means |
 |---|---|---|
-| `Error` | 54 | Algorithm complete; MUST violations emit as `Severity::Error`. |
+| `Error` | 55 | Algorithm complete; MUST violations emit as `Severity::Error`. |
 | `Warning` | 17 | Algorithm complete; SHOULD violations emit as `Severity::Warning`. |
 | `Configurable` | 37 | Algorithm complete; behavior varies with configuration. The `blocker` field names which axis: `Resolver`, `Ontology` (snapshot-bounded), `Policy` (Conservative/Strict/Lenient modes), or `External` (local-only mode; full spec scope unreachable per-document). |
 | `MachineUncheckable` | 40 | Spec ▲: violations are not to be machine-reported. May have a local subset that emits warnings on positively-decidable cases. |
-| `Unimplemented` | 1 | No local algorithm yet. The `blocker` field names what's needed (Ontology data, Resolver protocol, Policy decision). |
+| `Unimplemented` | 0 | No local algorithm yet. The `blocker` field names what's needed (Ontology data, Resolver protocol, Policy decision). |
 
 The full per-rule grid lives in [conformance.md](conformance.md). It's
 generated from the catalog; regenerate after any change to

@@ -1,0 +1,13 @@
+[source]
+upstream_repo = "https://github.com/SynBioDex/sbol-owl3"
+file = "sbol3.rdf"
+url = "https://raw.githubusercontent.com/SynBioDex/sbol-owl3/ccdb58dce6e206ad1ace912808beef00c69eecf0/sbol-owl3-gen/sbol3.rdf"
+commit = "ccdb58dce6e206ad1ace912808beef00c69eecf0"
+committer_date = "2026-05-15T12:37:48Z"
+
+[integrity]
+sha256 = "b9869839b1f2be4f1c969ff29e8bdb12338e8d129ebd74df99efda95da901871"
+
+[fetched]
+at = "2026-05-15"
+tool = "crates/sbol-ontology/src/bin/update-sbol-owl3-fixture.rs"

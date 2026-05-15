@@ -102,8 +102,8 @@ needs nothing besides `cargo test`; no Docker, no JDK.
 
 A known-compliant divergence is allowlisted by adding the reference
 filename to `tests/fixtures/cross-impl/allowlist.txt` with a rationale.
-The allowlist is currently empty: sbol-rs and libSBOLj3 agree on every
-fixture in every format.
+The allowlist is currently empty: sbol-rs and libSBOLj3 produce
+equivalent normalized triple sets for every fixture in every format.
 
 To refresh the references after bumping the libSBOLj3 pin, see the
 "Cross-implementation conformance" section of [`testing.md`](testing.md).

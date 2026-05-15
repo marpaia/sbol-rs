@@ -4,8 +4,8 @@
 (SBOL 3.1.0). SBOL is the community standard for the exchange of
 synthetic biology designs across registries, design-automation tools,
 and laboratory automation pipelines. `sbol-rs` exposes a typed API for
-reading, building, and rewriting SBOL documents, with offline validation
-against all 109 machine-checkable rules.
+reading, building, and rewriting SBOL documents, plus a validator that
+covers the 109 machine-checkable rules from SBOL 3.1.0 Appendix B.
 
 New to the codebase? Start with the [**crate guide**](docs/crate-guide.md).
 
@@ -71,12 +71,15 @@ in [`crates/sbol/examples/`](crates/sbol/examples/). Run any of them with
 
 ## Validation
 
-The SBOL 3.1.0 specification defines 109 machine-checkable validation
-rules in [Appendix B](spec/SBOL3.1.0.md#b-validation-rules). `sbol`
-checks all of them offline and deterministically, with per-rule overrides
-and text / JSON / SARIF output. See [`docs/validation.md`](docs/validation.md)
-for the full overview and [`docs/conformance.md`](docs/conformance.md)
-for the per-rule status grid.
+SBOL 3.1.0 [Appendix B](spec/SBOL3.1.0.md#b-validation-rules) defines
+149 validation rules; 40 are marked as not-to-be-machine-reported.
+`sbol` implements an algorithm for each of the remaining 109, with
+configurable scope (offline by default, or resolver-backed for
+cross-document references), per-rule severity overrides, and text /
+JSON / SARIF output. [`docs/validation.md`](docs/validation.md) covers
+what's checked and the trust boundaries;
+[`docs/conformance.md`](docs/conformance.md) carries the per-rule
+status grid.
 
 ## Ontology Extensions
 

@@ -8,6 +8,35 @@ crates: breaking changes are permitted between minor versions
 
 ## [Unreleased]
 
+### Added
+
+- **`sbol`**: `owl_conformance` module exposing
+  `analyze_owl_conformance`, `render_owl_conformance_report`,
+  `OwlConformanceReport`, `OwlIdentifiers`, `OwlPinInfo`, and the
+  `OWL_ONLY_ALLOWLIST` / `RUST_ONLY_ALLOWLIST` constants. The module
+  parses a pinned copy of `sbol-owl3-gen/sbol3.rdf` from
+  [SynBioDex/sbol-owl3](https://github.com/SynBioDex/sbol-owl3) — the
+  canonical OWL serialization of the SBOL 3 data model — and compares
+  its `http://sbols.org/v3#` IRI set against the constants declared in
+  `crates/sbol/src/vocab.rs`. Two allowlists document every intentional
+  divergence; everything else is treated as actionable drift.
+- **`sbol`** (test-only): two integration tests enforce the
+  conformance contract on every `cargo test` run.
+  `sbol_owl3_conformance.rs` fails CI when the IRI surfaces drift
+  outside the allowlists or when either allowlist goes stale.
+  `sbol_owl3_conformance_report.rs` fails CI when the committed
+  report at `docs/sbol-owl3-conformance.md` is out of date.
+- **`sbol`** (tool-only): `generate-sbol-owl3-conformance-report`
+  binary that renders the auditable markdown report consumed by the
+  freshness test. See
+  [`docs/sbol-owl3-conformance.md`](docs/sbol-owl3-conformance.md)
+  for the current pinned-state coverage table and
+  [`docs/ontology-conformance.md`](docs/ontology-conformance.md) for
+  the broader regression-system design.
+- **`sbol-ontology`** (tool-only): `update-sbol-owl3-fixture` binary
+  that re-pins the fixture against the current upstream `main` commit
+  and rewrites `manifest.toml`.
+
 ### Fixed
 
 - **`sbol`**: reject `http://sbols.org/v3#zero` as a `VariableFeature`
@@ -15,6 +44,12 @@ crates: breaking changes are permitted between minor versions
   `zeroOrMore`, and `oneOrMore`; the previous build accepted `#zero` and
   treated it as "count must be 0" via `cardinality_allows`. Rule
   `sbol3-12201` now reports the value as an unsupported cardinality.
+- **`sbol`**: reject `http://sbols.org/v3#none` as a Feature or Location
+  `orientation`. SBOL 3.1.0 §6.4.1 Tables 5 and 6 enumerate exactly four
+  orientation URIs (`sbol:inline`, `sbol:reverseComplement`,
+  `SO:0001030`, `SO:0001031`); the previous build silently accepted
+  `sbol:none` because the value was in `ORIENTATION_IRIS`. Rules
+  `sbol3-10702` and `sbol3-11301` now reject the value.
 
 ### Removed
 
@@ -23,6 +58,11 @@ crates: breaking changes are permitted between minor versions
   as a `VariableFeature.cardinality` value. Use `CARDINALITY_ZERO_OR_ONE`
   or `CARDINALITY_ZERO_OR_MORE` instead, depending on the intended
   semantics.
+- **`sbol`**: `sbol::constants::ORIENTATION_NONE`. The constant pointed
+  at `http://sbols.org/v3#none`, an IRI that is not in SBOL 3.1.0 Tables
+  5 or 6 and therefore invalid as a Feature or Location `orientation`
+  value. To represent "no orientation," omit the `orientation` property
+  entirely; the spec marks it ZERO OR ONE.
 
 ## [0.1.0]
 

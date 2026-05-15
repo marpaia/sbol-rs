@@ -1104,6 +1104,7 @@ dependencies = [
  "sbol-rdf",
  "serde",
  "serde_json",
+ "sha2",
  "sha3",
  "thiserror",
  "toml",

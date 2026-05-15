@@ -118,6 +118,7 @@ mod error;
 pub mod identity;
 mod model;
 mod object;
+pub mod owl_conformance;
 pub mod prelude;
 mod resolve;
 pub mod schema;
@@ -150,6 +151,11 @@ pub use error::{BuildError, ReadError, WriteError};
 pub use identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
 pub use model::{Identified, SbolClass, TopLevel};
 pub use object::Object;
+pub use owl_conformance::{
+    OWL_ONLY_ALLOWLIST, OwlConformanceReport, OwlIdentifiers, OwlPinInfo, RUST_ONLY_ALLOWLIST,
+    analyze_owl_conformance, extract_owl_identifiers, extract_vocab_iris,
+    render_owl_conformance_report,
+};
 pub use resolve::{FeatureTrace, ObjectGraph, ReferenceError, VariantSet};
 pub use sbol_ontology::{Ontology, OntologyRegistry};
 pub use sbol_rdf::{Graph as RdfGraph, Iri, Literal, RdfFormat, Resource, Term, Triple};

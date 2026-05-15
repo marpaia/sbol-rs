@@ -206,6 +206,23 @@ pub fn cases() -> Vec<RuleCase> {
 "#,
         },
         RuleCase {
+            name: "Location orientation sbol:none is not in Table 5 or Table 6",
+            rule: "sbol3-11301",
+            severity: Error,
+            body: r#":sequence a sbol:Sequence;
+    sbol:displayId "sequence";
+    sbol:elements "ATGC";
+    sbol:encoding EDAM:format_1207;
+    sbol:hasNamespace <https://example.org> .
+:range a sbol:Range;
+    sbol:displayId "range";
+    sbol:end "2";
+    sbol:hasSequence :sequence;
+    sbol:orientation sbol:none;
+    sbol:start "1" .
+"#,
+        },
+        RuleCase {
             name: "Feature Location sequence outside parent Component",
             rule: "sbol3-11302",
             severity: Error,

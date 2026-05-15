@@ -88,7 +88,6 @@ pub(crate) const SBOL_VARIANT_DERIVATION: &str = "http://sbols.org/v3#variantDer
 pub(crate) const SBOL_VARIANT_MEASURE: &str = "http://sbols.org/v3#variantMeasure";
 pub(crate) const SBOL_INLINE: &str = "http://sbols.org/v3#inline";
 pub(crate) const SBOL_REVERSE_COMPLEMENT: &str = "http://sbols.org/v3#reverseComplement";
-pub(crate) const SBOL_NONE: &str = "http://sbols.org/v3#none";
 pub(crate) const SBOL_MERGE_ROLES: &str = "http://sbols.org/v3#mergeRoles";
 pub(crate) const SBOL_OVERRIDE_ROLES: &str = "http://sbols.org/v3#overrideRoles";
 pub(crate) const SBOL_ENUMERATE: &str = "http://sbols.org/v3#enumerate";
@@ -192,7 +191,6 @@ pub(crate) const OM_HAS_TERM2: &str =
 pub(crate) const ORIENTATION_IRIS: &[&str] = &[
     SBOL_INLINE,
     SBOL_REVERSE_COMPLEMENT,
-    SBOL_NONE,
     SO_INLINE,
     SO_REVERSE_COMPLEMENT,
 ];
@@ -242,7 +240,6 @@ pub(crate) const SEQUENTIAL_RESTRICTION_IRIS: &[&str] = &[
 pub(crate) const KNOWN_SBOL_VALUE_IRIS: &[&str] = &[
     SBOL_INLINE,
     SBOL_REVERSE_COMPLEMENT,
-    SBOL_NONE,
     SBOL_MERGE_ROLES,
     SBOL_OVERRIDE_ROLES,
     SBOL_ENUMERATE,

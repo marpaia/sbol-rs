@@ -36,3 +36,9 @@ a coverage signal. Read these in order:
 
 - [Test architecture](testing.md): regression cases, fixtures, fuzz
   targets, property tests, cross-implementation conformance harness.
+- [SBOL schema conformance regression](ontology-conformance.md):
+  pinned `sbol-owl3` fixture, the IRI-level cross-check against
+  `vocab.rs`, and how to refresh the pin.
+- [`sbol-owl3` conformance report](sbol-owl3-conformance.md):
+  generated per-IRI coverage table. Regenerate with
+  `cargo run -p sbol --bin generate-sbol-owl3-conformance-report`.

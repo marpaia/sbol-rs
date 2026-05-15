@@ -78,7 +78,6 @@ pub const EDAM_INCHI: Iri = Iri::from_static("https://identifiers.org/edam:forma
 
 pub const ORIENTATION_INLINE: Iri = Iri::from_static(vocab::SBOL_INLINE);
 pub const ORIENTATION_REVERSE_COMPLEMENT: Iri = Iri::from_static(vocab::SBOL_REVERSE_COMPLEMENT);
-pub const ORIENTATION_NONE: Iri = Iri::from_static(vocab::SBOL_NONE);
 
 // === SubComponent.roleIntegration values ===
 
