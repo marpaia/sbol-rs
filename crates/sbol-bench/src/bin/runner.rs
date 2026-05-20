@@ -9,7 +9,10 @@
 //! sbol-rs row pays the same Linux-VM overhead as every other row.
 //!
 //! Usage:
-//!     runner <input> <parse_fmt> <serialize_fmt> <warmup> <iters> <output_json>
+//!
+//! ```text
+//! runner <input> <parse_fmt> <serialize_fmt> <warmup> <iters> <output_json>
+//! ```
 
 use std::fs;
 use std::path::PathBuf;

@@ -1,0 +1,25 @@
+LOCUS       BBa_R0010                200 bp    DNA     linear       20-May-2026
+DEFINITION  promoter (lacI regulated)
+ACCESSION   BBa_R0010
+VERSION     BBa_R0010.1
+FEATURES             Location/Qualifiers
+     CDS             1..88
+                     /label=end of LacI coding region (inactive)
+     misc_feature    1..200
+                     /label=BBa_R0010
+     misc_feature    89..126
+                     /label=CAP binding site
+     promoter        137..142
+                     /label=-35
+     promoter        161..166
+                     /label=-10
+     misc_feature    166..200
+                     /label=LacI binding site
+     misc_feature    173..173
+                     /label=start
+ORIGIN
+        1 caatacgcaa accgcctctc cccgcgcgtt ggccgattca ttaatgcagc tggcacgaca
+       61 ggtttcccga ctggaaagcg ggcagtgagc gcaacgcaat taatgtgagt tagctcactc
+      121 attaggcacc ccaggcttta cactttatgc ttccggctcg tatgttgtgt ggaattgtga
+      181 gcggataaca atttcacaca
+//

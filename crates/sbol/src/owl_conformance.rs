@@ -6,8 +6,9 @@
 //! - The bundled SBOL vocabulary: every `http://sbols.org/v3#X` IRI that
 //!   appears as a string constant in `vocab.rs`. Compiled in via
 //!   `include_str!`.
-//! - A serialized OWL document from [SynBioDex/sbol-owl3]
-//!   (https://github.com/SynBioDex/sbol-owl3), parsed at runtime. The
+//! - A serialized OWL document from
+//!   [SynBioDex/sbol-owl3](https://github.com/SynBioDex/sbol-owl3),
+//!   parsed at runtime. The
 //!   library accepts the RDF/XML payload as a `&str`; callers (binaries
 //!   and the integration test) load it from
 //!   `tests/fixtures/sbol-owl3/sbol3.rdf`.

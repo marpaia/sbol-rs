@@ -1,0 +1,43 @@
+@prefix sbol: <http://sbols.org/v2#> .
+@prefix biopax: <http://www.biopax.org/release/biopax-level3.owl#> .
+@prefix so: <https://identifiers.org/SO:> .
+
+<https://example.org/lab/expression_cassette/1>
+    a sbol:ComponentDefinition ;
+    sbol:persistentIdentity <https://example.org/lab/expression_cassette> ;
+    sbol:displayId "expression_cassette" ;
+    sbol:version "1" ;
+    sbol:type biopax:Dna ;
+    sbol:role so:0000804 ;
+    sbol:component <https://example.org/lab/expression_cassette/promoter_sub/1> ;
+    sbol:component <https://example.org/lab/expression_cassette/cds_sub/1> .
+
+<https://example.org/lab/expression_cassette/promoter_sub/1>
+    a sbol:Component ;
+    sbol:persistentIdentity <https://example.org/lab/expression_cassette/promoter_sub> ;
+    sbol:displayId "promoter_sub" ;
+    sbol:version "1" ;
+    sbol:definition <https://example.org/lab/J23100/1> .
+
+<https://example.org/lab/expression_cassette/cds_sub/1>
+    a sbol:Component ;
+    sbol:persistentIdentity <https://example.org/lab/expression_cassette/cds_sub> ;
+    sbol:displayId "cds_sub" ;
+    sbol:version "1" ;
+    sbol:definition <https://example.org/lab/GFP/1> .
+
+<https://example.org/lab/J23100/1>
+    a sbol:ComponentDefinition ;
+    sbol:persistentIdentity <https://example.org/lab/J23100> ;
+    sbol:displayId "J23100" ;
+    sbol:version "1" ;
+    sbol:type biopax:Dna ;
+    sbol:role so:0000167 .
+
+<https://example.org/lab/GFP/1>
+    a sbol:ComponentDefinition ;
+    sbol:persistentIdentity <https://example.org/lab/GFP> ;
+    sbol:displayId "GFP" ;
+    sbol:version "1" ;
+    sbol:type biopax:Dna ;
+    sbol:role so:0000316 .

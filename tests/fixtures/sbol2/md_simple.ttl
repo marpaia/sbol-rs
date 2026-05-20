@@ -1,0 +1,41 @@
+@prefix sbol: <http://sbols.org/v2#> .
+@prefix biopax: <http://www.biopax.org/release/biopax-level3.owl#> .
+@prefix sbo: <https://identifiers.org/SBO:> .
+
+<https://example.org/lab/repressor_module/1>
+    a sbol:ModuleDefinition ;
+    sbol:persistentIdentity <https://example.org/lab/repressor_module> ;
+    sbol:displayId "repressor_module" ;
+    sbol:version "1" ;
+    sbol:functionalComponent <https://example.org/lab/repressor_module/lacI_fc/1> ;
+    sbol:interaction <https://example.org/lab/repressor_module/repression/1> .
+
+<https://example.org/lab/repressor_module/lacI_fc/1>
+    a sbol:FunctionalComponent ;
+    sbol:persistentIdentity <https://example.org/lab/repressor_module/lacI_fc> ;
+    sbol:displayId "lacI_fc" ;
+    sbol:version "1" ;
+    sbol:definition <https://example.org/lab/lacI/1> .
+
+<https://example.org/lab/repressor_module/repression/1>
+    a sbol:Interaction ;
+    sbol:persistentIdentity <https://example.org/lab/repressor_module/repression> ;
+    sbol:displayId "repression" ;
+    sbol:version "1" ;
+    sbol:type sbo:0000169 ;
+    sbol:participation <https://example.org/lab/repressor_module/repression/inhibitor/1> .
+
+<https://example.org/lab/repressor_module/repression/inhibitor/1>
+    a sbol:Participation ;
+    sbol:persistentIdentity <https://example.org/lab/repressor_module/repression/inhibitor> ;
+    sbol:displayId "inhibitor" ;
+    sbol:version "1" ;
+    sbol:role sbo:0000020 ;
+    sbol:participant <https://example.org/lab/repressor_module/lacI_fc/1> .
+
+<https://example.org/lab/lacI/1>
+    a sbol:ComponentDefinition ;
+    sbol:persistentIdentity <https://example.org/lab/lacI> ;
+    sbol:displayId "lacI" ;
+    sbol:version "1" ;
+    sbol:type biopax:Protein .

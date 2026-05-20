@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:its="http://www.w3.org/2005/11/its">
+	<Sequence xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620_sequence">
+		<displayId xmlns="http://sbols.org/v2#">BBa_F2620_sequence</displayId>
+		<elements xmlns="http://sbols.org/v2#">tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcactactagagaaagaggagaaatactagatgaaaaacataaatgccgacgacacatacagaataattaataaaattaaagcttgtagaagcaataatgatattaatcaatgcttatctgatatgactaaaatggtacattgtgaatattatttactcgcgatcatttatcctcattctatggttaaatctgatatttcaatcctagataattaccctaaaaaatggaggcaatattatgatgacgctaatttaataaaatatgatcctatagtagattattctaactccaatcattcaccaattaattggaatatatttgaaaacaatgctgtaaataaaaaatctccaaatgtaattaaagaagcgaaaacatcaggtcttatcactgggtttagtttccctattcatacggctaacaatggcttcggaatgcttagttttgcacattcagaaaaagacaactatatagatagtttatttttacatgcgtgtatgaacataccattaattgttccttctctagttgataattatcgaaaaataaatatagcaaataataaatcaaacaacgatttaaccaaaagagaaaaagaatgtttagcgtgggcatgcgaaggaaaaagctcttgggatatttcaaaaatattaggttgcagtgagcgtactgtcactttccatttaaccaatgcgcaaatgaaactcaatacaacaaaccgctgccaaagtatttctaaagcaattttaacaggagcaattgattgcccatactttaaaaattaataacactgatagtgctagtgtagatcactactagagccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttgtttgtcggtgaacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttatatactagagacctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaa</elements>
+		<encoding xmlns="http://sbols.org/v2#" rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/>
+	</Sequence>
+	<ComponentDefinition xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620">
+		<displayId xmlns="http://sbols.org/v2#">BBa_F2620</displayId>
+		<title xmlns="http://purl.org/dc/terms/">3OC&lt;sub&gt;6&lt;/sub&gt;HSL -&gt; PoPS Receiver</title>
+		<type xmlns="http://sbols.org/v2#" rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/>
+		<type xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000987"/>
+		<sequence xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620_sequence"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_1"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_2"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040_2"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/conserved"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0034"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/prefix"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/A"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/luxR"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/Help_Barcodes"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062_2"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stem_loop"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010_2"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T7_TE"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stop"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/polya"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012_2"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0015"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/LuxR_HSL"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35_2"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10_2"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/start"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062_2"/>
+	</ComponentDefinition>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_1">
+		<displayId xmlns="http://sbols.org/v2#">TetR_1</displayId>
+		<title xmlns="http://purl.org/dc/terms/">TetR 1</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_1/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040">
+		<displayId xmlns="http://sbols.org/v2#">BBa_R0040</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_R0040</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35">
+		<displayId xmlns="http://sbols.org/v2#">_35</displayId>
+		<title xmlns="http://purl.org/dc/terms/">-35</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000167"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_2">
+		<displayId xmlns="http://sbols.org/v2#">TetR_2</displayId>
+		<title xmlns="http://purl.org/dc/terms/">TetR 2</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_2/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10">
+		<displayId xmlns="http://sbols.org/v2#">_10</displayId>
+		<title xmlns="http://purl.org/dc/terms/">-10</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000167"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040_2">
+		<displayId xmlns="http://sbols.org/v2#">BBa_R0040_2</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_R0040</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000167"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040_2/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/conserved">
+		<displayId xmlns="http://sbols.org/v2#">conserved</displayId>
+		<title xmlns="http://purl.org/dc/terms/">conserved</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/conserved/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0034">
+		<displayId xmlns="http://sbols.org/v2#">BBa_B0034</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_B0034</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000139"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0034/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/prefix">
+		<displayId xmlns="http://sbols.org/v2#">prefix</displayId>
+		<title xmlns="http://purl.org/dc/terms/">prefix</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/prefix/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T">
+		<displayId xmlns="http://sbols.org/v2#">T</displayId>
+		<title xmlns="http://purl.org/dc/terms/">T</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/A">
+		<displayId xmlns="http://sbols.org/v2#">A</displayId>
+		<title xmlns="http://purl.org/dc/terms/">A</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/A/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/luxR">
+		<displayId xmlns="http://sbols.org/v2#">luxR</displayId>
+		<title xmlns="http://purl.org/dc/terms/">luxR</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000316"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/luxR/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062">
+		<displayId xmlns="http://sbols.org/v2#">BBa_C0062</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_C0062</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/Help_Barcodes">
+		<displayId xmlns="http://sbols.org/v2#">Help_Barcodes</displayId>
+		<title xmlns="http://purl.org/dc/terms/">Help:Barcodes</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/Help_Barcodes/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062_2">
+		<displayId xmlns="http://sbols.org/v2#">BBa_C0062_2</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_C0062</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000316"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062_2/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stem_loop">
+		<displayId xmlns="http://sbols.org/v2#">stem_loop</displayId>
+		<title xmlns="http://purl.org/dc/terms/">stem_loop</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000313"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stem_loop/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010">
+		<displayId xmlns="http://sbols.org/v2#">BBa_B0010</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_B0010</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010_2">
+		<displayId xmlns="http://sbols.org/v2#">BBa_B0010_2</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_B0010</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000141"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010_2/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T7_TE">
+		<displayId xmlns="http://sbols.org/v2#">T7_TE</displayId>
+		<title xmlns="http://purl.org/dc/terms/">T7 TE</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000313"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T7_TE/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stop">
+		<displayId xmlns="http://sbols.org/v2#">stop</displayId>
+		<title xmlns="http://purl.org/dc/terms/">stop</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stop/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/polya">
+		<displayId xmlns="http://sbols.org/v2#">polya</displayId>
+		<title xmlns="http://purl.org/dc/terms/">polya</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000553"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/polya/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012">
+		<displayId xmlns="http://sbols.org/v2#">BBa_B0012</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_B0012</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012_2">
+		<displayId xmlns="http://sbols.org/v2#">BBa_B0012_2</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_B0012</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000141"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012_2/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0015">
+		<displayId xmlns="http://sbols.org/v2#">BBa_B0015</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_B0015</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000141"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0015/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/LuxR_HSL">
+		<displayId xmlns="http://sbols.org/v2#">LuxR_HSL</displayId>
+		<title xmlns="http://purl.org/dc/terms/">LuxR/HSL</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/LuxR_HSL/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35_2">
+		<displayId xmlns="http://sbols.org/v2#">_35_2</displayId>
+		<title xmlns="http://purl.org/dc/terms/">-35</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000167"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35_2/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10_2">
+		<displayId xmlns="http://sbols.org/v2#">_10_2</displayId>
+		<title xmlns="http://purl.org/dc/terms/">-10</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000167"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10_2/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/start">
+		<displayId xmlns="http://sbols.org/v2#">start</displayId>
+		<title xmlns="http://purl.org/dc/terms/">start</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/start/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062">
+		<displayId xmlns="http://sbols.org/v2#">BBa_R0062</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_R0062</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062_2">
+		<displayId xmlns="http://sbols.org/v2#">BBa_R0062_2</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_R0062</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000167"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062_2/range"/>
+	</SequenceAnnotation>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_1/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">1</start>
+		<end xmlns="http://sbols.org/v2#">19</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">1</start>
+		<end xmlns="http://sbols.org/v2#">54</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">20</start>
+		<end xmlns="http://sbols.org/v2#">25</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_2/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">26</start>
+		<end xmlns="http://sbols.org/v2#">44</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">43</start>
+		<end xmlns="http://sbols.org/v2#">48</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040_2/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">1</start>
+		<end xmlns="http://sbols.org/v2#">54</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/conserved/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">67</start>
+		<end xmlns="http://sbols.org/v2#">70</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0034/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">63</start>
+		<end xmlns="http://sbols.org/v2#">74</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/prefix/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">81</start>
+		<end xmlns="http://sbols.org/v2#">82</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">254</start>
+		<end xmlns="http://sbols.org/v2#">254</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/A/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">572</start>
+		<end xmlns="http://sbols.org/v2#">572</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/luxR/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">81</start>
+		<end xmlns="http://sbols.org/v2#">830</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">81</start>
+		<end xmlns="http://sbols.org/v2#">836</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/Help_Barcodes/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">837</start>
+		<end xmlns="http://sbols.org/v2#">861</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062_2/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">81</start>
+		<end xmlns="http://sbols.org/v2#">836</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stem_loop/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">881</start>
+		<end xmlns="http://sbols.org/v2#">924</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">870</start>
+		<end xmlns="http://sbols.org/v2#">949</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010_2/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">870</start>
+		<end xmlns="http://sbols.org/v2#">949</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T7_TE/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">965</start>
+		<end xmlns="http://sbols.org/v2#">984</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stop/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">991</start>
+		<end xmlns="http://sbols.org/v2#">991</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/polya/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">985</start>
+		<end xmlns="http://sbols.org/v2#">998</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">958</start>
+		<end xmlns="http://sbols.org/v2#">998</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012_2/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">958</start>
+		<end xmlns="http://sbols.org/v2#">998</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0015/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">870</start>
+		<end xmlns="http://sbols.org/v2#">998</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/LuxR_HSL/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">1007</start>
+		<end xmlns="http://sbols.org/v2#">1026</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35_2/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">1026</start>
+		<end xmlns="http://sbols.org/v2#">1031</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10_2/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">1048</start>
+		<end xmlns="http://sbols.org/v2#">1053</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/start/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">1059</start>
+		<end xmlns="http://sbols.org/v2#">1059</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">1007</start>
+		<end xmlns="http://sbols.org/v2#">1061</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062_2/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">1007</start>
+		<end xmlns="http://sbols.org/v2#">1061</end>
+	</Range>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/A">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/A"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/A/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/A/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010_2">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010_2"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010_2/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0010_2/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012_2">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012_2"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012_2/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0012_2/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0015">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0015"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0015/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0015/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0034">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0034"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0034/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_B0034/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062_2">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062_2"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062_2/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_C0062_2/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040_2">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040_2"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040_2/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0040_2/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062_2">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062_2"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062_2/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/BBa_R0062_2/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/Help_Barcodes">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/Help_Barcodes"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/Help_Barcodes/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/Help_Barcodes/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/LuxR_HSL">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/LuxR_HSL"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/LuxR_HSL/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/LuxR_HSL/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T7_TE">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T7_TE"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T7_TE/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/T7_TE/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_1">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_1"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_1/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_1/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_2">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_2"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_2/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/TetR_2/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10_2">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10_2"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10_2/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_10_2/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35_2">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35_2"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35_2/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/_35_2/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/conserved">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/conserved"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/conserved/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/conserved/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/luxR">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/luxR"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/luxR/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/luxR/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/polya">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/polya"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/polya/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/polya/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/prefix">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/prefix"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/prefix/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/prefix/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/start">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/start"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/start/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/start/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stem_loop">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stem_loop"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stem_loop/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stem_loop/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stop">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stop"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stop/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620/stop/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620_sequence">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_F2620/BBa_F2620_sequence"/>
+	</rdf:Description>
+</rdf:RDF>

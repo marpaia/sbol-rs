@@ -1,0 +1,55 @@
+@prefix sbol: <http://sbols.org/v2#> .
+@prefix biopax: <http://www.biopax.org/release/biopax-level3.owl#> .
+
+<https://example.org/lab/outer_md/1>
+    a sbol:ModuleDefinition ;
+    sbol:persistentIdentity <https://example.org/lab/outer_md> ;
+    sbol:displayId "outer_md" ;
+    sbol:version "1" ;
+    sbol:functionalComponent <https://example.org/lab/outer_md/local_fc/1> ;
+    sbol:module <https://example.org/lab/outer_md/sub_module/1> .
+
+<https://example.org/lab/outer_md/local_fc/1>
+    a sbol:FunctionalComponent ;
+    sbol:persistentIdentity <https://example.org/lab/outer_md/local_fc> ;
+    sbol:displayId "local_fc" ;
+    sbol:version "1" ;
+    sbol:definition <https://example.org/lab/widget/1> .
+
+<https://example.org/lab/outer_md/sub_module/1>
+    a sbol:Module ;
+    sbol:persistentIdentity <https://example.org/lab/outer_md/sub_module> ;
+    sbol:displayId "sub_module" ;
+    sbol:version "1" ;
+    sbol:definition <https://example.org/lab/inner_md/1> ;
+    sbol:mapsTo <https://example.org/lab/outer_md/sub_module/widget_map/1> .
+
+<https://example.org/lab/outer_md/sub_module/widget_map/1>
+    a sbol:MapsTo ;
+    sbol:persistentIdentity <https://example.org/lab/outer_md/sub_module/widget_map> ;
+    sbol:displayId "widget_map" ;
+    sbol:version "1" ;
+    sbol:refinement <http://sbols.org/v2#merge> ;
+    sbol:local <https://example.org/lab/outer_md/local_fc/1> ;
+    sbol:remote <https://example.org/lab/inner_md/inner_fc/1> .
+
+<https://example.org/lab/inner_md/1>
+    a sbol:ModuleDefinition ;
+    sbol:persistentIdentity <https://example.org/lab/inner_md> ;
+    sbol:displayId "inner_md" ;
+    sbol:version "1" ;
+    sbol:functionalComponent <https://example.org/lab/inner_md/inner_fc/1> .
+
+<https://example.org/lab/inner_md/inner_fc/1>
+    a sbol:FunctionalComponent ;
+    sbol:persistentIdentity <https://example.org/lab/inner_md/inner_fc> ;
+    sbol:displayId "inner_fc" ;
+    sbol:version "1" ;
+    sbol:definition <https://example.org/lab/widget/1> .
+
+<https://example.org/lab/widget/1>
+    a sbol:ComponentDefinition ;
+    sbol:persistentIdentity <https://example.org/lab/widget> ;
+    sbol:displayId "widget" ;
+    sbol:version "1" ;
+    sbol:type biopax:Protein .

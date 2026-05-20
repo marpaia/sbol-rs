@@ -1,0 +1,27 @@
+[package]
+name = "sbol-genbank"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+description = "GenBank → SBOL 3 importer for the sbol-rs ecosystem. Parses GenBank flat-file records via gb-io and emits native sbol::Document objects."
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/sbol-genbank"
+license.workspace = true
+readme = "README.md"
+keywords = ["sbol", "genbank", "synthetic-biology", "bioinformatics"]
+categories = ["science", "parser-implementations"]
+exclude = ["tests/", "src/bin/"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+gb-io.workspace = true
+sbol.workspace = true
+sbol-rdf.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
