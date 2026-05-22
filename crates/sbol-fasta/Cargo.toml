@@ -1,0 +1,26 @@
+[package]
+name = "sbol-fasta"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+description = "FASTA → SBOL 3 importer for the sbol-rs ecosystem. Pure-Rust, zero new transitive dependencies."
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/sbol-fasta"
+license.workspace = true
+readme = "README.md"
+keywords = ["sbol", "fasta", "synthetic-biology", "bioinformatics"]
+categories = ["science", "parser-implementations"]
+exclude = ["tests/", "src/bin/"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+sbol.workspace = true
+sbol-rdf.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

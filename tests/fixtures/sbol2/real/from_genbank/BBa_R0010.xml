@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:its="http://www.w3.org/2005/11/its">
+	<Sequence xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010_sequence">
+		<displayId xmlns="http://sbols.org/v2#">BBa_R0010_sequence</displayId>
+		<elements xmlns="http://sbols.org/v2#">caatacgcaaaccgcctctccccgcgcgttggccgattcattaatgcagctggcacgacaggtttcccgactggaaagcgggcagtgagcgcaacgcaattaatgtgagttagctcactcattaggcaccccaggctttacactttatgcttccggctcgtatgttgtgtggaattgtgagcggataacaatttcacaca</elements>
+		<encoding xmlns="http://sbols.org/v2#" rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/>
+	</Sequence>
+	<ComponentDefinition xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010">
+		<displayId xmlns="http://sbols.org/v2#">BBa_R0010</displayId>
+		<title xmlns="http://purl.org/dc/terms/">promoter (lacI regulated)</title>
+		<type xmlns="http://sbols.org/v2#" rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/>
+		<type xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000987"/>
+		<sequence xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010_sequence"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/end_of_LacI_coding_region__inactive_"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/BBa_R0010"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/CAP_binding_site"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_35"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_10"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/LacI_binding_site"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/start"/>
+	</ComponentDefinition>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/end_of_LacI_coding_region__inactive_">
+		<displayId xmlns="http://sbols.org/v2#">end_of_LacI_coding_region__inactive_</displayId>
+		<title xmlns="http://purl.org/dc/terms/">end of LacI coding region (inactive)</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000316"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/end_of_LacI_coding_region__inactive_/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/BBa_R0010">
+		<displayId xmlns="http://sbols.org/v2#">BBa_R0010</displayId>
+		<title xmlns="http://purl.org/dc/terms/">BBa_R0010</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/BBa_R0010/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/CAP_binding_site">
+		<displayId xmlns="http://sbols.org/v2#">CAP_binding_site</displayId>
+		<title xmlns="http://purl.org/dc/terms/">CAP binding site</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/CAP_binding_site/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_35">
+		<displayId xmlns="http://sbols.org/v2#">_35</displayId>
+		<title xmlns="http://purl.org/dc/terms/">-35</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000167"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_35/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_10">
+		<displayId xmlns="http://sbols.org/v2#">_10</displayId>
+		<title xmlns="http://purl.org/dc/terms/">-10</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000167"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_10/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/LacI_binding_site">
+		<displayId xmlns="http://sbols.org/v2#">LacI_binding_site</displayId>
+		<title xmlns="http://purl.org/dc/terms/">LacI binding site</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/LacI_binding_site/range"/>
+	</SequenceAnnotation>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/start">
+		<displayId xmlns="http://sbols.org/v2#">start</displayId>
+		<title xmlns="http://purl.org/dc/terms/">start</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/start/range"/>
+	</SequenceAnnotation>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/end_of_LacI_coding_region__inactive_/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">1</start>
+		<end xmlns="http://sbols.org/v2#">88</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/BBa_R0010/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">1</start>
+		<end xmlns="http://sbols.org/v2#">200</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/CAP_binding_site/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">89</start>
+		<end xmlns="http://sbols.org/v2#">126</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_35/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">137</start>
+		<end xmlns="http://sbols.org/v2#">142</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_10/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">161</start>
+		<end xmlns="http://sbols.org/v2#">166</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/LacI_binding_site/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">166</start>
+		<end xmlns="http://sbols.org/v2#">200</end>
+	</Range>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/start/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">173</start>
+		<end xmlns="http://sbols.org/v2#">173</end>
+	</Range>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/BBa_R0010">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/BBa_R0010"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/BBa_R0010/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/BBa_R0010/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/CAP_binding_site">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/CAP_binding_site"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/CAP_binding_site/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/CAP_binding_site/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/LacI_binding_site">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/LacI_binding_site"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/LacI_binding_site/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/LacI_binding_site/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_10">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_10"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_10/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_10/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_35">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_35"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_35/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/_35/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/end_of_LacI_coding_region__inactive_">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/end_of_LacI_coding_region__inactive_"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/end_of_LacI_coding_region__inactive_/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/end_of_LacI_coding_region__inactive_/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/start">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/start"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/start/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010/start/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010_sequence">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_R0010/BBa_R0010_sequence"/>
+	</rdf:Description>
+</rdf:RDF>

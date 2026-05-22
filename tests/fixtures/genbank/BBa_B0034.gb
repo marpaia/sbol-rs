@@ -1,0 +1,10 @@
+LOCUS       BBa_B0034                 12 bp    DNA     linear       20-May-2026
+DEFINITION  RBS (Elowitz 1999) -- defines RBS efficiency
+ACCESSION   BBa_B0034
+VERSION     BBa_B0034.1
+FEATURES             Location/Qualifiers
+     misc_feature    5..8
+                     /label=conserved
+ORIGIN
+        1 aaagaggaga aa
+//

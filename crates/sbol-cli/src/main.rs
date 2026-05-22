@@ -12,9 +12,11 @@ use std::process::ExitCode;
 use clap::{Parser, Subcommand, ValueEnum};
 
 use sbol::{
-    Blocker, Document, ExternalValidationMode, FileResolver, NormativeSeverity, RdfFormat,
-    ReadError, RuleStatus, Severity, ValidationContext, ValidationIssue, ValidationOptions,
-    ValidationReport, ValidationRuleStatus, WriteError, validation_rule_statuses,
+    Blocker, Document, DowngradeOptions, DowngradeWarning, ExternalValidationMode, FileResolver,
+    MapsToSide, NamespaceSource, NormativeSeverity, RdfFormat, ReadError, RuleStatus, Severity,
+    UpgradeCounts, UpgradeOptions, UpgradeReport, UpgradeWarning, ValidationContext,
+    ValidationIssue, ValidationOptions, ValidationReport, ValidationRuleStatus, WriteError,
+    validation_rule_statuses,
 };
 use sbol_ontology::{KnownOntology, OntologyCache, OntologyDescriptor};
 use serde_json::{Value, json};
@@ -109,6 +111,14 @@ enum Command {
     Validate(ValidateArgs),
     /// Convert an SBOL 3 document between RDF serializations.
     Convert(ConvertArgs),
+    /// Upgrade an SBOL 2 RDF document to SBOL 3.
+    Upgrade(UpgradeArgs),
+    /// Downgrade an SBOL 3 RDF document to SBOL 2.
+    Downgrade(DowngradeArgs),
+    /// Import a GenBank file (.gb / .gbk) into SBOL 3.
+    ImportGenbank(ImportGenbankArgs),
+    /// Import a FASTA file (.fasta / .fa / .fna / .faa) into SBOL 3.
+    ImportFasta(ImportFastaArgs),
     /// Inspect the built-in validation rule catalog.
     #[command(subcommand)]
     Rules(RulesCommand),
@@ -315,6 +325,184 @@ struct ValidateArgs {
     ontology: Vec<String>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+enum UpgradeReportFormat {
+    None,
+    Text,
+    Json,
+}
+
+#[derive(clap::Args)]
+struct UpgradeArgs {
+    /// Path to an SBOL 2 RDF document. Input format is inferred from the
+    /// extension — `.ttl` (Turtle), `.rdf` / `.xml` (RDF/XML), `.jsonld`
+    /// (JSON-LD), or `.nt` (N-Triples). Use `--from` to override.
+    path: PathBuf,
+
+    /// Override the input format inference. Useful for SBOL 2 files
+    /// distributed with non-standard extensions.
+    #[arg(long, value_enum, value_name = "FORMAT")]
+    from: Option<RdfFormatArg>,
+
+    /// Target SBOL 3 RDF serialization. If omitted, inferred from
+    /// `--output`'s extension.
+    #[arg(long, value_enum, value_name = "FORMAT")]
+    to: Option<RdfFormatArg>,
+
+    /// Destination path for the SBOL 3 output. Use `-` (the default) for
+    /// stdout; in that case `--to` is required.
+    #[arg(long, short = 'o', default_value = "-")]
+    output: String,
+
+    /// Default `hasNamespace` value for top-level objects whose namespace
+    /// cannot be derived from the input. Without this flag, such objects
+    /// fall back to the URL scheme+host or, failing that, omit
+    /// `hasNamespace` entirely.
+    #[arg(long, value_name = "IRI")]
+    namespace: Option<String>,
+
+    /// Where to write the conversion report.
+    #[arg(long, value_enum, default_value_t = UpgradeReportFormat::None)]
+    report: UpgradeReportFormat,
+
+    /// Exit with status 1 if any conversion warnings were produced.
+    #[arg(long)]
+    strict: bool,
+
+    /// Run SBOL 3 validation on the converted document and fold the result
+    /// into the exit code: code 1 if validation finds errors.
+    #[arg(long)]
+    validate: bool,
+}
+
+#[derive(clap::Args)]
+struct DowngradeArgs {
+    /// Path to an SBOL 3 RDF document. Input format is inferred from
+    /// the extension (`.ttl`, `.rdf` / `.xml`, `.jsonld`, `.nt`).
+    path: PathBuf,
+
+    /// Override the input format inference. Useful for SBOL 3 RDF files
+    /// distributed with non-standard extensions.
+    #[arg(long, value_enum, value_name = "FORMAT")]
+    from: Option<RdfFormatArg>,
+
+    /// Target SBOL 2 RDF serialization. If omitted, inferred from
+    /// `--output`'s extension.
+    #[arg(long, value_enum, value_name = "FORMAT")]
+    to: Option<RdfFormatArg>,
+
+    /// Destination path. Use `-` (the default) for stdout; in that
+    /// case `--to` is required.
+    #[arg(long, short = 'o', default_value = "-")]
+    output: String,
+
+    /// Version string assigned to top-level objects whose source
+    /// document didn't carry `backport:sbol2version`. Omit to leave
+    /// such subjects unversioned (SBOL 2 makes `sbol2:version`
+    /// optional); pass `--default-version 1` to match the libSBOLj /
+    /// SynBioHub convention of always emitting one.
+    #[arg(long, value_name = "VERSION")]
+    default_version: Option<String>,
+
+    /// Validate the downgrade by round-tripping the produced SBOL 2
+    /// back up through `sbol::upgrade` and running SBOL 3 validation
+    /// on the result. There is no native SBOL 2 validator in this
+    /// workspace, so this round-trip is the proxy for structural
+    /// correctness. Exit code 1 on validation errors.
+    #[arg(long)]
+    validate: bool,
+
+    /// Exit with status 1 if any downgrade warnings were produced.
+    #[arg(long)]
+    strict: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+enum FastaAlphabetArg {
+    Dna,
+    Rna,
+    Protein,
+}
+
+impl From<FastaAlphabetArg> for sbol_fasta::Alphabet {
+    fn from(value: FastaAlphabetArg) -> Self {
+        match value {
+            FastaAlphabetArg::Dna => sbol_fasta::Alphabet::Dna,
+            FastaAlphabetArg::Rna => sbol_fasta::Alphabet::Rna,
+            FastaAlphabetArg::Protein => sbol_fasta::Alphabet::Protein,
+        }
+    }
+}
+
+#[derive(clap::Args)]
+struct ImportFastaArgs {
+    /// Path to a FASTA file (`.fasta` / `.fa` / `.fna` / `.faa`).
+    path: PathBuf,
+
+    /// Namespace IRI under which the resulting SBOL 3 top-level
+    /// objects will be rooted. Required because FASTA carries no
+    /// namespace concept.
+    #[arg(long, short = 'n', value_name = "IRI")]
+    namespace: String,
+
+    /// Override alphabet auto-detection. Pass when the sequence text
+    /// is ambiguous (e.g. a short peptide composed only of A/C/G/T
+    /// letters that would otherwise be misclassified as DNA).
+    #[arg(long, value_enum, value_name = "ALPHABET")]
+    alphabet: Option<FastaAlphabetArg>,
+
+    /// Target SBOL 3 RDF serialization. If omitted, inferred from
+    /// `--output`'s extension.
+    #[arg(long, value_enum, value_name = "FORMAT")]
+    to: Option<RdfFormatArg>,
+
+    /// Destination path. Use `-` (the default) for stdout; in that
+    /// case `--to` is required.
+    #[arg(long, short = 'o', default_value = "-")]
+    output: String,
+
+    /// Run SBOL 3 validation on the converted document and fold the
+    /// result into the exit code: code 1 if validation finds errors.
+    #[arg(long)]
+    validate: bool,
+
+    /// Exit with status 1 if any import warnings were produced.
+    #[arg(long)]
+    strict: bool,
+}
+
+#[derive(clap::Args)]
+struct ImportGenbankArgs {
+    /// Path to a GenBank flat-file (`.gb` / `.gbk`). Mixed-case month
+    /// names in the LOCUS line (as emitted by SynBioHub) are tolerated.
+    path: PathBuf,
+
+    /// Namespace IRI under which the resulting SBOL 3 top-level
+    /// objects will be rooted. Required because GenBank carries no
+    /// namespace concept.
+    #[arg(long, short = 'n', value_name = "IRI")]
+    namespace: String,
+
+    /// Target SBOL 3 RDF serialization. If omitted, inferred from
+    /// `--output`'s extension.
+    #[arg(long, value_enum, value_name = "FORMAT")]
+    to: Option<RdfFormatArg>,
+
+    /// Destination path. Use `-` (the default) for stdout; in that
+    /// case `--to` is required.
+    #[arg(long, short = 'o', default_value = "-")]
+    output: String,
+
+    /// Run SBOL 3 validation on the converted document and fold the
+    /// result into the exit code: code 1 if validation finds errors.
+    #[arg(long)]
+    validate: bool,
+
+    /// Exit with status 1 if any import warnings were produced.
+    #[arg(long)]
+    strict: bool,
+}
+
 #[derive(clap::Args)]
 struct ConvertArgs {
     /// Path to an SBOL 3 document. Input format is inferred from the
@@ -354,6 +542,10 @@ fn main() -> ExitCode {
     match cli.command {
         Command::Validate(args) => validate(args, styles),
         Command::Convert(args) => convert(args, styles),
+        Command::Upgrade(args) => upgrade(args, styles),
+        Command::Downgrade(args) => downgrade(args, styles),
+        Command::ImportGenbank(args) => import_genbank(args, styles),
+        Command::ImportFasta(args) => import_fasta(args, styles),
         Command::Rules(command) => rules(command, styles),
         Command::Ontology(command) => ontology(command, styles),
     }
@@ -762,6 +954,35 @@ fn read_document(path: &Path, styles: Styles) -> Result<Document, ExitCode> {
     }
 }
 
+fn read_document_with_format(
+    path: &Path,
+    format: RdfFormat,
+    styles: Styles,
+) -> Result<Document, ExitCode> {
+    let input = match fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(err) => {
+            eprintln!(
+                "{}: failed to read {}: {err}",
+                styles.err_label(),
+                path.display()
+            );
+            return Err(ExitCode::from(2));
+        }
+    };
+    match Document::read(&input, format) {
+        Ok(document) => Ok(document),
+        Err(error) => {
+            eprintln!(
+                "{}: failed to parse {} as {format}: {error}",
+                styles.err_label(),
+                path.display()
+            );
+            Err(ExitCode::from(2))
+        }
+    }
+}
+
 fn convert(args: ConvertArgs, styles: Styles) -> ExitCode {
     let writing_to_stdout = args.output == "-";
     let target_format = match args.to {
@@ -833,6 +1054,775 @@ fn convert(args: ConvertArgs, styles: Styles) -> ExitCode {
         return ExitCode::from(2);
     }
     ExitCode::SUCCESS
+}
+
+/// Maps a path to an RDF format, treating `.xml` as RDF/XML for SBOL
+/// conversion commands. The library's strict `from_path` rejects `.xml` as
+/// ambiguous, but SBOL files from SynBioHub, iGEM, and the SBOLTestSuite
+/// commonly use that extension for RDF/XML.
+fn infer_conversion_rdf_format(path: &Path) -> Option<RdfFormat> {
+    if let Some(format) = RdfFormat::from_path(path) {
+        return Some(format);
+    }
+    let extension = path.extension()?.to_str()?.to_ascii_lowercase();
+    if extension == "xml" {
+        return Some(RdfFormat::RdfXml);
+    }
+    None
+}
+
+fn upgrade(args: UpgradeArgs, styles: Styles) -> ExitCode {
+    let writing_to_stdout = args.output == "-";
+    let target_format = match args.to {
+        Some(format) => RdfFormat::from(format),
+        None => {
+            if writing_to_stdout {
+                eprintln!(
+                    "{}: --to is required when writing to stdout; \
+                     pass --to <FORMAT> or --output <PATH>",
+                    styles.err_label()
+                );
+                return ExitCode::from(2);
+            }
+            match infer_conversion_rdf_format(Path::new(&args.output)) {
+                Some(format) => format,
+                None => {
+                    eprintln!(
+                        "{}: cannot infer target format from `{}` — pass --to <FORMAT> \
+                         (one of: turtle, rdfxml, jsonld, ntriples)",
+                        styles.err_label(),
+                        args.output
+                    );
+                    return ExitCode::from(2);
+                }
+            }
+        }
+    };
+
+    let mut options = UpgradeOptions::default();
+    if let Some(ns) = args.namespace.as_deref() {
+        match sbol::Iri::new(ns) {
+            Ok(iri) => options.default_namespace = Some(iri),
+            Err(err) => {
+                eprintln!("{}: invalid --namespace `{ns}`: {err}", styles.err_label());
+                return ExitCode::from(2);
+            }
+        }
+    }
+
+    let format = match args.from {
+        Some(format) => RdfFormat::from(format),
+        None => match infer_conversion_rdf_format(&args.path) {
+            Some(format) => format,
+            None => {
+                let ext = args
+                    .path
+                    .extension()
+                    .and_then(|ext| ext.to_str())
+                    .unwrap_or("<none>");
+                eprintln!(
+                    "{}: unsupported extension `{ext}` for {} — pass --from <FORMAT> \
+                     (one of: turtle, rdfxml, jsonld, ntriples)",
+                    styles.err_label(),
+                    args.path.display()
+                );
+                return ExitCode::from(2);
+            }
+        },
+    };
+    let input = match fs::read_to_string(&args.path) {
+        Ok(text) => text,
+        Err(err) => {
+            eprintln!(
+                "{}: failed to read {}: {err}",
+                styles.err_label(),
+                args.path.display()
+            );
+            return ExitCode::from(2);
+        }
+    };
+
+    let (document, report) = match Document::upgrade_from_sbol2_with(&input, format, options) {
+        Ok(pair) => pair,
+        Err(err) => {
+            eprintln!(
+                "{}: failed to upgrade {}: {err}",
+                styles.err_label(),
+                args.path.display()
+            );
+            return ExitCode::from(2);
+        }
+    };
+
+    let payload = match document.write(target_format) {
+        Ok(payload) => payload,
+        Err(err) => {
+            eprintln!(
+                "{}: failed to serialize as {target_format}: {err}",
+                styles.err_label()
+            );
+            return ExitCode::from(2);
+        }
+    };
+
+    if writing_to_stdout {
+        let mut stdout = io::stdout().lock();
+        if let Err(err) = stdout.write_all(payload.as_bytes()) {
+            eprintln!("{}: failed to write output: {err}", styles.err_label());
+            return ExitCode::from(2);
+        }
+        if !payload.ends_with('\n') && stdout.write_all(b"\n").is_err() {
+            return ExitCode::from(2);
+        }
+    } else if let Err(err) = fs::write(&args.output, payload) {
+        eprintln!(
+            "{}: failed to write {}: {err}",
+            styles.err_label(),
+            args.output
+        );
+        return ExitCode::from(2);
+    }
+
+    emit_upgrade_report(&report, args.report, styles);
+
+    if args.strict && !report.is_clean() {
+        return ExitCode::from(1);
+    }
+
+    if args.validate {
+        let validation = document.validate();
+        if validation.has_errors() {
+            for issue in validation.issues() {
+                eprintln!("{}", format_issue(issue, &args.path, styles.stderr));
+            }
+            return ExitCode::from(1);
+        }
+    }
+    ExitCode::SUCCESS
+}
+
+fn emit_upgrade_report(report: &UpgradeReport, format: UpgradeReportFormat, _styles: Styles) {
+    match format {
+        UpgradeReportFormat::None => {}
+        UpgradeReportFormat::Text => {
+            let counts = report.counts();
+            eprintln!("{}", format_upgrade_counts(counts));
+            for warning in report.warnings() {
+                eprintln!("warning: {}", format_upgrade_warning(warning));
+            }
+        }
+        UpgradeReportFormat::Json => {
+            let payload = format_upgrade_report_json(report);
+            eprintln!("{payload}");
+        }
+    }
+}
+
+fn format_upgrade_counts(counts: &UpgradeCounts) -> String {
+    format!(
+        "upgrade summary: {} CD→Component, {} MD→Component, {} SubComponent, \
+         {} SequenceFeature, {} SA collapsed onto SubComponent, \
+         {} MapsTo decomposed, {} Interface synthesized, \
+         {} Location.hasSequence inferred",
+        counts.component_definitions,
+        counts.module_definitions,
+        counts.sub_components,
+        counts.sequence_features,
+        counts.sequence_annotations_collapsed,
+        counts.mapstos_decomposed,
+        counts.interfaces_synthesized,
+        counts.locations_with_inferred_sequence,
+    )
+}
+
+fn namespace_source_label(source: &NamespaceSource) -> &'static str {
+    match source {
+        NamespaceSource::UrlOrigin => "derived from URL scheme+host",
+        NamespaceSource::DefaultOption => "fell back to --namespace value",
+        NamespaceSource::None => "no namespace assigned",
+        _ => "unknown source",
+    }
+}
+
+fn namespace_source_token(source: &NamespaceSource) -> &'static str {
+    match source {
+        NamespaceSource::UrlOrigin => "url_origin",
+        NamespaceSource::DefaultOption => "default_option",
+        NamespaceSource::None => "none",
+        _ => "unknown",
+    }
+}
+
+fn mapsto_side_token(side: &MapsToSide) -> &'static str {
+    match side {
+        MapsToSide::Local => "local",
+        MapsToSide::Remote => "remote",
+        MapsToSide::Carrier => "carrier",
+        _ => "unknown",
+    }
+}
+
+fn format_upgrade_warning(warning: &UpgradeWarning) -> String {
+    match warning {
+        UpgradeWarning::NamespaceFallback { subject, source } => format!(
+            "namespace fallback for <{subject}>: {}",
+            namespace_source_label(source)
+        ),
+        UpgradeWarning::UnresolvedMapsTo { mapsto, side } => format!(
+            "unresolved MapsTo <{mapsto}>: {} side did not resolve",
+            mapsto_side_token(side)
+        ),
+        UpgradeWarning::UnsupportedRefinement { mapsto, refinement } => {
+            format!("MapsTo <{mapsto}> uses refinement <{refinement}> with no SBOL 3 equivalent")
+        }
+        UpgradeWarning::SequenceAnnotationWithComponent { annotation } => format!(
+            "SequenceAnnotation <{annotation}> references a Component; \
+             upgrade collapsed it onto the referenced SubComponent"
+        ),
+        UpgradeWarning::UnknownSbol2Type {
+            subject,
+            sbol2_type,
+        } => format!("subject <{subject}> has unrecognized SBOL 2 type <{sbol2_type}>"),
+        UpgradeWarning::LocationWithoutSequence {
+            location,
+            component,
+            sequence_count,
+        } => format!(
+            "location <{location}> on component <{component}> has no inferable sbol3:hasSequence \
+             (component owns {sequence_count} sequences — need exactly 1)"
+        ),
+        UpgradeWarning::IdentityCollision { canonical, sources } => format!(
+            "{} distinct SBOL 2 subjects canonicalize to <{canonical}>; the SBOL 3 output \
+             merges their triples into a single subject. Sources: {}",
+            sources.len(),
+            sources
+                .iter()
+                .map(|s| format!("<{s}>"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        ),
+        _ => "unrecognized upgrade warning".to_string(),
+    }
+}
+
+fn format_upgrade_report_json(report: &UpgradeReport) -> String {
+    let counts = report.counts();
+    let counts_json = json!({
+        "component_definitions": counts.component_definitions,
+        "module_definitions": counts.module_definitions,
+        "sub_components": counts.sub_components,
+        "sequence_features": counts.sequence_features,
+        "sequence_annotations_collapsed": counts.sequence_annotations_collapsed,
+        "mapstos_decomposed": counts.mapstos_decomposed,
+        "interfaces_synthesized": counts.interfaces_synthesized,
+        "locations_with_inferred_sequence": counts.locations_with_inferred_sequence,
+    });
+    let warnings: Vec<Value> = report
+        .warnings()
+        .iter()
+        .map(|w| match w {
+            UpgradeWarning::NamespaceFallback { subject, source } => json!({
+                "kind": "namespace_fallback",
+                "subject": subject,
+                "source": namespace_source_token(source),
+            }),
+            UpgradeWarning::UnresolvedMapsTo { mapsto, side } => json!({
+                "kind": "unresolved_mapsto",
+                "mapsto": mapsto,
+                "side": mapsto_side_token(side),
+            }),
+            UpgradeWarning::UnsupportedRefinement { mapsto, refinement } => json!({
+                "kind": "unsupported_refinement",
+                "mapsto": mapsto,
+                "refinement": refinement,
+            }),
+            UpgradeWarning::SequenceAnnotationWithComponent { annotation } => json!({
+                "kind": "sequence_annotation_with_component",
+                "annotation": annotation,
+            }),
+            UpgradeWarning::UnknownSbol2Type {
+                subject,
+                sbol2_type,
+            } => json!({
+                "kind": "unknown_sbol2_type",
+                "subject": subject,
+                "sbol2_type": sbol2_type,
+            }),
+            UpgradeWarning::LocationWithoutSequence {
+                location,
+                component,
+                sequence_count,
+            } => json!({
+                "kind": "location_without_sequence",
+                "location": location,
+                "component": component,
+                "sequence_count": sequence_count,
+            }),
+            UpgradeWarning::IdentityCollision { canonical, sources } => json!({
+                "kind": "identity_collision",
+                "canonical": canonical,
+                "sources": sources,
+            }),
+            _ => json!({ "kind": "unknown" }),
+        })
+        .collect();
+    let payload = json!({ "counts": counts_json, "warnings": warnings });
+    serde_json::to_string_pretty(&payload).unwrap_or_else(|_| payload.to_string())
+}
+
+fn downgrade(args: DowngradeArgs, styles: Styles) -> ExitCode {
+    let writing_to_stdout = args.output == "-";
+    let input_format = match args.from {
+        Some(format) => RdfFormat::from(format),
+        None => match infer_conversion_rdf_format(&args.path) {
+            Some(format) => format,
+            None => {
+                let ext = args
+                    .path
+                    .extension()
+                    .and_then(|ext| ext.to_str())
+                    .unwrap_or("<none>");
+                eprintln!(
+                    "{}: unsupported extension `{ext}` for {} — pass --from <FORMAT> \
+                     (one of: turtle, rdfxml, jsonld, ntriples)",
+                    styles.err_label(),
+                    args.path.display()
+                );
+                return ExitCode::from(2);
+            }
+        },
+    };
+    let target_format = match args.to {
+        Some(format) => RdfFormat::from(format),
+        None => {
+            if writing_to_stdout {
+                eprintln!(
+                    "{}: --to is required when writing to stdout; \
+                     pass --to <FORMAT> or --output <PATH>",
+                    styles.err_label()
+                );
+                return ExitCode::from(2);
+            }
+            match infer_conversion_rdf_format(Path::new(&args.output)) {
+                Some(format) => format,
+                None => {
+                    eprintln!(
+                        "{}: cannot infer target format from `{}` — pass --to <FORMAT> \
+                         (one of: turtle, rdfxml, jsonld, ntriples)",
+                        styles.err_label(),
+                        args.output
+                    );
+                    return ExitCode::from(2);
+                }
+            }
+        }
+    };
+
+    let document = match read_document_with_format(&args.path, input_format, styles) {
+        Ok(doc) => doc,
+        Err(code) => return code,
+    };
+
+    let mut options = DowngradeOptions::default();
+    options.default_version = args.default_version;
+    let (sbol2_graph, report) = match document.downgrade_to_sbol2_with(options) {
+        Ok(pair) => pair,
+        Err(err) => {
+            eprintln!("{}: downgrade failed: {err}", styles.err_label());
+            return ExitCode::from(2);
+        }
+    };
+
+    let payload = match sbol2_graph.write(target_format) {
+        Ok(payload) => payload,
+        Err(err) => {
+            eprintln!(
+                "{}: failed to serialize as {target_format}: {err}",
+                styles.err_label()
+            );
+            return ExitCode::from(2);
+        }
+    };
+
+    if writing_to_stdout {
+        let mut stdout = io::stdout().lock();
+        if let Err(err) = stdout.write_all(payload.as_bytes()) {
+            eprintln!("{}: failed to write output: {err}", styles.err_label());
+            return ExitCode::from(2);
+        }
+        if !payload.ends_with('\n') && stdout.write_all(b"\n").is_err() {
+            return ExitCode::from(2);
+        }
+    } else if let Err(err) = fs::write(&args.output, payload) {
+        eprintln!(
+            "{}: failed to write {}: {err}",
+            styles.err_label(),
+            args.output
+        );
+        return ExitCode::from(2);
+    }
+
+    // Print the conversion summary to stderr — same style as upgrade.
+    let counts = report.counts();
+    eprintln!(
+        "downgraded: {} CD, {} MD, {} split-into-both, {} SubComponent, \
+         {} SequenceFeature, {} MapsTo, {} backport-restored, {} synthesized{}",
+        counts.components_to_component_definition,
+        counts.components_to_module_definition,
+        counts.components_split_into_both,
+        counts.sub_components_emitted,
+        counts.sequence_features_emitted,
+        counts.maps_to_reconstructed,
+        counts.identities_restored_from_backport,
+        counts.identities_synthesized,
+        if report.warnings().is_empty() {
+            String::new()
+        } else {
+            format!(", {} warning(s)", report.warnings().len())
+        }
+    );
+    for warning in report.warnings() {
+        eprintln!("  warning: {}", format_downgrade_warning(warning));
+    }
+
+    if args.strict && !report.is_clean() {
+        return ExitCode::from(1);
+    }
+
+    if args.validate {
+        // Round-trip: upgrade the produced SBOL 2 back to SBOL 3,
+        // then run the SBOL 3 validator. This is the closest thing
+        // we have to an SBOL 2 validator without bundling one.
+        let sbol2_text = match sbol2_graph.write(RdfFormat::Turtle) {
+            Ok(t) => t,
+            Err(err) => {
+                eprintln!(
+                    "{}: round-trip serialization failed: {err}",
+                    styles.err_label()
+                );
+                return ExitCode::from(2);
+            }
+        };
+        match Document::upgrade_from_sbol2(&sbol2_text, RdfFormat::Turtle) {
+            Ok((re_upgraded, _)) => {
+                let validation = re_upgraded.validate();
+                if validation.has_errors() {
+                    for issue in validation.issues() {
+                        eprintln!("{}", format_issue(issue, &args.path, styles.stderr));
+                    }
+                    return ExitCode::from(1);
+                }
+            }
+            Err(err) => {
+                eprintln!(
+                    "{}: --validate round-trip failed at the re-upgrade step: {err}",
+                    styles.err_label()
+                );
+                return ExitCode::from(1);
+            }
+        }
+    }
+    ExitCode::SUCCESS
+}
+
+fn format_downgrade_warning(warning: &DowngradeWarning) -> String {
+    match warning {
+        DowngradeWarning::DualRoleComponent {
+            component,
+            component_definition,
+            module_definition,
+        } => format!(
+            "Component <{component}> carries both structure and function; \
+             split into ComponentDefinition <{component_definition}> + \
+             ModuleDefinition <{module_definition}>"
+        ),
+        DowngradeWarning::UnresolvableConstraintToMapsTo { constraint, reason } => {
+            format!("Constraint <{constraint}> couldn't fold back into a MapsTo: {reason}")
+        }
+        DowngradeWarning::OrphanComponentReference {
+            component_reference,
+        } => format!(
+            "ComponentReference <{component_reference}> had no matching Constraint — dropped"
+        ),
+        DowngradeWarning::UnsupportedSbol3Type {
+            subject,
+            sbol3_type,
+        } => format!(
+            "subject <{subject}> has SBOL 3 type <{sbol3_type}> with no SBOL 2 equivalent — dropped"
+        ),
+        DowngradeWarning::SynthesizedVersion { subject, version } => format!(
+            "subject <{subject}> had no backport version; synthesized version \"{version}\""
+        ),
+        DowngradeWarning::IdentityCollision { canonical, sources } => format!(
+            "{} distinct SBOL 3 subjects rewrite to <{canonical}>; the SBOL 2 output \
+             merges their triples into a single subject. Sources: {}",
+            sources.len(),
+            sources
+                .iter()
+                .map(|s| format!("<{s}>"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        ),
+        other => format!("downgrade warning: {other:?}"),
+    }
+}
+
+fn import_genbank(args: ImportGenbankArgs, styles: Styles) -> ExitCode {
+    let writing_to_stdout = args.output == "-";
+    let target_format = match args.to {
+        Some(format) => RdfFormat::from(format),
+        None => {
+            if writing_to_stdout {
+                eprintln!(
+                    "{}: --to is required when writing to stdout; \
+                     pass --to <FORMAT> or --output <PATH>",
+                    styles.err_label()
+                );
+                return ExitCode::from(2);
+            }
+            match RdfFormat::from_path(Path::new(&args.output)) {
+                Some(format) => format,
+                None => {
+                    eprintln!(
+                        "{}: cannot infer target format from `{}` — pass --to <FORMAT> \
+                         (one of: turtle, rdfxml, jsonld, ntriples)",
+                        styles.err_label(),
+                        args.output
+                    );
+                    return ExitCode::from(2);
+                }
+            }
+        }
+    };
+
+    let importer = match sbol_genbank::GenbankImporter::new(&args.namespace) {
+        Ok(importer) => importer,
+        Err(err) => {
+            eprintln!(
+                "{}: invalid --namespace `{}`: {err}",
+                styles.err_label(),
+                args.namespace
+            );
+            return ExitCode::from(2);
+        }
+    };
+
+    let (document, report) = match importer.read_path(&args.path) {
+        Ok(pair) => pair,
+        Err(err) => {
+            eprintln!(
+                "{}: failed to import {}: {err}",
+                styles.err_label(),
+                args.path.display()
+            );
+            return ExitCode::from(2);
+        }
+    };
+
+    let payload = match document.write(target_format) {
+        Ok(payload) => payload,
+        Err(err) => {
+            eprintln!(
+                "{}: failed to serialize as {target_format}: {err}",
+                styles.err_label()
+            );
+            return ExitCode::from(2);
+        }
+    };
+
+    if writing_to_stdout {
+        let mut stdout = io::stdout().lock();
+        if let Err(err) = stdout.write_all(payload.as_bytes()) {
+            eprintln!("{}: failed to write output: {err}", styles.err_label());
+            return ExitCode::from(2);
+        }
+        if !payload.ends_with('\n') && stdout.write_all(b"\n").is_err() {
+            return ExitCode::from(2);
+        }
+    } else if let Err(err) = fs::write(&args.output, payload) {
+        eprintln!(
+            "{}: failed to write {}: {err}",
+            styles.err_label(),
+            args.output
+        );
+        return ExitCode::from(2);
+    }
+
+    // Always print the import summary to stderr — it's the user's
+    // signal that the conversion actually picked up the right number of
+    // Components, Sequences, and Features. Mirrors the `sbol upgrade`
+    // summary line.
+    eprintln!(
+        "imported: {} Component(s), {} Sequence(s), {} SequenceFeature(s){}",
+        report.components,
+        report.sequences,
+        report.features,
+        if report.warnings.is_empty() {
+            String::new()
+        } else {
+            format!(", {} warning(s)", report.warnings.len())
+        }
+    );
+    for warning in &report.warnings {
+        eprintln!("  warning: {}", format_import_warning(warning));
+    }
+
+    if args.strict && !report.is_clean() {
+        return ExitCode::from(1);
+    }
+
+    if args.validate {
+        let validation = document.validate();
+        if validation.has_errors() {
+            for issue in validation.issues() {
+                eprintln!("{}", format_issue(issue, &args.path, styles.stderr));
+            }
+            return ExitCode::from(1);
+        }
+    }
+    ExitCode::SUCCESS
+}
+
+fn import_fasta(args: ImportFastaArgs, styles: Styles) -> ExitCode {
+    let writing_to_stdout = args.output == "-";
+    let target_format = match args.to {
+        Some(format) => RdfFormat::from(format),
+        None => {
+            if writing_to_stdout {
+                eprintln!(
+                    "{}: --to is required when writing to stdout; \
+                     pass --to <FORMAT> or --output <PATH>",
+                    styles.err_label()
+                );
+                return ExitCode::from(2);
+            }
+            match RdfFormat::from_path(Path::new(&args.output)) {
+                Some(format) => format,
+                None => {
+                    eprintln!(
+                        "{}: cannot infer target format from `{}` — pass --to <FORMAT> \
+                         (one of: turtle, rdfxml, jsonld, ntriples)",
+                        styles.err_label(),
+                        args.output
+                    );
+                    return ExitCode::from(2);
+                }
+            }
+        }
+    };
+
+    let mut importer = match sbol_fasta::FastaImporter::new(&args.namespace) {
+        Ok(importer) => importer,
+        Err(err) => {
+            eprintln!(
+                "{}: invalid --namespace `{}`: {err}",
+                styles.err_label(),
+                args.namespace
+            );
+            return ExitCode::from(2);
+        }
+    };
+    if let Some(alphabet) = args.alphabet {
+        importer = importer.with_alphabet(alphabet.into());
+    }
+
+    let (document, report) = match importer.read_path(&args.path) {
+        Ok(pair) => pair,
+        Err(err) => {
+            eprintln!(
+                "{}: failed to import {}: {err}",
+                styles.err_label(),
+                args.path.display()
+            );
+            return ExitCode::from(2);
+        }
+    };
+
+    let payload = match document.write(target_format) {
+        Ok(payload) => payload,
+        Err(err) => {
+            eprintln!(
+                "{}: failed to serialize as {target_format}: {err}",
+                styles.err_label()
+            );
+            return ExitCode::from(2);
+        }
+    };
+
+    if writing_to_stdout {
+        let mut stdout = io::stdout().lock();
+        if let Err(err) = stdout.write_all(payload.as_bytes()) {
+            eprintln!("{}: failed to write output: {err}", styles.err_label());
+            return ExitCode::from(2);
+        }
+        if !payload.ends_with('\n') && stdout.write_all(b"\n").is_err() {
+            return ExitCode::from(2);
+        }
+    } else if let Err(err) = fs::write(&args.output, payload) {
+        eprintln!(
+            "{}: failed to write {}: {err}",
+            styles.err_label(),
+            args.output
+        );
+        return ExitCode::from(2);
+    }
+
+    eprintln!(
+        "imported: {} Component(s), {} Sequence(s) ({} DNA, {} RNA, {} protein){}",
+        report.components,
+        report.sequences,
+        report.dna_records,
+        report.rna_records,
+        report.protein_records,
+        if report.warnings.is_empty() {
+            String::new()
+        } else {
+            format!(", {} warning(s)", report.warnings.len())
+        }
+    );
+    for warning in &report.warnings {
+        eprintln!("  warning: {}", format_fasta_import_warning(warning));
+    }
+
+    if args.strict && !report.is_clean() {
+        return ExitCode::from(1);
+    }
+
+    if args.validate {
+        let validation = document.validate();
+        if validation.has_errors() {
+            for issue in validation.issues() {
+                eprintln!("{}", format_issue(issue, &args.path, styles.stderr));
+            }
+            return ExitCode::from(1);
+        }
+    }
+    ExitCode::SUCCESS
+}
+
+fn format_fasta_import_warning(warning: &sbol_fasta::ImportWarning) -> String {
+    match warning {
+        sbol_fasta::ImportWarning::EmptyRecord { record_id } => {
+            format!("record `{record_id}` has no sequence body")
+        }
+        _ => "unrecognized fasta import warning".to_string(),
+    }
+}
+
+fn format_import_warning(warning: &sbol_genbank::ImportWarning) -> String {
+    match warning {
+        sbol_genbank::ImportWarning::UnknownFeatureKey { kind } => {
+            format!("unrecognized GenBank feature key `{kind}` — fell back to SO:0000110")
+        }
+        sbol_genbank::ImportWarning::LossyLocation { feature, reason } => {
+            format!("feature `{feature}`: lossy location — {reason}")
+        }
+        sbol_genbank::ImportWarning::SynthesizedIdentifier => {
+            "GenBank record had no ACCESSION or LOCUS name; synthesized `imported_record`"
+                .to_string()
+        }
+        _ => "unrecognized import warning".to_string(),
+    }
 }
 
 fn rules(command: RulesCommand, styles: Styles) -> ExitCode {

@@ -1,0 +1,85 @@
+LOCUS       BBa_F2620               1061 bp    DNA     linear       20-May-2026
+DEFINITION  3OC<sub>6</sub>HSL -> PoPS Receiver
+ACCESSION   BBa_F2620
+VERSION     BBa_F2620.1
+FEATURES             Location/Qualifiers
+     misc_feature    1..19
+                     /label=TetR 1
+     misc_feature    1..54
+                     /label=BBa_R0040
+     promoter        20..25
+                     /label=-35
+     misc_feature    26..44
+                     /label=TetR 2
+     promoter        43..48
+                     /label=-10
+     promoter        1..54
+                     /label=BBa_R0040
+     misc_feature    67..70
+                     /label=conserved
+     RBS             63..74
+                     /label=BBa_B0034
+     misc_feature    81..82
+                     /label=prefix
+     misc_feature    254..254
+                     /label=T
+     misc_feature    572..572
+                     /label=A
+     CDS             81..830
+                     /label=luxR
+     misc_feature    81..836
+                     /label=BBa_C0062
+     misc_feature    837..861
+                     /label=Help:Barcodes
+     CDS             81..836
+                     /label=BBa_C0062
+     stem_loop       881..924
+                     /label=stem_loop
+     misc_feature    870..949
+                     /label=BBa_B0010
+     terminator      870..949
+                     /label=BBa_B0010
+     stem_loop       965..984
+                     /label=T7 TE
+     misc_feature    991..991
+                     /label=stop
+     polyA_site      985..998
+                     /label=polya
+     misc_feature    958..998
+                     /label=BBa_B0012
+     terminator      958..998
+                     /label=BBa_B0012
+     terminator      870..998
+                     /label=BBa_B0015
+     misc_feature    1007..1026
+                     /label=LuxR/HSL
+     promoter        1026..1031
+                     /label=-35
+     promoter        1048..1053
+                     /label=-10
+     misc_feature    1059..1059
+                     /label=start
+     misc_feature    1007..1061
+                     /label=BBa_R0062
+     promoter        1007..1061
+                     /label=BBa_R0062
+ORIGIN
+        1 tccctatcag tgatagagat tgacatccct atcagtgata gagatactga gcactactag
+       61 agaaagagga gaaatactag atgaaaaaca taaatgccga cgacacatac agaataatta
+      121 ataaaattaa agcttgtaga agcaataatg atattaatca atgcttatct gatatgacta
+      181 aaatggtaca ttgtgaatat tatttactcg cgatcattta tcctcattct atggttaaat
+      241 ctgatatttc aatcctagat aattacccta aaaaatggag gcaatattat gatgacgcta
+      301 atttaataaa atatgatcct atagtagatt attctaactc caatcattca ccaattaatt
+      361 ggaatatatt tgaaaacaat gctgtaaata aaaaatctcc aaatgtaatt aaagaagcga
+      421 aaacatcagg tcttatcact gggtttagtt tccctattca tacggctaac aatggcttcg
+      481 gaatgcttag ttttgcacat tcagaaaaag acaactatat agatagttta tttttacatg
+      541 cgtgtatgaa cataccatta attgttcctt ctctagttga taattatcga aaaataaata
+      601 tagcaaataa taaatcaaac aacgatttaa ccaaaagaga aaaagaatgt ttagcgtggg
+      661 catgcgaagg aaaaagctct tgggatattt caaaaatatt aggttgcagt gagcgtactg
+      721 tcactttcca tttaaccaat gcgcaaatga aactcaatac aacaaaccgc tgccaaagta
+      781 tttctaaagc aattttaaca ggagcaattg attgcccata ctttaaaaat taataacact
+      841 gatagtgcta gtgtagatca ctactagagc caggcatcaa ataaaacgaa aggctcagtc
+      901 gaaagactgg gcctttcgtt ttatctgttg tttgtcggtg aacgctctct actagagtca
+      961 cactggctca ccttcgggtg ggcctttctg cgtttatata ctagagacct gtaggatcgt
+     1021 acaggtttac gcaagaaaat ggtttgttat agtcgaataa a
+//

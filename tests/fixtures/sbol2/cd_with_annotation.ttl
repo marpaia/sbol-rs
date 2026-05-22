@@ -1,0 +1,39 @@
+@prefix sbol: <http://sbols.org/v2#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix biopax: <http://www.biopax.org/release/biopax-level3.owl#> .
+@prefix so: <https://identifiers.org/SO:> .
+
+<https://example.org/lab/insulator/1>
+    a sbol:ComponentDefinition ;
+    sbol:persistentIdentity <https://example.org/lab/insulator> ;
+    sbol:displayId "insulator" ;
+    sbol:version "1" ;
+    sbol:type biopax:Dna ;
+    sbol:role so:0000627 ;
+    sbol:sequence <https://example.org/lab/insulator_seq/1> ;
+    sbol:sequenceAnnotation <https://example.org/lab/insulator/spacer_annot/1> .
+
+<https://example.org/lab/insulator/spacer_annot/1>
+    a sbol:SequenceAnnotation ;
+    sbol:persistentIdentity <https://example.org/lab/insulator/spacer_annot> ;
+    sbol:displayId "spacer_annot" ;
+    sbol:version "1" ;
+    sbol:role so:0000167 ;
+    sbol:location <https://example.org/lab/insulator/spacer_annot/range/1> .
+
+<https://example.org/lab/insulator/spacer_annot/range/1>
+    a sbol:Range ;
+    sbol:persistentIdentity <https://example.org/lab/insulator/spacer_annot/range> ;
+    sbol:displayId "range" ;
+    sbol:version "1" ;
+    sbol:start 10 ;
+    sbol:end 35 ;
+    sbol:orientation sbol:inline .
+
+<https://example.org/lab/insulator_seq/1>
+    a sbol:Sequence ;
+    sbol:persistentIdentity <https://example.org/lab/insulator_seq> ;
+    sbol:displayId "insulator_seq" ;
+    sbol:version "1" ;
+    sbol:elements "tagcatgcgctcaaaccgcgtttaatggcaccgta" ;
+    sbol:encoding <http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html> .

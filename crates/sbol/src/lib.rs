@@ -114,15 +114,19 @@ mod client;
 mod conformance;
 pub mod constants;
 mod document;
+pub mod downgrade;
 mod error;
 pub mod identity;
+mod iri_util;
 mod model;
 mod object;
 pub mod owl_conformance;
 pub mod prelude;
 mod resolve;
+mod sbol2_vocab;
 pub mod schema;
 mod specification;
+pub mod upgrade;
 mod validation;
 mod vocab;
 
@@ -146,7 +150,11 @@ pub use client::{
     UnitMultiplicationBuilder, Usage, UsageBuilder, VariableFeature, VariableFeatureBuilder,
 };
 pub use conformance::render_conformance_report;
-pub use document::Document;
+pub use document::{Document, UpgradeFromPathError};
+pub use downgrade::{
+    DowngradeCounts, DowngradeError, DowngradeOptions, DowngradeReport, DowngradeWarning,
+    sbol3_to_sbol2,
+};
 pub use error::{BuildError, ReadError, WriteError};
 pub use identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
 pub use model::{Identified, SbolClass, TopLevel};
@@ -160,6 +168,10 @@ pub use resolve::{FeatureTrace, ObjectGraph, ReferenceError, VariantSet};
 pub use sbol_ontology::{Ontology, OntologyRegistry};
 pub use sbol_rdf::{Graph as RdfGraph, Iri, Literal, RdfFormat, Resource, Term, Triple};
 pub use specification::{SPEC_VERSION, SPECIFICATION_URL};
+pub use upgrade::{
+    MapsToSide, NamespaceSource, UpgradeCounts, UpgradeError, UpgradeOptions, UpgradeReport,
+    UpgradeWarning, parse_and_upgrade, sbol2_to_sbol3,
+};
 #[cfg(feature = "http-resolver")]
 pub use validation::CachingHttpResolver;
 #[cfg(feature = "http-resolver")]

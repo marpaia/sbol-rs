@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:its="http://www.w3.org/2005/11/its">
+	<Sequence xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034_sequence">
+		<displayId xmlns="http://sbols.org/v2#">BBa_B0034_sequence</displayId>
+		<elements xmlns="http://sbols.org/v2#">aaagaggagaaa</elements>
+		<encoding xmlns="http://sbols.org/v2#" rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/>
+	</Sequence>
+	<ComponentDefinition xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034">
+		<displayId xmlns="http://sbols.org/v2#">BBa_B0034</displayId>
+		<title xmlns="http://purl.org/dc/terms/">RBS (Elowitz 1999) -- defines RBS efficiency</title>
+		<type xmlns="http://sbols.org/v2#" rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/>
+		<type xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000987"/>
+		<sequence xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034_sequence"/>
+		<sequenceAnnotation xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034/conserved"/>
+	</ComponentDefinition>
+	<SequenceAnnotation xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034/conserved">
+		<displayId xmlns="http://sbols.org/v2#">conserved</displayId>
+		<title xmlns="http://purl.org/dc/terms/">conserved</title>
+		<role xmlns="http://sbols.org/v2#" rdf:resource="https://identifiers.org/SO:0000001"/>
+		<location xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034/conserved/range"/>
+	</SequenceAnnotation>
+	<Range xmlns="http://sbols.org/v2#" rdf:about="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034/conserved/range">
+		<displayId xmlns="http://sbols.org/v2#">range</displayId>
+		<orientation xmlns="http://sbols.org/v2#" rdf:resource="http://sbols.org/v2#inline"/>
+		<start xmlns="http://sbols.org/v2#">5</start>
+		<end xmlns="http://sbols.org/v2#">8</end>
+	</Range>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034/conserved">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034/conserved"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034/conserved/range">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034/conserved/range"/>
+	</rdf:Description>
+	<rdf:Description rdf:about="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034_sequence">
+		<persistentIdentity xmlns="http://sbols.org/v2#" rdf:resource="https://sbol-rs.example.org/genbank/BBa_B0034/BBa_B0034_sequence"/>
+	</rdf:Description>
+</rdf:RDF>

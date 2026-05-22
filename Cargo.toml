@@ -1,5 +1,13 @@
 [workspace]
-members = ["crates/sbol", "crates/sbol-bench", "crates/sbol-cli", "crates/sbol-ontology", "crates/sbol-rdf"]
+members = [
+    "crates/sbol",
+    "crates/sbol-bench",
+    "crates/sbol-cli",
+    "crates/sbol-fasta",
+    "crates/sbol-genbank",
+    "crates/sbol-ontology",
+    "crates/sbol-rdf",
+]
 exclude = ["fuzz"]
 resolver = "3"
 
@@ -12,11 +20,14 @@ license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
 clap = { version = "4.5", features = ["derive"] }
+gb-io = "0.9"
 oxjsonld = "0.2.5"
 oxrdf = "0.3.3"
 oxrdfio = "0.2.5"
 proptest = "1"
 sbol = { path = "crates/sbol", version = "0.1.0" }
+sbol-fasta = { path = "crates/sbol-fasta", version = "0.1.0" }
+sbol-genbank = { path = "crates/sbol-genbank", version = "0.1.0" }
 sbol-ontology = { path = "crates/sbol-ontology", version = "0.1.0" }
 sbol-rdf = { path = "crates/sbol-rdf", version = "0.1.0" }
 sha3 = "0.10"

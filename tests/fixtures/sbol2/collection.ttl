@@ -1,0 +1,27 @@
+@prefix sbol: <http://sbols.org/v2#> .
+@prefix biopax: <http://www.biopax.org/release/biopax-level3.owl#> .
+@prefix so: <https://identifiers.org/SO:> .
+
+<https://example.org/lab/anderson_promoters/1>
+    a sbol:Collection ;
+    sbol:persistentIdentity <https://example.org/lab/anderson_promoters> ;
+    sbol:displayId "anderson_promoters" ;
+    sbol:version "1" ;
+    sbol:member <https://example.org/lab/J23100/1> ,
+                <https://example.org/lab/J23101/1> .
+
+<https://example.org/lab/J23100/1>
+    a sbol:ComponentDefinition ;
+    sbol:persistentIdentity <https://example.org/lab/J23100> ;
+    sbol:displayId "J23100" ;
+    sbol:version "1" ;
+    sbol:type biopax:Dna ;
+    sbol:role so:0000167 .
+
+<https://example.org/lab/J23101/1>
+    a sbol:ComponentDefinition ;
+    sbol:persistentIdentity <https://example.org/lab/J23101> ;
+    sbol:displayId "J23101" ;
+    sbol:version "1" ;
+    sbol:type biopax:Dna ;
+    sbol:role so:0000167 .

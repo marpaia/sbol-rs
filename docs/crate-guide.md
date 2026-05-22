@@ -204,6 +204,51 @@ For the full system overview, read [`validation.md`](validation.md).
 For per-rule status, read [`conformance.md`](conformance.md) (auto-
 generated from `rules.toml`).
 
+## Conversion pipeline at a glance
+
+The `sbol::upgrade` and `sbol::downgrade` modules sit alongside the
+validator and operate on the same `Document` surface. They translate
+between SBOL 2 and SBOL 3 RDF at the triple level — no separate
+intermediate object model, no external runtime.
+
+Where conversion code lives:
+
+| Path | Role |
+|---|---|
+| `crates/sbol/src/upgrade/mod.rs` | SBOL 2 → SBOL 3 engine: preflight, type / predicate rewrites, structural-collapse synthesis (MapsTo → CRef+Constraint, FC.direction → Interface, SA-with-component → SubComponent.location). |
+| `crates/sbol/src/upgrade/identity.rs` | SBOL 2 IRI versioning policy: strips trailing `/digits` segments, derives `hasNamespace` from `persistentIdentity` ÷ `displayId`. |
+| `crates/sbol/src/upgrade/values.rs` | Forward enumerated-value maps (orientation, encoding, BioPAX → SBO, MapsTo refinement → Constraint restriction). |
+| `crates/sbol/src/downgrade/mod.rs` | SBOL 3 → SBOL 2 engine: type/predicate dispatch, MapsTo and SA reconstruction, FC direction restoration, dual-role Component classifier and split. |
+| `crates/sbol/src/downgrade/values.rs` | Reverse enumerated-value maps. |
+| `crates/sbol/src/sbol2_vocab.rs` | Shared SBOL 2 IRI constants plus the `http://sboltools.org/backport#` namespace constants. |
+| `crates/sbol-genbank/src/importer.rs` | GenBank → SBOL 3 importer; emits the same shape `sbol::downgrade` expects when re-emitting to SBOL 2. |
+| `crates/sbol-fasta/src/importer.rs` | FASTA → SBOL 3 importer; bare sequences + alphabet auto-detection. |
+
+The downgrade engine classifies every SBOL 3 `Component` into one of
+three shapes before emitting:
+
+- **`CdOnly`** — emits a single `sbol2:ComponentDefinition`. Triggered
+  by `backport:sbol2type = ComponentDefinition` (round-tripped SBOL 2)
+  or by structural-only signals (`sbol3:type` with a non-functional
+  value, `sbol3:role`, `sbol3:hasSequence`, `sbol3:hasFeature` →
+  `SequenceFeature`, `sbol3:hasConstraint`).
+- **`MdOnly`** — emits a single `sbol2:ModuleDefinition`. Triggered by
+  `backport:sbol2type = ModuleDefinition` or by functional-only signals
+  (`sbol3:hasInteraction`, `sbol3:hasInterface`, `sbol3:hasModel`, the
+  synthesized `SBO:functionalEntity` type marker).
+- **`DualRole`** — emits BOTH a CD and an MD plus a synthesized linking
+  `sbol2:FunctionalComponent`. Triggered by Components carrying both
+  structural and functional signals — the SBOL 2 surface can't express
+  this in a single object.
+
+The user-facing story (workflows, the backport namespace, dual-role
+classification rules, known divergences) lives in
+[`conversion.md`](conversion.md). The per-direction conformance gates
+are in [`sbol2-upgrade-conformance.md`](sbol2-upgrade-conformance.md)
+and [`sbol3-downgrade-conformance.md`](sbol3-downgrade-conformance.md);
+empirical round-trip coverage lives in
+[`sbol3-round-trip-report.md`](sbol3-round-trip-report.md).
+
 ## Key decision points
 
 These are the choices a newcomer hits first.
