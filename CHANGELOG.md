@@ -8,6 +8,8 @@ crates: breaking changes are permitted between minor versions
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-21
+
 ### Added
 
 - **`sbol`**: `upgrade` module exposing `sbol2_to_sbol3`,
@@ -150,5 +152,6 @@ allowed and will be called out in release notes. Covered surface: the
 public Rust API of the workspace crates, the `sbol` CLI exit codes,
 and the JSON v1 validation output schema.
 
-[Unreleased]: https://github.com/marpaia/sbol-rs/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/marpaia/sbol-rs/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/marpaia/sbol-rs/releases/tag/v0.2.0
 [0.1.0]: https://github.com/marpaia/sbol-rs/releases/tag/v0.1.0
