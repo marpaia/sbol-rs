@@ -10,6 +10,52 @@ crates: breaking changes are permitted between minor versions
 
 ### Added
 
+- **`sbol`**: `upgrade` module exposing `sbol2_to_sbol3`,
+  `parse_and_upgrade`, and the `Document::upgrade_from_sbol2{,_with,_path}`
+  entry points, plus `UpgradeOptions`, `UpgradeReport`, `UpgradeWarning`,
+  `UpgradeCounts`, `NamespaceSource`, and `MapsToSide`. Reads SBOL 2 RDF
+  (the format SynBioHub, the iGEM Registry, and JBEI ICE still serve) and
+  emits SBOL 3 RDF that loads and validates like natively-authored SBOL 3.
+  Conversion runs at the RDF triple level with no Python or Docker
+  sidecar; SBOL 2 provenance (`persistentIdentity`, `version`, original
+  type) is preserved under the `http://sboltools.org/backport#`
+  namespace so a later downgrade can round-trip losslessly. See
+  [`docs/conversion.md`](docs/conversion.md) for the full conversion
+  model.
+- **`sbol`**: `downgrade` module exposing `sbol3_to_sbol2`,
+  `Document::downgrade_to_sbol2{,_with}`, `DowngradeOptions`,
+  `DowngradeReport`, `DowngradeWarning`, and `DowngradeCounts`. The
+  write-direction counterpart to `upgrade`: produces SBOL 2 RDF from an
+  SBOL 3 [`Document`]. Documents that originated as SBOL 2 round-trip
+  losslessly via the backport namespace; native SBOL 3 designs that
+  combine structural (sequence, sub-parts) and functional (interactions,
+  interface) data on one `Component` are split into a paired
+  `ComponentDefinition` + `ModuleDefinition` with a
+  `DowngradeWarning::DualRoleComponent` surfaced in the report.
+- **`sbol-genbank`** (new crate): pure-Rust GenBank → SBOL 3 importer.
+  Each record becomes one `Component` + one `Sequence`; annotated
+  features become `SequenceFeature`s with per-segment `Range`s; common
+  GenBank keys (`CDS`, `promoter`, `terminator`, `RBS`, `5'UTR`, …) map
+  to canonical Sequence Ontology IRIs, unrecognized keys fall back to
+  `SO:0000110` and surface in `ImportReport.warnings`. Topology
+  (`linear` / `circular`) is added to `Component.type`; molecule type
+  (`DNA` / `RNA` / `AA`) chooses the SBO component type and EDAM
+  sequence encoding. SynBioHub's mixed-case LOCUS month names are
+  tolerated. Parsing is delegated to [`gb-io`].
+- **`sbol-fasta`** (new crate): pure-Rust FASTA → SBOL 3 importer with
+  no third-party parser dependency. Each `>header` record becomes one
+  `Component` + one `Sequence`; the component's biological type
+  (DNA / RNA / protein) and the EDAM encoding are auto-detected from
+  the alphabet of the sequence, overridable via
+  `FastaImporter::with_alphabet` for ambiguous data. Accepts `.fasta`,
+  `.fa`, `.fna`, and `.faa`.
+- **`sbol-cli`**: four new subcommands — `sbol upgrade` (SBOL 2 → SBOL 3),
+  `sbol downgrade` (SBOL 3 → SBOL 2), `sbol import-genbank`
+  (GenBank → SBOL 3), and `sbol import-fasta` (FASTA → SBOL 3) — all
+  with `--validate`, `--strict`, and configurable target serialization.
+  `sbol downgrade --validate` round-trips the result back through
+  `sbol::upgrade` and runs SBOL 3 validation, since this workspace has
+  no native SBOL 2 validator.
 - **`sbol`**: `owl_conformance` module exposing
   `analyze_owl_conformance`, `render_owl_conformance_report`,
   `OwlConformanceReport`, `OwlIdentifiers`, `OwlPinInfo`, and the
