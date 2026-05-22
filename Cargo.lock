@@ -1133,7 +1133,7 @@ dependencies = [
 
 [[package]]
 name = "sbol"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "criterion",
  "proptest",
@@ -1160,7 +1160,7 @@ dependencies = [
 
 [[package]]
 name = "sbol-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -1176,7 +1176,7 @@ dependencies = [
 
 [[package]]
 name = "sbol-fasta"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "sbol",
  "sbol-rdf",
@@ -1186,7 +1186,7 @@ dependencies = [
 
 [[package]]
 name = "sbol-genbank"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "gb-io",
  "sbol",
@@ -1197,7 +1197,7 @@ dependencies = [
 
 [[package]]
 name = "sbol-ontology"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "sha2",
  "tempfile",
@@ -1206,7 +1206,7 @@ dependencies = [
 
 [[package]]
 name = "sbol-rdf"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "oxjsonld",
  "oxrdf",

@@ -25,11 +25,11 @@ oxjsonld = "0.2.5"
 oxrdf = "0.3.3"
 oxrdfio = "0.2.5"
 proptest = "1"
-sbol = { path = "crates/sbol", version = "0.1.0" }
-sbol-fasta = { path = "crates/sbol-fasta", version = "0.1.0" }
-sbol-genbank = { path = "crates/sbol-genbank", version = "0.1.0" }
-sbol-ontology = { path = "crates/sbol-ontology", version = "0.1.0" }
-sbol-rdf = { path = "crates/sbol-rdf", version = "0.1.0" }
+sbol = { path = "crates/sbol", version = "0.2.0" }
+sbol-fasta = { path = "crates/sbol-fasta", version = "0.2.0" }
+sbol-genbank = { path = "crates/sbol-genbank", version = "0.2.0" }
+sbol-ontology = { path = "crates/sbol-ontology", version = "0.2.0" }
+sbol-rdf = { path = "crates/sbol-rdf", version = "0.2.0" }
 sha3 = "0.10"
 thiserror = "2"
 ureq = "2.12"
