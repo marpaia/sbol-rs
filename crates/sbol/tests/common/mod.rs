@@ -1,6 +1,10 @@
 //! Shared test helpers. Currently exposes the SBOLTestSuite fixture-cache
 //! bootstrap so multiple integration-test binaries can depend on the same
 //! on-disk fixtures without racing each other during `cargo test --workspace`.
+#![allow(dead_code)]
+
+pub mod downgrade;
+pub mod upgrade;
 
 use std::env;
 use std::fs;
