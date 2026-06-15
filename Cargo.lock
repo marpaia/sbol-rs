@@ -1152,6 +1152,7 @@ dependencies = [
 name = "sbol-bench"
 version = "0.0.0"
 dependencies = [
+ "clap",
  "sbol",
  "sbol-rdf",
  "serde",
@@ -1199,6 +1200,7 @@ dependencies = [
 name = "sbol-ontology"
 version = "0.2.0"
 dependencies = [
+ "clap",
  "sha2",
  "tempfile",
  "ureq 3.3.0",

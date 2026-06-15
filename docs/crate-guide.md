@@ -158,7 +158,11 @@ recognize is held in `IdentifiedExtension` rather than dropped.
 
 ## Validation pipeline at a glance
 
-The validator is at 148/149 SBOL 3.1.0 rules. The pipeline is:
+The validator implements all 109 machine-checkable SBOL 3.1.0 rules
+(109/109, 100%). The catalog tracks all 149 spec rules; the remaining
+40 are marked machine-uncheckable (weak-REQUIRED, ▲) in Appendix B and
+are tracked separately rather than counted toward the implemented total
+(see `docs/conformance.md`). The pipeline is:
 
 1. **Parse to RDF triples** (`sbol-rdf` crate). Format-agnostic
    after this point.

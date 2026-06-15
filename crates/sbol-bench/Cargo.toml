@@ -11,6 +11,7 @@ default-run = "sbol-bench"
 description = "Cross-implementation performance benchmarks for sbol-rs against pySBOL3, libSBOLj3, and sboljs."
 
 [dependencies]
+clap = { workspace = true, features = ["env"] }
 sbol.workspace = true
 sbol-rdf.workspace = true
 serde = { version = "1", features = ["derive"] }

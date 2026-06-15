@@ -15,7 +15,7 @@ Add the library to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-sbol = "0.1"
+sbol = "0.2"
 ```
 
 Or with `cargo add`:
@@ -102,7 +102,7 @@ apples-to-apples. Rows sorted by `rdfxml` p50 ascending; fastest first:
 | sboljs 3.0.2      |    n/a |  2,543 |    n/a |      n/a |
 | pySBOL3 1.2       |  7,566 |  9,864 |  6,489 |    7,234 |
 
-Apple M4 Max (16 cores), 128 GB RAM, macOS 26.3.1, Docker Desktop
+Apple M4 Max (12 performance and 4 efficiency cores), 128 GB RAM, macOS 26.3.1, Docker Desktop
 29.0.1. sboljs's underlying `rdfoo` only emits RDF/XML and its parser
 stack is too fragile to reach the other format rows on real SBOL 3
 fixtures; the [bench README](benches/cross-impl/README.md) documents

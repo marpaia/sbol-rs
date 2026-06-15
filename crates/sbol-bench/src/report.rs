@@ -1,0 +1,187 @@
+//! Aggregating per-iteration timings into median/p99 stats and rendering
+//! the human-readable table plus the optional machine-readable JSON report.
+
+use std::collections::BTreeMap;
+use std::fs;
+use std::path::Path;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use crate::bench::format_name;
+use crate::bench::{CaseOutcome, CaseState};
+use crate::cli::Config;
+
+#[derive(Debug)]
+pub(crate) struct Stats {
+    pub(crate) median_ns: u64,
+    pub(crate) p99_ns: u64,
+}
+
+pub(crate) fn stats(samples: &[u64]) -> Option<Stats> {
+    if samples.is_empty() {
+        return None;
+    }
+    let mut sorted = samples.to_vec();
+    sorted.sort_unstable();
+    let n = sorted.len();
+    let median_ns = if n % 2 == 1 {
+        sorted[n / 2]
+    } else {
+        (sorted[n / 2 - 1] + sorted[n / 2]) / 2
+    };
+    let p99_idx = ((n as f64 * 0.99).ceil() as usize)
+        .saturating_sub(1)
+        .min(n - 1);
+    let p99_ns = sorted[p99_idx];
+    Some(Stats { median_ns, p99_ns })
+}
+
+pub(crate) fn print_report(outcomes: &[CaseOutcome]) {
+    let mut by_fixture: BTreeMap<&'static str, Vec<&CaseOutcome>> = BTreeMap::new();
+    for outcome in outcomes {
+        by_fixture
+            .entry(outcome.fixture.stem)
+            .or_default()
+            .push(outcome);
+    }
+
+    for (fixture_stem, fixture_outcomes) in by_fixture {
+        println!();
+        println!("=== fixture: {fixture_stem} ===");
+        println!(
+            "{:<11} {:<9} -> {:<9} {:>14} {:>14} {:>14} {:>14} {:>10}",
+            "impl",
+            "parse",
+            "serialize",
+            "parse p50 (μs)",
+            "parse p99 (μs)",
+            "ser. p50 (μs)",
+            "ser. p99 (μs)",
+            "bytes"
+        );
+        for outcome in fixture_outcomes {
+            let parse_label = format_name(outcome.case.parse_format);
+            let serialize_label = format_name(outcome.case.serialize_format);
+            match &outcome.state {
+                CaseState::Ok { samples, .. } => {
+                    let parse = stats(&samples.parse_ns);
+                    let ser = stats(&samples.serialize_ns);
+                    match (parse, ser) {
+                        (Some(parse), Some(ser)) => {
+                            println!(
+                                "{:<11} {:<9} -> {:<9} {:>14.2} {:>14.2} {:>14.2} {:>14.2} {:>10}",
+                                outcome.case.implementation.id(),
+                                parse_label,
+                                serialize_label,
+                                parse.median_ns as f64 / 1_000.0,
+                                parse.p99_ns as f64 / 1_000.0,
+                                ser.median_ns as f64 / 1_000.0,
+                                ser.p99_ns as f64 / 1_000.0,
+                                samples.serialized_bytes
+                            );
+                        }
+                        _ => {
+                            println!(
+                                "{:<11} {:<9} -> {:<9} (no samples)",
+                                outcome.case.implementation.id(),
+                                parse_label,
+                                serialize_label
+                            );
+                        }
+                    }
+                }
+                CaseState::Skipped { reason } => {
+                    println!(
+                        "{:<11} {:<9} -> {:<9} skipped: {}",
+                        outcome.case.implementation.id(),
+                        parse_label,
+                        serialize_label,
+                        reason
+                    );
+                }
+            }
+        }
+    }
+    println!();
+    println!("p50 = median across measured iters; p99 picked from same set. Lower is better.");
+}
+
+#[derive(serde::Serialize)]
+pub(crate) struct ReportFile<'a> {
+    pub(crate) run_id: String,
+    pub(crate) warmup_iters: usize,
+    pub(crate) measured_iters: usize,
+    pub(crate) cases: Vec<ReportCase<'a>>,
+}
+
+#[derive(serde::Serialize)]
+pub(crate) struct ReportCase<'a> {
+    pub(crate) fixture: &'a str,
+    pub(crate) implementation: &'a str,
+    pub(crate) parse_format: &'a str,
+    pub(crate) serialize_format: &'a str,
+    pub(crate) state: ReportState<'a>,
+}
+
+#[derive(serde::Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub(crate) enum ReportState<'a> {
+    Ok {
+        version: &'a str,
+        serialized_bytes: u64,
+        parse_ns: &'a [u64],
+        serialize_ns: &'a [u64],
+    },
+    Skipped {
+        reason: &'a str,
+    },
+}
+
+pub(crate) fn write_json_report(
+    path: &Path,
+    outcomes: &[CaseOutcome],
+    config: &Config,
+) -> Result<(), String> {
+    let run_id = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs().to_string())
+        .unwrap_or_else(|_| "0".to_owned());
+    let cases = outcomes
+        .iter()
+        .map(|outcome| {
+            let state = match &outcome.state {
+                CaseState::Ok { version, samples } => ReportState::Ok {
+                    version: version.as_str(),
+                    serialized_bytes: samples.serialized_bytes,
+                    parse_ns: &samples.parse_ns,
+                    serialize_ns: &samples.serialize_ns,
+                },
+                CaseState::Skipped { reason } => ReportState::Skipped {
+                    reason: reason.as_str(),
+                },
+            };
+            ReportCase {
+                fixture: outcome.fixture.stem,
+                implementation: outcome.case.implementation.id(),
+                parse_format: format_name(outcome.case.parse_format),
+                serialize_format: format_name(outcome.case.serialize_format),
+                state,
+            }
+        })
+        .collect();
+    let report = ReportFile {
+        run_id,
+        warmup_iters: config.warmup,
+        measured_iters: config.iters,
+        cases,
+    };
+    if let Some(parent) = path.parent()
+        && !parent.as_os_str().is_empty()
+    {
+        fs::create_dir_all(parent)
+            .map_err(|error| format!("create report parent dir {}: {error}", parent.display()))?;
+    }
+    let json = serde_json::to_string_pretty(&report)
+        .map_err(|error| format!("serialize report: {error}"))?;
+    fs::write(path, json).map_err(|error| format!("write report {}: {error}", path.display()))?;
+    Ok(())
+}
