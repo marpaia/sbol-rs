@@ -3,7 +3,7 @@
 //! types/roles, ExternallyDefined types, SequenceFeature overlapping
 //! locations, and Location sequence membership rules.
 
-use super::{RuleCase, component_role_type_body, overlapping_location_body};
+use super::{PositiveCase, RuleCase, component_role_type_body, overlapping_location_body};
 use sbol::Severity::{Error, Warning};
 
 pub fn cases() -> Vec<RuleCase> {
@@ -235,6 +235,263 @@ pub fn cases() -> Vec<RuleCase> {
             body: location_sequence_membership_body("source_location"),
         },
     ]
+}
+
+pub fn positives() -> Vec<PositiveCase> {
+    vec![
+        PositiveCase {
+            name: "ComponentReference inChildOf SubComponent inside parent Component",
+            rule: "sbol3-10901",
+            body: valid_component_reference_body(),
+        },
+        PositiveCase {
+            name: "nested ComponentReference inChildOf inside referenced Component",
+            rule: "sbol3-10902",
+            body: valid_component_reference_body(),
+        },
+        PositiveCase {
+            name: "ComponentReference refersTo Feature of referenced Component",
+            rule: "sbol3-10903",
+            body: valid_component_reference_body(),
+        },
+        PositiveCase {
+            name: "ComponentReference refersTo Feature inside referenced Component",
+            rule: "sbol3-10904",
+            body: valid_component_reference_body(),
+        },
+        PositiveCase {
+            name: "LocalSubComponent with single Table 2 type",
+            rule: "sbol3-11001",
+            body: r#":feature a sbol:LocalSubComponent;
+    sbol:displayId "feature";
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "LocalSubComponent with valid Table 2 type",
+            rule: "sbol3-11004",
+            body: r#":feature a sbol:LocalSubComponent;
+    sbol:displayId "feature";
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "DNA LocalSubComponent with single topology type",
+            rule: "sbol3-11007",
+            body: r#":feature a sbol:LocalSubComponent;
+    sbol:displayId "feature";
+    sbol:type SBO:0000251, SO:0000988 .
+"#,
+        },
+        PositiveCase {
+            name: "DNA LocalSubComponent with strand type",
+            rule: "sbol3-11008",
+            body: r#":feature a sbol:LocalSubComponent;
+    sbol:displayId "feature";
+    sbol:type SBO:0000251, SO:0000984 .
+"#,
+        },
+        PositiveCase {
+            name: "DNA LocalSubComponent with SO sequence feature role",
+            rule: "sbol3-11011",
+            body: r#":feature a sbol:LocalSubComponent;
+    sbol:displayId "feature";
+    sbol:role SO:0000167;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "DNA LocalSubComponent with exactly one SO sequence feature role",
+            rule: "sbol3-11012",
+            body: r#":feature a sbol:LocalSubComponent;
+    sbol:displayId "feature";
+    sbol:role SO:0000167;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "LocalSubComponent with non-overlapping locations",
+            rule: "sbol3-11013",
+            body: r#":sequence a sbol:Sequence;
+    sbol:displayId "sequence";
+    sbol:elements "ATGC";
+    sbol:encoding EDAM:format_1207;
+    sbol:hasNamespace <https://example.org> .
+:feature a sbol:LocalSubComponent;
+    sbol:displayId "feature";
+    sbol:hasLocation <feature/range1>, <feature/range2>;
+    sbol:type SBO:0000251 .
+<feature/range1> a sbol:Range;
+    sbol:displayId "range1";
+    sbol:end "2";
+    sbol:hasSequence :sequence;
+    sbol:start "1" .
+<feature/range2> a sbol:Range;
+    sbol:displayId "range2";
+    sbol:end "4";
+    sbol:hasSequence :sequence;
+    sbol:start "3" .
+"#,
+        },
+        PositiveCase {
+            name: "ExternallyDefined with single Table 2 type",
+            rule: "sbol3-11101",
+            body: r#":feature a sbol:ExternallyDefined;
+    sbol:definition <https://identifiers.org/uniprot:P03023>;
+    sbol:displayId "feature";
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "ExternallyDefined with valid Table 2 type",
+            rule: "sbol3-11104",
+            body: r#":feature a sbol:ExternallyDefined;
+    sbol:definition <https://example.org/external>;
+    sbol:displayId "feature";
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "DNA ExternallyDefined with single topology type",
+            rule: "sbol3-11107",
+            body: r#":feature a sbol:ExternallyDefined;
+    sbol:definition <https://example.org/external>;
+    sbol:displayId "feature";
+    sbol:type SBO:0000251, SO:0000988 .
+"#,
+        },
+        PositiveCase {
+            name: "DNA ExternallyDefined with topology type",
+            rule: "sbol3-11108",
+            body: r#":feature a sbol:ExternallyDefined;
+    sbol:definition <https://example.org/external>;
+    sbol:displayId "feature";
+    sbol:type SBO:0000251, SO:0000988 .
+"#,
+        },
+        PositiveCase {
+            name: "SequenceFeature with non-overlapping locations",
+            rule: "sbol3-11201",
+            body: r#":sequence a sbol:Sequence;
+    sbol:displayId "sequence";
+    sbol:elements "ATGC";
+    sbol:encoding EDAM:format_1207;
+    sbol:hasNamespace <https://example.org> .
+:feature a sbol:SequenceFeature;
+    sbol:displayId "feature";
+    sbol:hasLocation <feature/range1>, <feature/range2> .
+<feature/range1> a sbol:Range;
+    sbol:displayId "range1";
+    sbol:end "2";
+    sbol:hasSequence :sequence;
+    sbol:start "1" .
+<feature/range2> a sbol:Range;
+    sbol:displayId "range2";
+    sbol:end "4";
+    sbol:hasSequence :sequence;
+    sbol:start "3" .
+"#,
+        },
+        PositiveCase {
+            name: "Location with valid orientation",
+            rule: "sbol3-11301",
+            body: r#":sequence a sbol:Sequence;
+    sbol:displayId "sequence";
+    sbol:elements "ATGC";
+    sbol:encoding EDAM:format_1207;
+    sbol:hasNamespace <https://example.org> .
+:range a sbol:Range;
+    sbol:displayId "range";
+    sbol:end "2";
+    sbol:hasSequence :sequence;
+    sbol:orientation sbol:inline;
+    sbol:start "1" .
+"#,
+        },
+        PositiveCase {
+            name: "Feature Location sequence within parent Component",
+            rule: "sbol3-11302",
+            body: r#":sequence a sbol:Sequence;
+    sbol:displayId "sequence";
+    sbol:elements "ATGC";
+    sbol:encoding EDAM:format_1207;
+    sbol:hasNamespace <https://example.org> .
+:component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasFeature <component/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasSequence :sequence;
+    sbol:type SBO:0000251 .
+<component/feature> a sbol:SequenceFeature;
+    sbol:displayId "feature";
+    sbol:hasLocation <component/feature/range> .
+<component/feature/range> a sbol:Range;
+    sbol:displayId "range";
+    sbol:end "2";
+    sbol:hasSequence :sequence;
+    sbol:start "1" .
+"#,
+        },
+        PositiveCase {
+            name: "SubComponent sourceLocation sequence within instanceOf Component",
+            rule: "sbol3-11303",
+            body: r#":sequence a sbol:Sequence;
+    sbol:displayId "sequence";
+    sbol:elements "ATGC";
+    sbol:encoding EDAM:format_1207;
+    sbol:hasNamespace <https://example.org> .
+:definition a sbol:Component;
+    sbol:displayId "definition";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasSequence :sequence;
+    sbol:type SBO:0000251 .
+:component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasFeature <component/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<component/feature> a sbol:SubComponent;
+    sbol:displayId "feature";
+    sbol:instanceOf :definition;
+    sbol:sourceLocation <component/feature/source_range> .
+<component/feature/source_range> a sbol:Range;
+    sbol:displayId "source_range";
+    sbol:end "2";
+    sbol:hasSequence :sequence;
+    sbol:start "1" .
+"#,
+        },
+    ]
+}
+
+fn valid_component_reference_body() -> &'static str {
+    r#":definition a sbol:Component;
+    sbol:displayId "definition";
+    sbol:hasFeature <definition/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<definition/feature> a sbol:SequenceFeature;
+    sbol:displayId "feature";
+    sbol:hasLocation <definition/feature/location> .
+<definition/feature/location> a sbol:EntireSequence;
+    sbol:displayId "location";
+    sbol:hasSequence :sequence .
+:sequence a sbol:Sequence;
+    sbol:displayId "sequence";
+    sbol:hasNamespace <https://example.org> .
+:component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasFeature <component/subcomponent>, <component/reference>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<component/subcomponent> a sbol:SubComponent;
+    sbol:displayId "subcomponent";
+    sbol:instanceOf :definition .
+<component/reference> a sbol:ComponentReference;
+    sbol:displayId "reference";
+    sbol:inChildOf <component/subcomponent>;
+    sbol:refersTo <definition/feature> .
+"#
 }
 
 fn component_reference_body(kind: &'static str) -> &'static str {

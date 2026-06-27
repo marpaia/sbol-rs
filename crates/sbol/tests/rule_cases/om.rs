@@ -2,7 +2,7 @@
 //! recommendations and OM Unit/Prefix label/comment consistency
 //! recommendations.
 
-use super::RuleCase;
+use super::{PositiveCase, RuleCase};
 use sbol::Severity::Warning;
 
 pub fn cases() -> Vec<RuleCase> {
@@ -42,6 +42,70 @@ pub fn cases() -> Vec<RuleCase> {
             rule: "sbol3-14202",
             severity: Warning,
             body: om_prefix_string_mismatch_body("description"),
+        },
+    ]
+}
+
+pub fn positives() -> Vec<PositiveCase> {
+    vec![
+        PositiveCase {
+            name: "om:Measure type is a Systems Description Parameter term",
+            rule: "sbol3-13401",
+            body: r#":measure a om:Measure;
+    sbol:displayId "measure";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000545;
+    om:hasNumericalValue 1.0;
+    om:hasUnit <http://www.ontology-of-units-of-measure.org/resource/om-2/metre> .
+"#,
+        },
+        PositiveCase {
+            name: "om:Unit name matches label",
+            rule: "sbol3-13501",
+            body: r#":meter a om:Unit;
+    sbol:displayId "meter";
+    sbol:hasNamespace <https://example.org>;
+    sbol:name "metre";
+    om:label "metre";
+    om:symbol "m" .
+"#,
+        },
+        PositiveCase {
+            name: "om:Unit description matches comment",
+            rule: "sbol3-13502",
+            body: r#":meter a om:Unit;
+    sbol:description "unit of length";
+    sbol:displayId "meter";
+    sbol:hasNamespace <https://example.org>;
+    om:comment "unit of length";
+    om:label "meter";
+    om:symbol "m" .
+"#,
+        },
+        PositiveCase {
+            name: "om:Prefix name matches label",
+            rule: "sbol3-14201",
+            body: r#":kilo a om:Prefix;
+    sbol:displayId "kilo";
+    sbol:hasNamespace <https://example.org>;
+    sbol:name "kilo";
+    om:hasFactor "1000";
+    om:label "kilo";
+    om:symbol "k" .
+"#,
+        },
+        PositiveCase {
+            name: "om:Prefix description matches comment",
+            rule: "sbol3-14202",
+            body: r#":kilo a om:Prefix;
+    sbol:description "thousand";
+    sbol:displayId "kilo";
+    sbol:hasNamespace <https://example.org>;
+    om:comment "thousand";
+    om:hasFactor "1000";
+    om:label "kilo";
+    om:symbol "k" .
+"#,
         },
     ]
 }

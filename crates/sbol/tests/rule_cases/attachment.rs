@@ -1,6 +1,6 @@
 //! `sbol3-128xx` — Attachment size/hash/hashAlgorithm and format checks.
 
-use super::RuleCase;
+use super::{PositiveCase, RuleCase};
 use sbol::Severity::{Error, Warning};
 
 pub fn cases() -> Vec<RuleCase> {
@@ -151,6 +151,65 @@ pub fn cases() -> Vec<RuleCase> {
     sbol:displayId "implementation";
     sbol:hasNamespace <https://example.org>;
     prov:wasDerivedFrom :dna, :protein .
+"#,
+        },
+    ]
+}
+
+pub fn positives() -> Vec<PositiveCase> {
+    vec![
+        PositiveCase {
+            name: "Model language refers to an EDAM ontology term",
+            rule: "sbol3-12504",
+            body: r#":model a sbol:Model;
+    sbol:displayId "model";
+    sbol:framework <https://identifiers.org/SBO:0000062>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:language <https://identifiers.org/edam:format_2585>;
+    sbol:source <https://example.org/sbml.xml> .
+"#,
+        },
+        PositiveCase {
+            name: "Model framework is in the SBO modeling framework branch",
+            rule: "sbol3-12507",
+            body: r#":model a sbol:Model;
+    sbol:displayId "model";
+    sbol:framework SBO:0000062;
+    sbol:hasNamespace <https://example.org>;
+    sbol:language <https://identifiers.org/edam:format_2585>;
+    sbol:source <https://example.org/sbml.xml> .
+"#,
+        },
+        PositiveCase {
+            name: "Attachment format refers to an EDAM ontology term",
+            rule: "sbol3-12803",
+            body: r#":attachment a sbol:Attachment;
+    sbol:displayId "attachment";
+    sbol:format EDAM:format_1207;
+    sbol:hasNamespace <https://example.org>;
+    sbol:source <https://example.org/file.txt> .
+"#,
+        },
+        PositiveCase {
+            name: "Attachment hashAlgorithm is sha3-256",
+            rule: "sbol3-12807",
+            body: r#":attachment a sbol:Attachment;
+    sbol:displayId "attachment";
+    sbol:hash "abcdef";
+    sbol:hashAlgorithm "sha3-256";
+    sbol:hasNamespace <https://example.org>;
+    sbol:source <https://example.org/file.txt> .
+"#,
+        },
+        PositiveCase {
+            name: "Attachment hash with hashAlgorithm",
+            rule: "sbol3-12808",
+            body: r#":attachment a sbol:Attachment;
+    sbol:displayId "attachment";
+    sbol:hash "abcdef";
+    sbol:hashAlgorithm "sha3-256";
+    sbol:hasNamespace <https://example.org>;
+    sbol:source <https://example.org/file.txt> .
 "#,
         },
     ]

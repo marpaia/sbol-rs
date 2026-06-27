@@ -87,8 +87,14 @@ pub fn all_positive_cases() -> Vec<PositiveCase> {
     cases.extend(common::positives());
     cases.extend(sequence::positives());
     cases.extend(component::positives());
+    cases.extend(feature::positives());
     cases.extend(location::positives());
     cases.extend(constraint::positives());
+    cases.extend(interaction::positives());
+    cases.extend(combinatorial::positives());
+    cases.extend(attachment::positives());
+    cases.extend(om::positives());
+    cases.extend(workflow::positives());
     cases
 }
 

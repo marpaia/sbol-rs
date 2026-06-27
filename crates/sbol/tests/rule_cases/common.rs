@@ -348,5 +348,185 @@ pub fn positives() -> Vec<PositiveCase> {
     sbol:type SBO:0000252 .
 "#,
         },
+        PositiveCase {
+            name: "compliant TopLevel with named identity IRI",
+            rule: "sbol3-10101",
+            body: r#":component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "compliant sibling TopLevels not nested under one another",
+            rule: "sbol3-10103",
+            body: r#":component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:child a sbol:Component;
+    sbol:displayId "child";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "compliant TopLevel with only known SBOL properties",
+            rule: "sbol3-10105",
+            body: r#":component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "compliant TopLevel with a single SBOL rdf type",
+            rule: "sbol3-10106",
+            body: r#":thing a sbol:Component;
+    sbol:displayId "thing";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "compliant TopLevel with a single concrete inherited type",
+            rule: "sbol3-10107",
+            body: r#":experiment a sbol:Experiment;
+    sbol:displayId "experiment";
+    sbol:hasNamespace <https://example.org> .
+"#,
+        },
+        PositiveCase {
+            name: "compliant SBOL property carried by an SBOL rdf type",
+            rule: "sbol3-10108",
+            body: r#":thing a sbol:Component;
+    sbol:displayId "thing";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "compliant Component without Sequence-only properties",
+            rule: "sbol3-10109",
+            body: r#":component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "compliant Component with all required properties present",
+            rule: "sbol3-10110",
+            body: r#":component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "compliant URI-valued type property",
+            rule: "sbol3-10111",
+            body: r#":component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "compliant local child reference that resolves",
+            rule: "sbol3-10112",
+            body: r#":definition a sbol:Component;
+    sbol:displayId "definition";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasFeature <component/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<component/feature> a sbol:SubComponent;
+    sbol:displayId "feature";
+    sbol:instanceOf :definition .
+"#,
+        },
+        PositiveCase {
+            name: "compliant reference target of the expected class",
+            rule: "sbol3-10113",
+            body: r#":definition a sbol:Component;
+    sbol:displayId "definition";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasFeature <component/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<component/feature> a sbol:SubComponent;
+    sbol:displayId "feature";
+    sbol:instanceOf :definition .
+"#,
+        },
+        PositiveCase {
+            name: "external TopLevel reference not flagged in offline validation",
+            rule: "sbol3-10114",
+            body: r#":component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasFeature <component/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<component/feature> a sbol:SubComponent;
+    sbol:displayId "feature";
+    sbol:instanceOf <https://other.example.org/external_definition> .
+"#,
+        },
+        PositiveCase {
+            name: "compliant TopLevel derived from a distinct entity",
+            rule: "sbol3-10202",
+            body: r#":component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251;
+    prov:wasDerivedFrom :ancestor .
+:ancestor a sbol:Component;
+    sbol:displayId "ancestor";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "compliant acyclic derivation chain",
+            rule: "sbol3-10203",
+            body: r#":component_a a sbol:Component;
+    sbol:displayId "component_a";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251;
+    prov:wasDerivedFrom :component_b .
+:component_b a sbol:Component;
+    sbol:displayId "component_b";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "compliant acyclic wasGeneratedBy provenance",
+            rule: "sbol3-10204",
+            body: r#":component_a a sbol:Component;
+    sbol:displayId "component_a";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251;
+    prov:wasGeneratedBy :activity_a .
+:activity_a a prov:Activity;
+    sbol:displayId "activity_a";
+    sbol:hasNamespace <https://example.org>;
+    prov:qualifiedUsage <https://example.org/activity_a/usage_a> .
+<https://example.org/activity_a/usage_a> a prov:Usage;
+    sbol:displayId "usage_a";
+    prov:entity :component_b .
+:component_b a sbol:Component;
+    sbol:displayId "component_b";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+"#,
+        },
     ]
 }

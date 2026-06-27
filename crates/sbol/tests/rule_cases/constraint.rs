@@ -199,6 +199,32 @@ pub fn positives() -> Vec<PositiveCase> {
     sbol:subject <component/subject> .
 "#,
         },
+        PositiveCase {
+            name: "constraint object contained in component is valid",
+            rule: "sbol3-11702",
+            body: r#":definition a sbol:Component;
+    sbol:displayId "definition";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:component a sbol:Component;
+    sbol:displayId "component";
+    sbol:hasConstraint <component/constraint>;
+    sbol:hasFeature <component/subject_feature>, <component/object_feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<component/subject_feature> a sbol:SubComponent;
+    sbol:displayId "subject_feature";
+    sbol:instanceOf :definition .
+<component/object_feature> a sbol:SubComponent;
+    sbol:displayId "object_feature";
+    sbol:instanceOf :definition .
+<component/constraint> a sbol:Constraint;
+    sbol:displayId "constraint";
+    sbol:object <component/object_feature>;
+    sbol:restriction sbol:precedes;
+    sbol:subject <component/subject_feature> .
+"#,
+        },
     ]
 }
 

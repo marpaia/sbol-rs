@@ -3,7 +3,7 @@
 //! semantics, derived-feature consistency, variant resolution, and
 //! variantDerivation cycles.
 
-use super::RuleCase;
+use super::{PositiveCase, RuleCase};
 use sbol::Severity::{Error, Warning};
 
 pub fn cases() -> Vec<RuleCase> {
@@ -133,6 +133,592 @@ pub fn cases() -> Vec<RuleCase> {
             rule: "sbol3-12203",
             severity: Error,
             body: variant_collection_member_body(),
+        },
+    ]
+}
+
+pub fn positives() -> Vec<PositiveCase> {
+    vec![
+        PositiveCase {
+            name: "CombinatorialDerivation with valid strategy",
+            rule: "sbol3-12101",
+            body: r#":variant a sbol:Component;
+    sbol:displayId "variant";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/feature> a sbol:SubComponent;
+    sbol:displayId "feature";
+    sbol:instanceOf :variant .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:strategy sbol:sample;
+    sbol:template :template .
+"#,
+        },
+        PositiveCase {
+            name: "enumerate strategy with bounded cardinality",
+            rule: "sbol3-12102",
+            body: r#":variant a sbol:Component;
+    sbol:displayId "variant";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/feature> a sbol:SubComponent;
+    sbol:displayId "feature";
+    sbol:instanceOf :variant .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation/variable_feature>;
+    sbol:strategy sbol:enumerate;
+    sbol:template :template .
+<derivation/variable_feature> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_feature";
+    sbol:variable <template/feature>;
+    sbol:variant :variant .
+"#,
+        },
+        PositiveCase {
+            name: "distinct VariableFeature variables",
+            rule: "sbol3-12103",
+            body: r#":variant a sbol:Component;
+    sbol:displayId "variant";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/feature_a>, <template/feature_b>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/feature_a> a sbol:SubComponent;
+    sbol:displayId "feature_a";
+    sbol:instanceOf :variant .
+<template/feature_b> a sbol:SubComponent;
+    sbol:displayId "feature_b";
+    sbol:instanceOf :variant .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation/variable_feature_a>, <derivation/variable_feature_b>;
+    sbol:template :template .
+<derivation/variable_feature_a> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_feature_a";
+    sbol:variable <template/feature_a>;
+    sbol:variant :variant .
+<derivation/variable_feature_b> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_feature_b";
+    sbol:variable <template/feature_b>;
+    sbol:variant :variant .
+"#,
+        },
+        PositiveCase {
+            name: "CombinatorialDerivation template has a feature",
+            rule: "sbol3-12104",
+            body: r#":template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/static>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/static> a sbol:LocalSubComponent;
+    sbol:displayId "static";
+    sbol:type SBO:0000251 .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:template :template .
+"#,
+        },
+        PositiveCase {
+            name: "derived Feature derives from template Feature",
+            rule: "sbol3-12105",
+            body: r#":template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/static>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/static> a sbol:LocalSubComponent;
+    sbol:displayId "static";
+    sbol:type SBO:0000251 .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:template :template .
+:derived a sbol:Component;
+    sbol:displayId "derived";
+    sbol:hasFeature <derived/static>;
+    sbol:hasNamespace <https://example.org>;
+    prov:wasDerivedFrom :derivation;
+    sbol:type SBO:0000251 .
+<derived/static> a sbol:LocalSubComponent;
+    sbol:displayId "static";
+    prov:wasDerivedFrom <template/static>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "derived Collection member derives from derivation",
+            rule: "sbol3-12106",
+            body: r#":template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/static>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/static> a sbol:LocalSubComponent;
+    sbol:displayId "static";
+    sbol:type SBO:0000251 .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:template :template .
+:collection a sbol:Collection;
+    sbol:displayId "collection";
+    sbol:hasNamespace <https://example.org>;
+    sbol:member :member;
+    prov:wasDerivedFrom :derivation .
+:member a sbol:Component;
+    sbol:displayId "member";
+    sbol:hasNamespace <https://example.org>;
+    prov:wasDerivedFrom :derivation;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "derived Component has template type",
+            rule: "sbol3-12107",
+            body: r#":template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/static>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/static> a sbol:LocalSubComponent;
+    sbol:displayId "static";
+    sbol:type SBO:0000251 .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:template :template .
+:derived a sbol:Component;
+    sbol:displayId "derived";
+    sbol:hasNamespace <https://example.org>;
+    prov:wasDerivedFrom :derivation;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "derived Component has template role",
+            rule: "sbol3-12108",
+            body: r#":template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/static>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:role SO:0000704;
+    sbol:type SBO:0000251 .
+<template/static> a sbol:LocalSubComponent;
+    sbol:displayId "static";
+    sbol:type SBO:0000251 .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:template :template .
+:derived a sbol:Component;
+    sbol:displayId "derived";
+    sbol:hasNamespace <https://example.org>;
+    sbol:role SO:0000704;
+    prov:wasDerivedFrom :derivation;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "derived static Feature properties match",
+            rule: "sbol3-12109",
+            body: r#":template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/static>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/static> a sbol:LocalSubComponent;
+    sbol:displayId "static";
+    sbol:role SO:0000704;
+    sbol:type SBO:0000251 .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:template :template .
+:derived a sbol:Component;
+    sbol:displayId "derived";
+    sbol:hasFeature <derived/static>;
+    sbol:hasNamespace <https://example.org>;
+    prov:wasDerivedFrom :derivation;
+    sbol:type SBO:0000251 .
+<derived/static> a sbol:LocalSubComponent;
+    sbol:displayId "static";
+    sbol:role SO:0000704;
+    prov:wasDerivedFrom <template/static>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "static template Feature has derived Feature",
+            rule: "sbol3-12110",
+            body: r#":template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/static>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/static> a sbol:LocalSubComponent;
+    sbol:displayId "static";
+    sbol:type SBO:0000251 .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:template :template .
+:derived a sbol:Component;
+    sbol:displayId "derived";
+    sbol:hasFeature <derived/static>;
+    sbol:hasNamespace <https://example.org>;
+    prov:wasDerivedFrom :derivation;
+    sbol:type SBO:0000251 .
+<derived/static> a sbol:LocalSubComponent;
+    sbol:displayId "static";
+    prov:wasDerivedFrom <template/static>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "variable Feature cardinality satisfied",
+            rule: "sbol3-12111",
+            body: r#":template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/slot>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/slot> a sbol:LocalSubComponent;
+    sbol:displayId "slot";
+    sbol:type SBO:0000251 .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation/variable_feature>;
+    sbol:template :template .
+<derivation/variable_feature> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_feature";
+    sbol:variable <template/slot> .
+:derived a sbol:Component;
+    sbol:displayId "derived";
+    sbol:hasFeature <derived/slot>;
+    sbol:hasNamespace <https://example.org>;
+    prov:wasDerivedFrom :derivation;
+    sbol:type SBO:0000251 .
+<derived/slot> a sbol:LocalSubComponent;
+    sbol:displayId "slot";
+    prov:wasDerivedFrom <template/slot>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "derived variable SubComponent uses allowed variant",
+            rule: "sbol3-12112",
+            body: r#":allowed_variant a sbol:Component;
+    sbol:displayId "allowed_variant";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/slot>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/slot> a sbol:SubComponent;
+    sbol:displayId "slot";
+    sbol:instanceOf :allowed_variant .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation/variable_feature>;
+    sbol:template :template .
+<derivation/variable_feature> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_feature";
+    sbol:variable <template/slot>;
+    sbol:variant :allowed_variant .
+:derived a sbol:Component;
+    sbol:displayId "derived";
+    sbol:hasFeature <derived/slot>;
+    sbol:hasNamespace <https://example.org>;
+    prov:wasDerivedFrom :derivation;
+    sbol:type SBO:0000251 .
+<derived/slot> a sbol:SubComponent;
+    sbol:displayId "slot";
+    sbol:instanceOf :allowed_variant;
+    prov:wasDerivedFrom <template/slot> .
+"#,
+        },
+        PositiveCase {
+            name: "derived Features satisfy template Constraint",
+            rule: "sbol3-12113",
+            body: r#":template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasConstraint <template/constraint>;
+    sbol:hasFeature <template/a>, <template/b>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/a> a sbol:LocalSubComponent;
+    sbol:displayId "a";
+    sbol:orientation sbol:inline;
+    sbol:type SBO:0000251 .
+<template/b> a sbol:LocalSubComponent;
+    sbol:displayId "b";
+    sbol:orientation sbol:inline;
+    sbol:type SBO:0000251 .
+<template/constraint> a sbol:Constraint;
+    sbol:displayId "constraint";
+    sbol:object <template/b>;
+    sbol:restriction sbol:sameOrientationAs;
+    sbol:subject <template/a> .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation/variable_a>, <derivation/variable_b>;
+    sbol:template :template .
+<derivation/variable_a> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_a";
+    sbol:variable <template/a> .
+<derivation/variable_b> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_b";
+    sbol:variable <template/b> .
+:derived a sbol:Component;
+    sbol:displayId "derived";
+    sbol:hasFeature <derived/a>, <derived/b>;
+    sbol:hasNamespace <https://example.org>;
+    prov:wasDerivedFrom :derivation;
+    sbol:type SBO:0000251 .
+<derived/a> a sbol:LocalSubComponent;
+    sbol:displayId "a";
+    sbol:orientation sbol:inline;
+    prov:wasDerivedFrom <template/a>;
+    sbol:type SBO:0000251 .
+<derived/b> a sbol:LocalSubComponent;
+    sbol:displayId "b";
+    sbol:orientation sbol:inline;
+    prov:wasDerivedFrom <template/b>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "derived variable Feature has template role",
+            rule: "sbol3-12114",
+            body: r#":template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/slot>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/slot> a sbol:LocalSubComponent;
+    sbol:displayId "slot";
+    sbol:role SO:0000704;
+    sbol:type SBO:0000251 .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation/variable_feature>;
+    sbol:template :template .
+<derivation/variable_feature> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_feature";
+    sbol:variable <template/slot> .
+:derived a sbol:Component;
+    sbol:displayId "derived";
+    sbol:hasFeature <derived/slot>;
+    sbol:hasNamespace <https://example.org>;
+    prov:wasDerivedFrom :derivation;
+    sbol:type SBO:0000251 .
+<derived/slot> a sbol:LocalSubComponent;
+    sbol:displayId "slot";
+    sbol:role SO:0000704;
+    prov:wasDerivedFrom <template/slot>;
+    sbol:type SBO:0000251 .
+"#,
+        },
+        PositiveCase {
+            name: "derived variable Feature referent has template type",
+            rule: "sbol3-12115",
+            body: r#":template_variant a sbol:Component;
+    sbol:displayId "template_variant";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:derived_variant a sbol:Component;
+    sbol:displayId "derived_variant";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/slot>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/slot> a sbol:SubComponent;
+    sbol:displayId "slot";
+    sbol:instanceOf :template_variant .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation/variable_feature>;
+    sbol:template :template .
+<derivation/variable_feature> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_feature";
+    sbol:variable <template/slot>;
+    sbol:variant :derived_variant .
+:derived a sbol:Component;
+    sbol:displayId "derived";
+    sbol:hasFeature <derived/slot>;
+    sbol:hasNamespace <https://example.org>;
+    prov:wasDerivedFrom :derivation;
+    sbol:type SBO:0000251 .
+<derived/slot> a sbol:SubComponent;
+    sbol:displayId "slot";
+    sbol:instanceOf :derived_variant;
+    prov:wasDerivedFrom <template/slot> .
+"#,
+        },
+        PositiveCase {
+            name: "VariableFeature with valid cardinality",
+            rule: "sbol3-12201",
+            body: r#":variant a sbol:Component;
+    sbol:displayId "variant";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/feature> a sbol:SubComponent;
+    sbol:displayId "feature";
+    sbol:instanceOf :variant .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation/variable_feature>;
+    sbol:template :template .
+<derivation/variable_feature> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_feature";
+    sbol:variable <template/feature>;
+    sbol:variant :variant .
+"#,
+        },
+        PositiveCase {
+            name: "VariableFeature variable inside template",
+            rule: "sbol3-12202",
+            body: r#":variant a sbol:Component;
+    sbol:displayId "variant";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/feature> a sbol:SubComponent;
+    sbol:displayId "feature";
+    sbol:instanceOf :variant .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation/variable_feature>;
+    sbol:template :template .
+<derivation/variable_feature> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_feature";
+    sbol:variable <template/feature>;
+    sbol:variant :variant .
+"#,
+        },
+        PositiveCase {
+            name: "VariableFeature variantCollection contains only Component members",
+            rule: "sbol3-12203",
+            body: r#":member_variant a sbol:Component;
+    sbol:displayId "member_variant";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:collection a sbol:Collection;
+    sbol:displayId "collection";
+    sbol:hasNamespace <https://example.org>;
+    sbol:member :member_variant .
+:variant a sbol:Component;
+    sbol:displayId "variant";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/feature> a sbol:SubComponent;
+    sbol:displayId "feature";
+    sbol:instanceOf :variant .
+:derivation a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation/variable_feature>;
+    sbol:template :template .
+<derivation/variable_feature> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_feature";
+    sbol:variable <template/feature>;
+    sbol:variantCollection :collection .
+"#,
+        },
+        PositiveCase {
+            name: "acyclic variantDerivation",
+            rule: "sbol3-12204",
+            body: r#":variant a sbol:Component;
+    sbol:displayId "variant";
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+:template a sbol:Component;
+    sbol:displayId "template";
+    sbol:hasFeature <template/feature>;
+    sbol:hasNamespace <https://example.org>;
+    sbol:type SBO:0000251 .
+<template/feature> a sbol:SubComponent;
+    sbol:displayId "feature";
+    sbol:instanceOf :variant .
+:derivation_a a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation_a";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation_a/variable_feature>;
+    sbol:template :template .
+<derivation_a/variable_feature> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_feature";
+    sbol:variable <template/feature>;
+    sbol:variantDerivation :derivation_b .
+:derivation_b a sbol:CombinatorialDerivation;
+    sbol:displayId "derivation_b";
+    sbol:hasNamespace <https://example.org>;
+    sbol:hasVariableFeature <derivation_b/variable_feature>;
+    sbol:template :template .
+<derivation_b/variable_feature> a sbol:VariableFeature;
+    sbol:cardinality sbol:one;
+    sbol:displayId "variable_feature";
+    sbol:variable <template/feature>;
+    sbol:variant :variant .
+"#,
         },
     ]
 }
