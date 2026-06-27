@@ -69,3 +69,32 @@ jobs:
       - name: Build fuzz targets
         working-directory: fuzz
         run: cargo fuzz build
+
+  cross-build:
+    name: build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Rust 1.93
+        run: |
+          rustup toolchain install 1.93 --profile minimal
+          rustup default 1.93
+          rustup target add ${{ matrix.target }}
+
+      - name: Build CLI and library crates
+        run: cargo build --release --locked -p sbol-cli --target ${{ matrix.target }}
