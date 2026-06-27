@@ -6,17 +6,17 @@
 //! sbol-rs to every RDF serialization on disk so each implementation
 //! sees the same byte-for-byte input. Each bench script reports per
 //! iteration nanoseconds in JSON; this binary aggregates and prints
-//! min/median/mean/p99/stddev for every (impl × fixture × format)
-//! combination, falling back to a "skipped" row when a tool refuses or
-//! fails.
+//! median and p99 for every (impl × fixture × format) combination, with
+//! the inter-quartile range also recorded in the JSON report, falling
+//! back to a "skipped" row when a tool refuses or fails.
 //!
 //! Methodology notes worth knowing before reading the numbers:
 //!
 //! - Wall-clock time only; no allocator or memory measurements. JVM and
 //!   Node startup costs are excluded by running warmup iterations
 //!   inside each container.
-//! - The default workload (3 warmup + 20 measured iters) is meant for
-//!   relative comparison, not absolute publication-grade reporting.
+//! - The default workload (20 warmup + 100 measured iters) reaches steady
+//!   state for the JIT-backed implementations and yields stable medians.
 //!   Override via `SBOL_BENCH_WARMUP` / `SBOL_BENCH_ITERS` for tighter
 //!   error bars.
 //! - sboljs's underlying rdfoo parses only N-Triples and RDF/XML and

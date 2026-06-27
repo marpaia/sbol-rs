@@ -1,5 +1,6 @@
-//! Aggregating per-iteration timings into median/p99 stats and rendering
-//! the human-readable table plus the optional machine-readable JSON report.
+//! Aggregating per-iteration timings into median, inter-quartile range, and
+//! p99 stats and rendering the human-readable table plus the optional
+//! machine-readable JSON report.
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -10,10 +11,21 @@ use crate::bench::format_name;
 use crate::bench::{CaseOutcome, CaseState};
 use crate::cli::Config;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, serde::Serialize)]
 pub(crate) struct Stats {
     pub(crate) median_ns: u64,
+    pub(crate) p25_ns: u64,
+    pub(crate) p75_ns: u64,
     pub(crate) p99_ns: u64,
+}
+
+/// Nearest-rank percentile over an already-sorted, non-empty slice.
+fn percentile(sorted: &[u64], q: f64) -> u64 {
+    let n = sorted.len();
+    let idx = ((n as f64 * q).ceil() as usize)
+        .saturating_sub(1)
+        .min(n - 1);
+    sorted[idx]
 }
 
 pub(crate) fn stats(samples: &[u64]) -> Option<Stats> {
@@ -28,11 +40,12 @@ pub(crate) fn stats(samples: &[u64]) -> Option<Stats> {
     } else {
         (sorted[n / 2 - 1] + sorted[n / 2]) / 2
     };
-    let p99_idx = ((n as f64 * 0.99).ceil() as usize)
-        .saturating_sub(1)
-        .min(n - 1);
-    let p99_ns = sorted[p99_idx];
-    Some(Stats { median_ns, p99_ns })
+    Some(Stats {
+        median_ns,
+        p25_ns: percentile(&sorted, 0.25),
+        p75_ns: percentile(&sorted, 0.75),
+        p99_ns: percentile(&sorted, 0.99),
+    })
 }
 
 pub(crate) fn print_report(outcomes: &[CaseOutcome]) {
@@ -128,6 +141,8 @@ pub(crate) enum ReportState<'a> {
     Ok {
         version: &'a str,
         serialized_bytes: u64,
+        parse_stats: Stats,
+        serialize_stats: Stats,
         parse_ns: &'a [u64],
         serialize_ns: &'a [u64],
     },
@@ -149,12 +164,22 @@ pub(crate) fn write_json_report(
         .iter()
         .map(|outcome| {
             let state = match &outcome.state {
-                CaseState::Ok { version, samples } => ReportState::Ok {
-                    version: version.as_str(),
-                    serialized_bytes: samples.serialized_bytes,
-                    parse_ns: &samples.parse_ns,
-                    serialize_ns: &samples.serialize_ns,
-                },
+                CaseState::Ok { version, samples } => {
+                    let zero = Stats {
+                        median_ns: 0,
+                        p25_ns: 0,
+                        p75_ns: 0,
+                        p99_ns: 0,
+                    };
+                    ReportState::Ok {
+                        version: version.as_str(),
+                        serialized_bytes: samples.serialized_bytes,
+                        parse_stats: stats(&samples.parse_ns).unwrap_or(zero),
+                        serialize_stats: stats(&samples.serialize_ns).unwrap_or(zero),
+                        parse_ns: &samples.parse_ns,
+                        serialize_ns: &samples.serialize_ns,
+                    }
+                }
                 CaseState::Skipped { reason } => ReportState::Skipped {
                     reason: reason.as_str(),
                 },

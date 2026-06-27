@@ -20,32 +20,42 @@ const SOURCES: &[Source] = &[
     Source {
         name: "EDAM.owl",
         url: "http://edamontology.org/EDAM.owl",
+        sha256: "3da855ccb0f4b021477cb12bfd7949726e21d2376e7a2bbffb5666a984da6250",
     },
     Source {
         name: "sbo.owl",
         url: "http://purl.obolibrary.org/obo/sbo.owl",
+        sha256: "b6a6671bbaa0936fb9f11f093b07b77cd89ab476c2b55b2e11184e0473634105",
     },
     Source {
         name: "so.owl",
         url: "http://purl.obolibrary.org/obo/so.owl",
+        sha256: "f53c3005ea3c3b6756fa00ec709acc90e7daad8151720d09881523ede55a3366",
     },
     Source {
         name: "go-basic.obo",
-        url: "http://purl.obolibrary.org/obo/go/go-basic.obo",
+        url: "http://purl.obolibrary.org/obo/go/releases/2026-03-25/go-basic.obo",
+        sha256: "a77e356737dab39a4f620dce35fc4d6eb531c4b6153af6cacaaa322b49b804bd",
     },
     Source {
         name: "chebi.owl",
         url: "http://purl.obolibrary.org/obo/chebi.owl",
+        sha256: "f5c24b13626c3822341d5b788a0b6a198d6d453d67252181cdb8c2a9b8286db3",
     },
     Source {
         name: "cl-basic.obo",
-        url: "http://purl.obolibrary.org/obo/cl/cl-basic.obo",
+        url: "http://purl.obolibrary.org/obo/cl/releases/2026-06-08/cl-basic.obo",
+        sha256: "73996c6349283e7a8cbd8183367a1cb810d0077e9c291ae0c72bd31e869f8c1c",
     },
 ];
 
 struct Source {
     name: &'static str,
     url: &'static str,
+    /// Expected SHA-256 of the downloaded bytes. The compact fact snapshot is
+    /// generated from these exact inputs, so a mismatch means upstream drifted
+    /// and the snapshot must be regenerated against the new content.
+    sha256: &'static str,
 }
 
 #[derive(Debug)]
@@ -89,6 +99,7 @@ fn run() -> Result<(), String> {
         let target = options.cache_root.join(source.name);
         println!("downloading {} -> {}", source.url, target.display());
         download(source, &target)?;
+        verify_checksum(source, &target)?;
         write_checksum(&target)?;
     }
 
@@ -143,6 +154,17 @@ fn download(source: &Source, target: &Path) -> Result<(), String> {
         .map_err(|error| format!("failed to write `{}`: {error}", target.display()))?;
     file.flush()
         .map_err(|error| format!("failed to flush `{}`: {error}", target.display()))
+}
+
+fn verify_checksum(source: &Source, target: &Path) -> Result<(), String> {
+    let actual = sha256_hex(target)?;
+    if actual != source.sha256 {
+        return Err(format!(
+            "checksum mismatch for {}: expected {}, downloaded {actual}. Upstream content has drifted; update the `sha256` (and any version/URL) for `{}` in this tool and in data/ontology_sources.tsv, then regenerate the fact snapshot with `cargo run -p sbol-ontology --bin generate-ontology-facts`.",
+            source.name, source.sha256, source.name
+        ));
+    }
+    Ok(())
 }
 
 fn write_checksum(target: &Path) -> Result<(), String> {
