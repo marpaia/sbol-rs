@@ -7,16 +7,23 @@ serialization, and validation rules. The specification was originally published 
 kept here as the authoritative source artifact, but the Markdown version is the repo-friendly copy to
 read, search, link to, and review while working on this crate.
 
-This directory keeps the active specification in Markdown and PDF form:
+The SBOL 2.3 data model is also kept here for reference. SBOL 3 is a new data model rather than a
+revision of SBOL 2, so the two specifications describe different classes (for example, SBOL 2's
+`ComponentDefinition`/`ModuleDefinition` split versus SBOL 3's unified `Component`). Consult
+[SBOL2.3.0.md](SBOL2.3.0.md) when working with SBOL 2 documents or mapping between the two versions.
 
-- [SBOL3.1.0.md](SBOL3.1.0.md): the curated Markdown copy intended for repo readers.
-- [SBOL3.1.0.pdf](SBOL3.1.0.pdf): the official PDF source artifact.
+This directory keeps the specifications in Markdown and PDF form:
+
+- [SBOL3.1.0.md](SBOL3.1.0.md): the curated Markdown copy of the SBOL 3.1.0 data model.
+- [SBOL3.1.0.pdf](SBOL3.1.0.pdf): the official SBOL 3.1.0 PDF source artifact.
+- [SBOL2.3.0.md](SBOL2.3.0.md): the curated Markdown copy of the SBOL 2.3 data model.
+- [SBOL2.3.0.pdf](SBOL2.3.0.pdf): the official SBOL 2.3 PDF source artifact.
 
 The PDF is the authoritative source. The `spec/` directory is excluded from the published crate
 package so the crates.io artifact stays small while the repository retains the implementation
 reference material.
 
-### Specification Provenance
+### SBOL 3.1.0 Specification Provenance
 
 - Version: 3.1.0
 - Source: <https://sbolstandard.org/docs/SBOL3.1.0.pdf>
@@ -30,6 +37,22 @@ reference material.
 `SBOL3.1.0.md` is a hand-curated Markdown transcription of the PDF. It was initially extracted from
 the PDF, but ongoing cleanup should be made directly in the Markdown and checked against the
 official PDF or tagged LaTeX source when fidelity is in question.
+
+### SBOL 2.3.0 Specification Provenance
+
+- Version: 2.3
+- Source: <https://sbolstandard.org/docs/SBOL2.3.0.pdf>
+- Canonical page: <https://sbolstandard.org/datamodel-specification/version-2-3-0/>
+- Upstream LaTeX source: <https://github.com/SynBioDex/SBOL-specification/tree/v2.3.0>
+- Upstream tag: `v2.3.0` (`9833489734af1742bd23d87eefa1bb247bdb34cb`)
+- Published: April 1, 2019
+- License: Creative Commons Attribution 4.0 International Public License
+- PDF SHA-256: `6ad000f596a26517d1d0a4cf8f53af87538d8703befea35d2383b5ade7558c88`
+
+`SBOL2.3.0.md` is a Markdown transcription generated from the tagged LaTeX source and reconciled
+against the official PDF. Figures are rendered from the upstream vector sources into
+`figures/sbol2.3.0/`. Ongoing cleanup should be made directly in the Markdown and checked against
+the official PDF or tagged LaTeX source when fidelity is in question.
 
 ### 3.1.0 Change Notes
 
