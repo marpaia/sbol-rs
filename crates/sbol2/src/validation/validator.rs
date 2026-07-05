@@ -71,6 +71,7 @@ impl<'a> Validator<'a> {
             for object in self.document.objects().values() {
                 if is_sbol_object(object) {
                     self.validate_completeness(object, &resolvable);
+                    self.validate_reference_classes(object);
                 }
             }
         }
@@ -896,6 +897,87 @@ impl<'a> Validator<'a> {
                 }
             }
         }
+    }
+
+    /// Reference properties whose target must be a specific class. libSBOLj
+    /// resolves each reference and reports when it does not name an object of
+    /// the required class (a missing or wrong-class target). Checked under the
+    /// completeness family for references resolvable within the document.
+    fn validate_reference_classes(&mut self, object: &Object) {
+        // (predicate, required classes, rule). A reference fails when it names
+        // an in-document object of none of the required classes.
+        let wrong_class = |this: &Self, predicate: &str, classes: &[Sbol2Class]| -> Vec<String> {
+            let mut bad = Vec::new();
+            for value in object.resources(predicate) {
+                let Some(iri) = value.as_iri() else { continue };
+                let Some(target) = this.resolve(iri.as_str()) else {
+                    continue;
+                };
+                if !classes.iter().any(|c| target.has_class(*c)) {
+                    bad.push(iri.as_str().to_owned());
+                }
+            }
+            bad
+        };
+
+        let checks: &[(&str, &[Sbol2Class], &str)] = &[
+            (PROV_WAS_GENERATED_BY, &[Sbol2Class::ProvActivity], "sbol2-10222"),
+            (PROV_WAS_INFORMED_BY, &[Sbol2Class::ProvActivity], "sbol2-12407"),
+            (PROV_AGENT, &[Sbol2Class::ProvAgent], "sbol2-12606"),
+            (SBOL2_MODEL, &[Sbol2Class::Model], "sbol2-11608"),
+            (SBOL2_VARIANT_COLLECTION, &[Sbol2Class::Collection], "sbol2-13010"),
+            (
+                SBOL2_VARIANT_DERIVATION,
+                &[Sbol2Class::CombinatorialDerivation],
+                "sbol2-13014",
+            ),
+        ];
+        for (predicate, classes, rule) in checks {
+            let bad = wrong_class(self, predicate, classes);
+            for iri in bad {
+                self.error(
+                    rule,
+                    object,
+                    Some(predicate),
+                    format!("`{predicate}` refers to `{iri}`, which is not the required class"),
+                );
+            }
+        }
+
+        // 13103: a non-empty built reference must resolve to a ComponentDefinition
+        // or ModuleDefinition; a missing or wrong-class target fails.
+        if object.has_class(Sbol2Class::Implementation) {
+            let mut bad = Vec::new();
+            for value in object.resources(SBOL2_BUILT) {
+                let Some(iri) = value.as_iri() else { continue };
+                let ok = self.resolve(iri.as_str()).is_some_and(|target| {
+                    target.has_class(Sbol2Class::ComponentDefinition)
+                        || target.has_class(Sbol2Class::ModuleDefinition)
+                });
+                if !ok {
+                    bad.push(iri.as_str().to_owned());
+                }
+            }
+            for iri in bad {
+                self.error(
+                    "sbol2-13103",
+                    object,
+                    Some(SBOL2_BUILT),
+                    format!("built refers to `{iri}`, which is not a ComponentDefinition or ModuleDefinition"),
+                );
+            }
+        }
+    }
+
+    /// The in-document object whose identity or persistentIdentity equals `uri`.
+    fn resolve(&self, uri: &str) -> Option<&Object> {
+        self.document.objects().values().find(|object| {
+            object.identity().as_iri().is_some_and(|iri| iri.as_str() == uri)
+                || object
+                    .first_resource(SBOL2_PERSISTENT_IDENTITY)
+                    .and_then(Resource::as_iri)
+                    .is_some_and(|iri| iri.as_str() == uri)
+        })
     }
 
     // --- best-practice family (gate: best_practice) --------------------
