@@ -182,19 +182,29 @@ See [`rdf-io.md`](rdf-io.md) for the user-facing I/O subsystem reference.
 
 ## Cross-implementation performance benchmarks
 
-Separate from the correctness harness, `crates/sbol-bench` times three
-phases — `parse`, `serialize`, and `validate` — against pySBOL3,
-libSBOLj3, and sboljs (each pinned in Docker, see `benches/cross-impl/`).
+Separate from the correctness harness, `crates/sbol-bench` times four
+phases — `parse`, `serialize`, `convert`, and `validate` — for both
+SBOL versions sbol-rs implements. The matrix has an **SBOL 2** side and
+an **SBOL 3** side. On the SBOL 3 side it compares sbol-rs against
+pySBOL3, libSBOLj3, and sboljs; on the SBOL 2 side it compares sbol-rs
+against libSBOLj (the SBOL 2 Java implementation). Every foreign tool
+is pinned in its own Docker image (see `benches/cross-impl/`), and
+sbol-rs runs in its own image too so every row pays the same Linux-VM
+overhead.
+
 The serialize phase covers both same-format round trips
 (`turtle -> turtle`) and cross-format conversions (`turtle -> rdfxml`),
 so conversion cost is measured directly. The validate phase runs for
-the three implementations that ship a validator (sbol-rs, pySBOL3,
-libSBOLj3); sboljs has none and is excluded from it. This is not a CI
-gate — there is no perf-regression check — but it gives contributors a
-reproducible way to compare implementations head-to-head on the same
-fixtures. Run `cargo run --release -p sbol-bench`; see
+the implementations that ship a validator on the relevant version —
+sbol-rs on both versions, pySBOL3 and libSBOLj3 on SBOL 3. SBOL 2 is
+exchanged as RDF/XML; sbol-rs additionally reads and writes Turtle,
+JSON-LD, and N-Triples for SBOL 2, so those formats are benchmarked
+for sbol-rs. This is not a CI gate — there is no perf-regression check
+— but it gives contributors a reproducible way to compare
+implementations head-to-head on the same fixtures. Run
+`cargo run --release -p sbol-bench`; see
 [`benches/cross-impl/README.md`](../benches/cross-impl/README.md) for
-the format-support matrix, knobs, and limitations.
+the version-by-version format-support matrix, knobs, and limitations.
 
 ## Property-based testing (`tests/properties.rs`)
 

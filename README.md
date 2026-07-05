@@ -89,25 +89,37 @@ lab-specific ontologies install on demand into a local cache; see
 
 ## Performance
 
-Round-trip cost (`parse → serialize` in the same format) on
-`toggle_switch_v2.ttl` (~30 KB), median microseconds across 100
-measured iterations (20 warmup); lower is better. Every
-implementation runs in its own pinned Docker image so the rows are
-apples-to-apples. Rows sorted by `rdfxml` p50 ascending; fastest first:
+sbol-rs is a native dual-version implementation, and the benchmark
+harness measures both. Parse cost (median microseconds across 100
+measured iterations, 20 warmup; lower is better) with every
+implementation in its own pinned Docker image so the rows are
+apples-to-apples.
+
+**SBOL 3**, `toggle_switch_v2.ttl` (~30 KB), rows sorted by `rdfxml`
+p50 ascending:
 
 | Impl              | turtle | rdfxml | jsonld | ntriples |
 | ----------------- | -----: | -----: | -----: | -------: |
-| sbol-rs           |    352 |    368 |    750 |      393 |
-| libSBOLj3 1.0.5.2 |  1,976 |  2,264 |  4,418 |    2,096 |
-| sboljs 3.0.2      |    n/a |  2,543 |    n/a |      n/a |
-| pySBOL3 1.2       |  7,566 |  9,864 |  6,489 |    7,234 |
+| sbol-rs           |    373 |    387 |    799 |      404 |
+| libSBOLj3 1.0.5.2 |  1,908 |  2,176 |  4,437 |    2,062 |
+| sboljs 3.0.2      |    n/a |  2,459 |    n/a |      n/a |
+| pySBOL3 1.2       |  7,435 |  9,807 |  6,501 |    6,906 |
 
-Apple M4 Max (12 performance and 4 efficiency cores), 128 GB RAM, macOS 26.3.1, Docker Desktop
-29.0.1. sboljs's underlying `rdfoo` only emits RDF/XML and its parser
-stack is too fragile to reach the other format rows on real SBOL 3
-fixtures; the [bench README](benches/cross-impl/README.md) documents
-the specific failure modes. The
-[`crates/sbol-bench`](crates/sbol-bench) crate runs the comparison
-end-to-end; see [`benches/cross-impl/README.md`](benches/cross-impl/README.md)
-for results across smaller fixtures, full methodology, and per-row
-caveats.
+**SBOL 2**, `BBa_F2620` SynBioHub export (~79 KB). SBOL 2 is exchanged
+as RDF/XML; sbol-rs also reads Turtle, JSON-LD, and N-Triples, and
+libSBOLj covers RDF/XML:
+
+| Impl           | turtle | rdfxml | jsonld | ntriples |
+| -------------- | -----: | -----: | -----: | -------: |
+| sbol-rs        |    955 |    988 |  2,027 |    1,029 |
+| libSBOLj 2.4.0 |    n/a |  1,688 |    n/a |      n/a |
+
+Apple M4 Max (12 performance and 4 efficiency cores), 128 GB RAM, macOS
+26.6, Docker Desktop 29.4.3. sboljs's underlying `rdfoo` only emits
+RDF/XML and its parser stack is too fragile to reach the other format
+rows; the [bench README](benches/cross-impl/README.md) documents the
+specific failure modes. The [`crates/sbol-bench`](crates/sbol-bench)
+crate runs the dual-version comparison end-to-end; see
+[`benches/cross-impl/README.md`](benches/cross-impl/README.md) for the
+full SBOL 2 and SBOL 3 parse, serialize, convert, and validate tables,
+methodology, and per-row caveats.
