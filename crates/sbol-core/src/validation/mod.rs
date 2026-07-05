@@ -15,7 +15,7 @@ pub use blocker::Blocker;
 pub use coverage::{compute_coverage, coverage_kind_for};
 pub use options::{
     ExternalValidationMode, HashAlgorithmRegistry, PolicyOptions, RuleOverride, RuleOverrides,
-    TopologyCompleteness, UnknownRule,
+    TopologyCompleteness, UnknownRule, ValidationConfig,
 };
 pub use output::{VALIDATION_OUTPUT_SCHEMA_VERSION, to_json};
 pub use report::{
@@ -25,4 +25,4 @@ pub use report::{
 pub use resolver::{
     ContentResolver, DocumentResolver, ResolutionError, ResolutionErrorKind, ResolvedContent,
 };
-pub use rule_status::{NormativeSeverity, RuleStatus, ValidationRuleStatus};
+pub use rule_status::{NormativeSeverity, RuleStatus, ValidationGate, ValidationRuleStatus};

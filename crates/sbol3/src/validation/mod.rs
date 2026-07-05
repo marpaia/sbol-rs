@@ -28,8 +28,8 @@ pub use report::{
 };
 pub use spec::{
     NormativeSeverity, RuleStatus, VALIDATION_RULE_SPEC_CANONICAL_URL, VALIDATION_RULE_SPEC_PATH,
-    VALIDATION_RULE_SPEC_PDF_SHA256, VALIDATION_RULE_SPEC_VERSION, ValidationRuleStatus,
-    validation_rule_statuses,
+    VALIDATION_RULE_SPEC_PDF_SHA256, VALIDATION_RULE_SPEC_VERSION, ValidationGate,
+    ValidationRuleStatus, validation_rule_statuses,
 };
 
 pub(crate) use spec::class_spec;

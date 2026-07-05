@@ -43,6 +43,28 @@ pub enum RuleStatus {
     Unimplemented,
 }
 
+/// Which validation family a rule belongs to. libSBOLj dispatches rule
+/// families from distinct passes controlled by the four validation-mode
+/// flags; the gate names the pass that runs a rule. `Always` rules run in
+/// every configuration; the other gates run only when their corresponding
+/// `ValidationConfig` flag is set.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[non_exhaustive]
+pub enum ValidationGate {
+    /// Runs in every validation configuration.
+    #[default]
+    Always,
+    /// Runs only when `ValidationConfig::compliant` is set: the
+    /// compliant-URI structural family.
+    Compliant,
+    /// Runs only when `ValidationConfig::complete` is set: the
+    /// document-completeness family (every referenced object present).
+    Complete,
+    /// Runs only when `ValidationConfig::best_practice` is set: the
+    /// SHOULD-level recommendation family.
+    BestPractice,
+}
+
 /// RFC2119-style normative force of a spec rule. Distinguishes
 /// "Partial-but-MUST" rules (gaps that block strict-mode compliance)
 /// from "Partial-but-SHOULD" rules (gaps in recommended-but-optional
@@ -78,6 +100,9 @@ pub struct ValidationRuleStatus {
     /// give callers a precise machine-grep-able tag for what the local
     /// subset covered.
     pub coverage_kind: Option<CoverageKind>,
+    /// Validation family this rule belongs to. Selects which
+    /// `ValidationConfig` flag must be set for the rule to run.
+    pub gate: ValidationGate,
 }
 
 impl ValidationRuleStatus {
@@ -93,6 +118,7 @@ impl ValidationRuleStatus {
         blocker: Option<Blocker>,
         validator_function: Option<&'static str>,
         coverage_kind: Option<CoverageKind>,
+        gate: ValidationGate,
     ) -> Self {
         Self {
             rule,
@@ -103,6 +129,7 @@ impl ValidationRuleStatus {
             blocker,
             validator_function,
             coverage_kind,
+            gate,
         }
     }
 

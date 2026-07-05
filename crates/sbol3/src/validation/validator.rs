@@ -56,7 +56,11 @@ impl<'a> Validator<'a> {
     }
 
     pub(crate) fn finish(self) -> ValidationReport {
-        let coverage = compute_coverage(validation_rule_statuses(), self.context.external_mode());
+        let coverage = compute_coverage(
+            validation_rule_statuses(),
+            self.context.external_mode(),
+            sbol_core::validation::ValidationConfig::default(),
+        );
         let options = self.context.options();
         let mut options_summary = AppliedOptions::default();
         options_summary.topology_completeness = options.topology_completeness;

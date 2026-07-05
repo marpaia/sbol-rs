@@ -141,8 +141,24 @@ fn write_not_applied(out: &mut String, not_applied: &NotApplied) {
             write_string(out, blocker_label(blocker));
             out.push('}');
         }
+        NotAppliedReason::GatedOff(gate) => {
+            out.push('{');
+            out.push_str("\"GatedOff\":");
+            write_string(out, gate_label(gate));
+            out.push('}');
+        }
     }
     out.push('}');
+}
+
+fn gate_label(gate: crate::validation::rule_status::ValidationGate) -> &'static str {
+    use crate::validation::rule_status::ValidationGate;
+    match gate {
+        ValidationGate::Always => "Always",
+        ValidationGate::Compliant => "Compliant",
+        ValidationGate::Complete => "Complete",
+        ValidationGate::BestPractice => "BestPractice",
+    }
 }
 
 fn write_issue(out: &mut String, issue: &ValidationIssue) {

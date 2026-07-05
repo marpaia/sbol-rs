@@ -113,6 +113,9 @@ pub enum NotAppliedReason {
     MachineUncheckable,
     /// Catalog status is `Deferred` — no local algorithm exists yet.
     Deferred(Blocker),
+    /// The rule's validation family was not enabled by the run's
+    /// `ValidationConfig`.
+    GatedOff(crate::validation::rule_status::ValidationGate),
 }
 
 /// Per-rule partial-application record.

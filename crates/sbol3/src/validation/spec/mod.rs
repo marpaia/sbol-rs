@@ -4,7 +4,9 @@ use crate::Object;
 use crate::schema::{ClassDescriptor, FieldDescriptor};
 use crate::vocab::*;
 
-pub use sbol_core::validation::{NormativeSeverity, RuleStatus, ValidationRuleStatus};
+pub use sbol_core::validation::{
+    NormativeSeverity, RuleStatus, ValidationGate, ValidationRuleStatus,
+};
 
 mod properties;
 use properties::*;

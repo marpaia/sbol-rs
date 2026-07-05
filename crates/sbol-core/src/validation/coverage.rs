@@ -2,20 +2,38 @@
 //! applied, partially applied, or not applied for a given validation run.
 
 use crate::validation::blocker::Blocker;
-use crate::validation::options::ExternalValidationMode;
+use crate::validation::options::{ExternalValidationMode, ValidationConfig};
 use crate::validation::report::{
     CoverageKind, NotApplied, NotAppliedReason, PartialApplication, RuleCoverage,
 };
-use crate::validation::rule_status::{RuleStatus, ValidationRuleStatus};
+use crate::validation::rule_status::{RuleStatus, ValidationGate, ValidationRuleStatus};
+
+/// True when `gate`'s family is enabled by `config`.
+fn gate_enabled(gate: ValidationGate, config: ValidationConfig) -> bool {
+    match gate {
+        ValidationGate::Always => true,
+        ValidationGate::Compliant => config.compliant,
+        ValidationGate::Complete => config.complete,
+        ValidationGate::BestPractice => config.best_practice,
+    }
+}
 
 /// Classify every rule in `catalog` into fully/partially/not applied for a
-/// run using `external_mode`.
+/// run using `external_mode` and `config`.
 pub fn compute_coverage(
     catalog: &[ValidationRuleStatus],
     external_mode: ExternalValidationMode,
+    config: ValidationConfig,
 ) -> RuleCoverage {
     let mut coverage = RuleCoverage::default();
     for status in catalog {
+        if !gate_enabled(status.gate, config) {
+            coverage.not_applied.push(NotApplied {
+                rule: status.rule,
+                reason: NotAppliedReason::GatedOff(status.gate),
+            });
+            continue;
+        }
         match coverage_for_rule(status, external_mode) {
             RuleCoverageOutcome::Fully => coverage.fully_applied.push(status.rule),
             RuleCoverageOutcome::Partial(application) => {

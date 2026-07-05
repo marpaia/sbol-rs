@@ -8,6 +8,41 @@ use std::fmt;
 use crate::validation::report::Severity;
 use crate::validation::rule_status::ValidationRuleStatus;
 
+/// Selects which rule families a validation run evaluates. Orthogonal to
+/// `RuleOverrides` and `PolicyOptions`: this config picks which gated
+/// families run at all, while those types control severity *within* the
+/// running families.
+///
+/// The defaults match libSBOLj's `SBOLValidate` command-line defaults:
+/// completeness and compliant-URI checking on, best-practice checking off.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub struct ValidationConfig {
+    /// Run the completeness family: every referenced object must be
+    /// present in the document.
+    pub complete: bool,
+    /// Run the compliant-URI structural family.
+    pub compliant: bool,
+    /// Run the SHOULD-level best-practice family.
+    pub best_practice: bool,
+    /// Interpret compliant URIs as carrying an optional type segment.
+    pub types_in_uri: bool,
+    /// Continue past the first error rather than stopping.
+    pub keep_going: bool,
+}
+
+impl Default for ValidationConfig {
+    fn default() -> Self {
+        Self {
+            complete: true,
+            compliant: true,
+            best_practice: false,
+            types_in_uri: false,
+            keep_going: true,
+        }
+    }
+}
+
 /// Controls whether validators assume missing nucleic-acid topology is knowable.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[non_exhaustive]

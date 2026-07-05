@@ -58,6 +58,9 @@ struct RawRule {
     /// default inferred from `status`/`blocker`.
     #[serde(default)]
     coverage_kind: Option<String>,
+    /// Optional validation family. Absent means `Always`.
+    #[serde(default)]
+    gate: Option<String>,
 }
 
 /// Generates `rule_catalog.rs` and `rule_spec_meta.rs` into `out_dir` from the
@@ -87,6 +90,7 @@ pub fn generate(rules_toml: &Path, out_dir: &Path, policies_dir: Option<&Path>) 
         validate_severity(&rule.id, &rule.normative_severity);
         validate_blocker(&rule.id, &rule.status, rule.blocker.as_deref());
         validate_coverage_kind(&rule.id, rule.coverage_kind.as_deref());
+        validate_gate(&rule.id, rule.gate.as_deref());
         if let Some(policies_dir) = policies_dir {
             if rule.blocker.as_deref() == Some("Policy") {
                 let adr_path = policies_dir.join(format!("{}.md", rule.id));
@@ -144,6 +148,18 @@ fn validate_coverage_kind(rule_id: &str, coverage_kind: Option<&str>) {
                 "rule {rule_id}: invalid coverage_kind `{other}` (expected \
                  OntologyKnownTermsOnly, LocalReferencesOnly, LexicalShapeOnly, \
                  or PolicyDefaultUndecided)"
+            ),
+        }
+    }
+}
+
+fn validate_gate(rule_id: &str, gate: Option<&str>) {
+    if let Some(value) = gate {
+        match value {
+            "Always" | "Compliant" | "Complete" | "BestPractice" => {}
+            other => panic!(
+                "rule {rule_id}: invalid gate `{other}` (expected Always, Compliant, \
+                 Complete, or BestPractice)"
             ),
         }
     }
@@ -208,6 +224,8 @@ fn write_rule_catalog(path: &Path, rules: &[RawRule]) {
             Some(kind) => writeln!(buf, "        Some(super::CoverageKind::{kind}),").unwrap(),
             None => writeln!(buf, "        None,").unwrap(),
         }
+        let gate = rule.gate.as_deref().unwrap_or("Always");
+        writeln!(buf, "        super::ValidationGate::{gate},").unwrap();
         writeln!(buf, "    ),").unwrap();
     }
     buf.push_str("];\n");
