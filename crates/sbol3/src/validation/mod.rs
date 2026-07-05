@@ -19,7 +19,7 @@ pub use context::{
 };
 pub use options::{
     HashAlgorithmRegistry, PolicyOptions, RuleOverride, TopologyCompleteness, UnknownRule,
-    ValidationOptions,
+    ValidationConfig, ValidationOptions,
 };
 pub use output::{VALIDATION_OUTPUT_SCHEMA_VERSION, to_json};
 pub use report::{

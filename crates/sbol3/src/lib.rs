@@ -174,6 +174,6 @@ pub use validation::{
     ResolutionError, ResolutionErrorKind, ResolvedContent, RuleCoverage, RuleOverride, RuleStatus,
     Severity, TopologyCompleteness, UnknownRule, VALIDATION_OUTPUT_SCHEMA_VERSION,
     VALIDATION_RULE_SPEC_CANONICAL_URL, VALIDATION_RULE_SPEC_PATH, VALIDATION_RULE_SPEC_PDF_SHA256,
-    VALIDATION_RULE_SPEC_VERSION, ValidationContext, ValidationIssue, ValidationOptions,
-    ValidationReport, ValidationRuleStatus, to_json, validation_rule_statuses,
+    VALIDATION_RULE_SPEC_VERSION, ValidationConfig, ValidationContext, ValidationIssue,
+    ValidationOptions, ValidationReport, ValidationRuleStatus, to_json, validation_rule_statuses,
 };

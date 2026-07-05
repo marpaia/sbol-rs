@@ -5,17 +5,34 @@ use crate::validation::spec::validation_rule_statuses;
 
 pub use sbol_core::validation::options::{
     HashAlgorithmRegistry, PolicyOptions, RuleOverride, TopologyCompleteness, UnknownRule,
+    ValidationConfig,
 };
 use sbol_core::validation::options::RuleOverrides;
 
 /// Options for local SBOL validation.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct ValidationOptions {
     pub topology_completeness: TopologyCompleteness,
     pub policy: PolicyOptions,
+    /// Selects which rule families run. Defaults to best-practice checking
+    /// on: SBOL 3 validation reports SHOULD-level recommendations by
+    /// default.
+    pub config: ValidationConfig,
     pub(crate) rules: RuleOverrides,
     pub(crate) ontology_extensions: Vec<Ontology>,
+}
+
+impl Default for ValidationOptions {
+    fn default() -> Self {
+        Self {
+            topology_completeness: TopologyCompleteness::default(),
+            policy: PolicyOptions::default(),
+            config: ValidationConfig::default().with_best_practice(true),
+            rules: RuleOverrides::default(),
+            ontology_extensions: Vec::new(),
+        }
+    }
 }
 
 impl ValidationOptions {
@@ -48,6 +65,26 @@ impl ValidationOptions {
     /// demoted to warnings but not above).
     pub fn with_severity_ceiling(mut self, ceiling: Severity) -> Self {
         self.rules = self.rules.with_severity_ceiling(ceiling);
+        self
+    }
+
+    /// Toggle the best-practice family. Passing `false` suppresses
+    /// SHOULD-level warnings — the reviewer configuration that reports
+    /// only MUST violations.
+    pub fn best_practice(mut self, on: bool) -> Self {
+        self.config.best_practice = on;
+        self
+    }
+
+    /// Toggle the completeness family.
+    pub fn complete(mut self, on: bool) -> Self {
+        self.config.complete = on;
+        self
+    }
+
+    /// Replace the whole validation-family configuration.
+    pub fn with_config(mut self, config: ValidationConfig) -> Self {
+        self.config = config;
         self
     }
 

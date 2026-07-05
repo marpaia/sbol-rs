@@ -43,6 +43,44 @@ impl Default for ValidationConfig {
     }
 }
 
+impl ValidationConfig {
+    /// Config with every family enabled.
+    pub fn all_on() -> Self {
+        Self {
+            complete: true,
+            compliant: true,
+            best_practice: true,
+            types_in_uri: true,
+            keep_going: true,
+        }
+    }
+
+    pub fn with_complete(mut self, on: bool) -> Self {
+        self.complete = on;
+        self
+    }
+
+    pub fn with_compliant(mut self, on: bool) -> Self {
+        self.compliant = on;
+        self
+    }
+
+    pub fn with_best_practice(mut self, on: bool) -> Self {
+        self.best_practice = on;
+        self
+    }
+
+    pub fn with_types_in_uri(mut self, on: bool) -> Self {
+        self.types_in_uri = on;
+        self
+    }
+
+    pub fn with_keep_going(mut self, on: bool) -> Self {
+        self.keep_going = on;
+        self
+    }
+}
+
 /// Controls whether validators assume missing nucleic-acid topology is knowable.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[non_exhaustive]

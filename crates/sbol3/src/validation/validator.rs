@@ -4,7 +4,7 @@ use crate::validation::context::ValidationContext;
 use crate::validation::options::ValidationOptions;
 use crate::validation::report::{AppliedOptions, ValidationIssue, ValidationReport};
 use crate::validation::resolver::OwnershipIndex;
-use crate::validation::spec::validation_rule_statuses;
+use crate::validation::spec::{NormativeSeverity, validation_rule_statuses};
 use crate::{Document, Object};
 
 use sbol_core::validation::compute_coverage;
@@ -59,7 +59,7 @@ impl<'a> Validator<'a> {
         let coverage = compute_coverage(
             validation_rule_statuses(),
             self.context.external_mode(),
-            sbol_core::validation::ValidationConfig::default(),
+            self.context.options().config,
         );
         let options = self.context.options();
         let mut options_summary = AppliedOptions::default();
@@ -94,6 +94,15 @@ impl<'a> Validator<'a> {
         self.emit(rule, object, property, message, crate::Severity::Warning);
     }
 
+    /// True when `rule` is a SHOULD-level recommendation and the
+    /// best-practice family is disabled for this run.
+    fn should_suppress_best_practice(&self, rule: &'static str) -> bool {
+        if self.context.options().config.best_practice {
+            return false;
+        }
+        rule_normative_severity(rule) == Some(NormativeSeverity::Should)
+    }
+
     fn emit(
         &mut self,
         rule: &'static str,
@@ -102,6 +111,9 @@ impl<'a> Validator<'a> {
         message: impl Into<String>,
         catalog_default: crate::Severity,
     ) {
+        if self.should_suppress_best_practice(rule) {
+            return;
+        }
         let Some(severity) = self
             .context
             .options()
@@ -125,8 +137,11 @@ impl<'a> Validator<'a> {
         &mut self,
         issues: impl IntoIterator<Item = ValidationIssue>,
     ) {
-        let options = self.context.options();
         for mut issue in issues {
+            if self.should_suppress_best_practice(issue.rule) {
+                continue;
+            }
+            let options = self.context.options();
             let Some(severity) = options.resolved_severity(issue.rule, issue.severity) else {
                 continue;
             };
@@ -134,4 +149,21 @@ impl<'a> Validator<'a> {
             self.issues.push(issue);
         }
     }
+}
+
+/// Look up a rule's normative severity from the generated catalog. Cached
+/// on first use so the emit hot path does a single map lookup.
+fn rule_normative_severity(rule: &str) -> Option<NormativeSeverity> {
+    use std::collections::BTreeMap;
+    use std::sync::OnceLock;
+    static CACHE: OnceLock<BTreeMap<&'static str, NormativeSeverity>> = OnceLock::new();
+    CACHE
+        .get_or_init(|| {
+            validation_rule_statuses()
+                .iter()
+                .map(|status| (status.rule, status.normative_severity))
+                .collect()
+        })
+        .get(rule)
+        .copied()
 }
