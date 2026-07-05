@@ -1,0 +1,17 @@
+[package]
+name = "sbol-rulegen"
+version = "0.2.1"
+edition.workspace = true
+rust-version.workspace = true
+description = "Build-time code generator that turns a versioned SBOL validation rules.toml into a Rust rule catalog, shared by the sbol2 and sbol3 build scripts."
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/sbol-rulegen"
+license.workspace = true
+readme = "README.md"
+keywords = ["sbol", "validation", "codegen", "synthetic-biology"]
+categories = ["development-tools::build-utils"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+toml = { version = "1.1", default-features = false, features = ["parse", "serde"] }

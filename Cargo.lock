@@ -1140,6 +1140,7 @@ dependencies = [
  "sbol-core",
  "sbol-ontology",
  "sbol-rdf",
+ "sbol-rulegen",
  "serde",
  "serde_json",
  "sha2",
@@ -1223,6 +1224,14 @@ dependencies = [
  "oxrdf",
  "oxrdfio",
  "thiserror",
+]
+
+[[package]]
+name = "sbol-rulegen"
+version = "0.2.1"
+dependencies = [
+ "serde",
+ "toml",
 ]
 
 [[package]]
