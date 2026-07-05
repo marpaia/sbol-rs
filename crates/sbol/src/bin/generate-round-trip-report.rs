@@ -21,7 +21,7 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use sbol::{Document, RdfFormat, Severity, Triple, upgrade::canonical_nt_line};
+use sbol::{RdfFormat, Severity, Triple, upgrade::canonical_nt_line};
 
 fn workspace_root() -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -123,7 +123,7 @@ fn run_fixture(path: &Path, name: &str) -> FixtureResult {
         }
     };
 
-    let (upgraded, _ureport) = match Document::upgrade_from_sbol2(&bytes, RdfFormat::RdfXml) {
+    let (upgraded, _ureport) = match sbol::upgrade::upgrade_from_sbol2(&bytes, RdfFormat::RdfXml) {
         Ok(pair) => pair,
         Err(err) => {
             result.outcome = Outcome::Failed {
@@ -145,7 +145,7 @@ fn run_fixture(path: &Path, name: &str) -> FixtureResult {
     let initial_nt: BTreeSet<String> = initial_triples.iter().map(canonical_nt_line).collect();
     result.initial_triples = initial_nt.len();
 
-    let (downgraded_graph, dreport) = match upgraded.downgrade_to_sbol2() {
+    let (downgraded_graph, dreport) = match sbol::downgrade::downgrade(&upgraded) {
         Ok(pair) => pair,
         Err(err) => {
             result.outcome = Outcome::Failed {
@@ -172,7 +172,7 @@ fn run_fixture(path: &Path, name: &str) -> FixtureResult {
         }
     };
 
-    let (reupgraded, _) = match Document::upgrade_from_sbol2(&turtle, RdfFormat::Turtle) {
+    let (reupgraded, _) = match sbol::upgrade::upgrade_from_sbol2(&turtle, RdfFormat::Turtle) {
         Ok(pair) => pair,
         Err(err) => {
             result.outcome = Outcome::Failed {

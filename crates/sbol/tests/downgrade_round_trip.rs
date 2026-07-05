@@ -17,8 +17,8 @@ fn round_trip_diff(fixture: &str) -> (Vec<String>, Vec<String>) {
     let original: Vec<String> = canonicalize(&original_graph);
 
     let (upgraded, _ureport) =
-        Document::upgrade_from_sbol2(&input, RdfFormat::Turtle).expect("upgrade");
-    let (downgraded_graph, _dreport) = upgraded.downgrade_to_sbol2().expect("downgrade");
+        sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::Turtle).expect("upgrade");
+    let (downgraded_graph, _dreport) = sbol::downgrade::downgrade(&upgraded).expect("downgrade");
     let downgraded: Vec<String> = canonicalize(&downgraded_graph);
 
     let only_in_original: Vec<String> = original
@@ -49,9 +49,9 @@ fn canonicalize(graph: &sbol::RdfGraph) -> Vec<String> {
 fn round_trip_simple_component_definition() {
     let input =
         std::fs::read_to_string(workspace_fixture("tests/fixtures/sbol2/single_cd.ttl")).unwrap();
-    let (upgraded, _ureport) = Document::upgrade_from_sbol2(&input, RdfFormat::Turtle).unwrap();
+    let (upgraded, _ureport) = sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::Turtle).unwrap();
 
-    let (downgraded_graph, dreport) = upgraded.downgrade_to_sbol2().expect("downgrade");
+    let (downgraded_graph, dreport) = sbol::downgrade::downgrade(&upgraded).expect("downgrade");
     assert!(
         dreport.is_clean(),
         "downgrade emitted warnings: {:?}",
@@ -84,8 +84,8 @@ fn round_trip_simple_component_definition() {
 fn identity_is_versioned_after_downgrade() {
     let input =
         std::fs::read_to_string(workspace_fixture("tests/fixtures/sbol2/single_cd.ttl")).unwrap();
-    let (upgraded, _) = Document::upgrade_from_sbol2(&input, RdfFormat::Turtle).unwrap();
-    let (graph, _) = upgraded.downgrade_to_sbol2().unwrap();
+    let (upgraded, _) = sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::Turtle).unwrap();
+    let (graph, _) = sbol::downgrade::downgrade(&upgraded).unwrap();
 
     // The original fixture has identity `<https://example.org/lab/J23100/1>`
     // (versioned). The upgrade strips `/1`; the downgrade should
@@ -104,8 +104,8 @@ fn identity_is_versioned_after_downgrade() {
 fn downgrade_emits_well_formed_rdfxml() {
     let input =
         std::fs::read_to_string(workspace_fixture("tests/fixtures/sbol2/single_cd.ttl")).unwrap();
-    let (upgraded, _) = Document::upgrade_from_sbol2(&input, RdfFormat::Turtle).unwrap();
-    let (graph, _) = upgraded.downgrade_to_sbol2().unwrap();
+    let (upgraded, _) = sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::Turtle).unwrap();
+    let (graph, _) = sbol::downgrade::downgrade(&upgraded).unwrap();
 
     // Both Turtle and RDF/XML should serialize cleanly.
     let turtle = graph.write(RdfFormat::Turtle).expect("write turtle");
@@ -149,8 +149,8 @@ fn round_trip_md_simple_structurally() {
     let input =
         std::fs::read_to_string(workspace_fixture("tests/fixtures/sbol2/md_simple.ttl")).unwrap();
     let original = sbol::RdfGraph::parse(&input, RdfFormat::Turtle).unwrap();
-    let (upgraded, _) = Document::upgrade_from_sbol2(&input, RdfFormat::Turtle).unwrap();
-    let (downgraded, _) = upgraded.downgrade_to_sbol2().unwrap();
+    let (upgraded, _) = sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::Turtle).unwrap();
+    let (downgraded, _) = sbol::downgrade::downgrade(&upgraded).unwrap();
 
     let count_types = |g: &sbol::RdfGraph| -> std::collections::BTreeMap<String, usize> {
         let mut out = std::collections::BTreeMap::new();
@@ -185,8 +185,8 @@ fn round_trip_cd_with_annotation_preserves_range_count() {
     ))
     .unwrap();
     let original = sbol::RdfGraph::parse(&input, RdfFormat::Turtle).unwrap();
-    let (upgraded, _) = Document::upgrade_from_sbol2(&input, RdfFormat::Turtle).unwrap();
-    let (downgraded, _) = upgraded.downgrade_to_sbol2().unwrap();
+    let (upgraded, _) = sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::Turtle).unwrap();
+    let (downgraded, _) = sbol::downgrade::downgrade(&upgraded).unwrap();
 
     let count_ranges = |g: &sbol::RdfGraph| -> usize {
         g.triples()
@@ -215,12 +215,12 @@ fn round_trip_real_synbiohub_sa_reconstruction() {
         "tests/fixtures/sbol2/real/synbiohub/BBa_F2620.xml",
     ))
     .unwrap();
-    let (upgraded, _) = Document::upgrade_from_sbol2(&input, RdfFormat::RdfXml).expect("upgrade");
+    let (upgraded, _) = sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::RdfXml).expect("upgrade");
     let original = canonicalize(upgraded.rdf_graph());
-    let (downgraded, _) = upgraded.downgrade_to_sbol2().expect("downgrade");
+    let (downgraded, _) = sbol::downgrade::downgrade(&upgraded).expect("downgrade");
     let turtle = downgraded.write(RdfFormat::Turtle).expect("write turtle");
     let (reupgraded, _) =
-        Document::upgrade_from_sbol2(&turtle, RdfFormat::Turtle).expect("re-upgrade");
+        sbol::upgrade::upgrade_from_sbol2(&turtle, RdfFormat::Turtle).expect("re-upgrade");
     let after = canonicalize(reupgraded.rdf_graph());
     let lost: Vec<&String> = original.iter().filter(|t| !after.contains(t)).collect();
     let gained: Vec<&String> = after.iter().filter(|t| !original.contains(t)).collect();
@@ -254,9 +254,9 @@ fn round_trip_real_repression_model_mapsto_and_interface() {
         "tests/fixtures/sbol2/real/RepressionModel.xml",
     ))
     .unwrap();
-    let (upgraded, _) = Document::upgrade_from_sbol2(&input, RdfFormat::RdfXml).expect("upgrade");
+    let (upgraded, _) = sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::RdfXml).expect("upgrade");
     let original = canonicalize(upgraded.rdf_graph());
-    let (downgraded, dreport) = upgraded.downgrade_to_sbol2().expect("downgrade");
+    let (downgraded, dreport) = sbol::downgrade::downgrade(&upgraded).expect("downgrade");
     assert!(
         dreport.counts().maps_to_reconstructed >= 5,
         "expected at least 5 MapsTo reconstructions, got {}",
@@ -264,7 +264,7 @@ fn round_trip_real_repression_model_mapsto_and_interface() {
     );
     let turtle = downgraded.write(RdfFormat::Turtle).expect("write turtle");
     let (reupgraded, _) =
-        Document::upgrade_from_sbol2(&turtle, RdfFormat::Turtle).expect("re-upgrade");
+        sbol::upgrade::upgrade_from_sbol2(&turtle, RdfFormat::Turtle).expect("re-upgrade");
     let after = canonicalize(reupgraded.rdf_graph());
     let lost: Vec<&String> = original.iter().filter(|t| !after.contains(t)).collect();
     let gained: Vec<&String> = after.iter().filter(|t| !original.contains(t)).collect();
@@ -291,10 +291,10 @@ fn round_trip_real_repression_model_mapsto_and_interface() {
 fn empty_default_version_is_rejected() {
     let input =
         std::fs::read_to_string(workspace_fixture("tests/fixtures/sbol2/single_cd.ttl")).unwrap();
-    let (upgraded, _) = Document::upgrade_from_sbol2(&input, RdfFormat::Turtle).unwrap();
+    let (upgraded, _) = sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::Turtle).unwrap();
     let mut options = sbol::DowngradeOptions::default();
     options.default_version = Some(String::new());
-    let err = upgraded.downgrade_to_sbol2_with(options).unwrap_err();
+    let err = sbol::downgrade::downgrade_with(&upgraded, options).unwrap_err();
     assert!(matches!(
         err,
         sbol::DowngradeError::InvalidDefaultVersion(_)
@@ -309,10 +309,10 @@ fn default_version_some_synthesizes_for_unversioned_sources() {
     // matching warning. With the default `None`, no synthesis occurs.
     let path = workspace_fixture("tests/fixtures/sbol2/real/ModuleDefinitionOutput.xml");
     let input = std::fs::read_to_string(&path).unwrap();
-    let (upgraded, _) = Document::upgrade_from_sbol2(&input, RdfFormat::RdfXml).unwrap();
+    let (upgraded, _) = sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::RdfXml).unwrap();
 
     // Default `None`: no version triples synthesized.
-    let (default_graph, default_report) = upgraded.downgrade_to_sbol2().unwrap();
+    let (default_graph, default_report) = sbol::downgrade::downgrade(&upgraded).unwrap();
     assert!(
         default_report
             .warnings()
@@ -332,7 +332,7 @@ fn default_version_some_synthesizes_for_unversioned_sources() {
     // Opt-in `Some("1")`: synthesizes version.
     let mut options = sbol::DowngradeOptions::default();
     options.default_version = Some("1".to_string());
-    let (opt_in_graph, opt_in_report) = upgraded.downgrade_to_sbol2_with(options).unwrap();
+    let (opt_in_graph, opt_in_report) = sbol::downgrade::downgrade_with(&upgraded, options).unwrap();
     let synthesized = opt_in_report
         .warnings()
         .iter()
@@ -416,8 +416,8 @@ fn collapsed_sequence_annotation_metadata_round_trips() {
     sbol:sequence <https://example.org/lab/seq/1> .
 "#;
     let (upgraded, _ureport) =
-        Document::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
-    let (downgraded, _dreport) = upgraded.downgrade_to_sbol2().expect("downgrade");
+        sbol::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+    let (downgraded, _dreport) = sbol::downgrade::downgrade(&upgraded).expect("downgrade");
     let sa = "https://example.org/lab/cd/ann/1";
 
     assert!(
@@ -491,8 +491,8 @@ fn biopax_dna_plus_dna_region_round_trip_distinctly() {
     sbol:type biopax:Dna ;
     sbol:type biopax:DnaRegion .
 "#;
-    let (document, _r) = Document::upgrade_from_sbol2(sbol2, RdfFormat::Turtle).expect("upgrade");
-    let (graph, _r) = document.downgrade_to_sbol2().expect("downgrade");
+    let (document, _r) = sbol::upgrade::upgrade_from_sbol2(sbol2, RdfFormat::Turtle).expect("upgrade");
+    let (graph, _r) = sbol::downgrade::downgrade(&document).expect("downgrade");
 
     let biopax_types: std::collections::HashSet<String> = graph
         .triples()
@@ -535,7 +535,7 @@ fn multi_biopax_types_round_trip_distinctly() {
     backport:sbol2type <http://sbols.org/v2#ComponentDefinition> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = document.downgrade_to_sbol2().expect("downgrade");
+    let (graph, _report) = sbol::downgrade::downgrade(&document).expect("downgrade");
 
     let types_emitted: std::collections::HashSet<String> = graph
         .triples()
@@ -585,7 +585,7 @@ fn colliding_iri_rewrites_emit_warning() {
     backport:sbol2version "1" .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (_graph, report) = document.downgrade_to_sbol2().expect("downgrade");
+    let (_graph, report) = sbol::downgrade::downgrade(&document).expect("downgrade");
     let collision = report.warnings().iter().find_map(|w| match w {
         sbol::DowngradeWarning::IdentityCollision { canonical, sources } => {
             Some((canonical.clone(), sources.clone()))

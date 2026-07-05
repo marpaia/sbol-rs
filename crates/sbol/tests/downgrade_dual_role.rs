@@ -43,7 +43,7 @@ fn dual_role_interface_direction_lands_on_functional_component_variant() {
     sbol:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = document.downgrade_to_sbol2().expect("downgrade");
+    let (graph, _report) = sbol::downgrade::downgrade(&document).expect("downgrade");
 
     assert!(
         has_triple(
@@ -100,9 +100,8 @@ fn downgrade_honors_split_dual_role_components_false() {
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
     let mut options = sbol::DowngradeOptions::default();
     options.split_dual_role_components = false;
-    let (graph, report) = document
-        .downgrade_to_sbol2_with(options)
-        .expect("downgrade");
+    let (graph, report) =
+        sbol::downgrade::downgrade_with(&document, options).expect("downgrade");
 
     assert!(
         !report
@@ -164,7 +163,7 @@ fn dual_role_component_splits_into_cd_and_md() {
     sbol3:displayId "dual_role_seq" .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, report) = document.downgrade_to_sbol2().expect("downgrade");
+    let (graph, report) = sbol::downgrade::downgrade(&document).expect("downgrade");
 
     assert_eq!(
         report.counts().components_split_into_both,
@@ -298,7 +297,7 @@ fn split_subjects_preserve_extension_types_and_archive_unknown_sbol3_predicates(
     sbol3:displayId "dual_role_seq" .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, report) = document.downgrade_to_sbol2().expect("downgrade");
+    let (graph, report) = sbol::downgrade::downgrade(&document).expect("downgrade");
     let dual_warnings = report
         .warnings()
         .iter()
@@ -424,7 +423,7 @@ fn dual_role_subcomponent_triples_into_three_variants() {
     sbol3:displayId "seq" .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = document.downgrade_to_sbol2().expect("downgrade");
+    let (graph, _report) = sbol::downgrade::downgrade(&document).expect("downgrade");
 
     let triples = graph.triples();
     let has_typed_subject = |iri: &str, ty: &str| {
@@ -505,7 +504,7 @@ fn collection_membership_duplicates_for_dual_role_split() {
     sbol3:displayId "dual_role_seq" .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = document.downgrade_to_sbol2().expect("downgrade");
+    let (graph, _report) = sbol::downgrade::downgrade(&document).expect("downgrade");
 
     let members: Vec<&str> = graph
         .triples()
@@ -566,7 +565,7 @@ fn dual_role_linking_fc_avoids_subcomponent_iri_collision() {
     sbol3:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = document.downgrade_to_sbol2().expect("downgrade");
+    let (graph, _report) = sbol::downgrade::downgrade(&document).expect("downgrade");
 
     let collision_iri = "https://lab/widget/widget";
     let types_at = |iri: &str| -> Vec<String> {
@@ -650,7 +649,7 @@ fn dual_role_subcomponent_variant_display_ids_match_iri_suffix() {
     sbol3:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = document.downgrade_to_sbol2().expect("downgrade");
+    let (graph, _report) = sbol::downgrade::downgrade(&document).expect("downgrade");
     let display_id_at = |iri: &str| -> Option<String> {
         graph.triples().iter().find_map(|t| {
             (t.subject.as_iri().map(|i| i.as_str()) == Some(iri)
@@ -704,7 +703,7 @@ fn dual_role_cd_half_avoids_separately_named_component_iri() {
     sbol3:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _r) = document.downgrade_to_sbol2().expect("downgrade");
+    let (graph, _r) = sbol::downgrade::downgrade(&document).expect("downgrade");
 
     let types_at = |iri: &str| -> Vec<String> {
         graph
@@ -790,7 +789,7 @@ fn dual_role_subcomponent_variant_avoids_sibling_iri_collision() {
     sbol3:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _r) = document.downgrade_to_sbol2().expect("downgrade");
+    let (graph, _r) = sbol::downgrade::downgrade(&document).expect("downgrade");
     let types_at = |iri: &str| -> Vec<String> {
         graph
             .triples()

@@ -17,7 +17,7 @@
 //!    representations.
 //! 3. This example fetches the SBOL 2 representation via the public
 //!    SynBioHub REST API, then runs `sbol-rs`'s
-//!    [`Document::upgrade_from_sbol2`] to produce a native SBOL 3
+//!    `sbol::upgrade::upgrade_from_sbol2` to produce a native SBOL 3
 //!    [`Document`].
 //! 4. The resulting SBOL 3 graph is validated and structurally summarized.
 //!
@@ -58,7 +58,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("=== upgrading SBOL 2 → SBOL 3 ===");
-    let (document, report) = Document::upgrade_from_sbol2(&sbol2_xml, RdfFormat::RdfXml)?;
+    let (document, report) = sbol::upgrade::upgrade_from_sbol2(&sbol2_xml, RdfFormat::RdfXml)?;
     print_upgrade_report(&report);
 
     println!("\n=== validating the converted SBOL 3 ===");

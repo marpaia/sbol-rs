@@ -4,7 +4,7 @@ use std::path::Path;
 use std::process::ExitCode;
 
 use sbol::{
-    Document, MapsToSide, NamespaceSource, RdfFormat, UpgradeCounts, UpgradeOptions, UpgradeReport,
+    MapsToSide, NamespaceSource, RdfFormat, UpgradeCounts, UpgradeOptions, UpgradeReport,
     UpgradeWarning,
 };
 use serde_json::{Value, json};
@@ -84,7 +84,7 @@ pub(crate) fn upgrade(args: UpgradeArgs, styles: Styles) -> ExitCode {
         }
     };
 
-    let (document, report) = match Document::upgrade_from_sbol2_with(&input, format, options) {
+    let (document, report) = match sbol::upgrade::upgrade_from_sbol2_with(&input, format, options) {
         Ok(pair) => pair,
         Err(err) => {
             eprintln!(

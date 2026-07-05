@@ -1,7 +1,7 @@
 //! Refresh the SBOL 2 → SBOL 3 conformance snapshots.
 //!
 //! For every committed fixture under `tests/fixtures/sbol2/real/`,
-//! re-runs `Document::upgrade_from_sbol2` and writes the canonicalized
+//! re-runs `sbol::upgrade::upgrade_from_sbol2` and writes the canonicalized
 //! N-Triples output to `tests/fixtures/sbol2/real/expected/{name}.nt`.
 //! The integration test in `crates/sbol/tests/upgrade_conformance.rs`
 //! diffs against these snapshots on every test run.
@@ -15,7 +15,7 @@
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use sbol::{Document, RdfFormat, Triple};
+use sbol::{RdfFormat, Triple};
 
 fn workspace_root() -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -126,7 +126,7 @@ fn main() -> ExitCode {
                 continue;
             }
         };
-        let (document, _report) = match Document::upgrade_from_sbol2(&bytes, RdfFormat::RdfXml) {
+        let (document, _report) = match sbol::upgrade::upgrade_from_sbol2(&bytes, RdfFormat::RdfXml) {
             Ok(pair) => pair,
             Err(err) => {
                 eprintln!("[FAIL] {name}: upgrade: {err}");

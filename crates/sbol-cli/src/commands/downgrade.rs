@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use std::path::Path;
 use std::process::ExitCode;
 
-use sbol::{Document, DowngradeOptions, DowngradeWarning, RdfFormat};
+use sbol::{DowngradeOptions, DowngradeWarning, RdfFormat};
 
 use crate::cli::DowngradeArgs;
 use crate::output::{format_issue, infer_conversion_rdf_format, read_document_with_format};
@@ -64,7 +64,7 @@ pub(crate) fn downgrade(args: DowngradeArgs, styles: Styles) -> ExitCode {
 
     let mut options = DowngradeOptions::default();
     options.default_version = args.default_version;
-    let (sbol2_graph, report) = match document.downgrade_to_sbol2_with(options) {
+    let (sbol2_graph, report) = match sbol::downgrade::downgrade_with(&document, options) {
         Ok(pair) => pair,
         Err(err) => {
             eprintln!("{}: downgrade failed: {err}", styles.err_label());
@@ -142,7 +142,7 @@ pub(crate) fn downgrade(args: DowngradeArgs, styles: Styles) -> ExitCode {
                 return ExitCode::from(2);
             }
         };
-        match Document::upgrade_from_sbol2(&sbol2_text, RdfFormat::Turtle) {
+        match sbol::upgrade::upgrade_from_sbol2(&sbol2_text, RdfFormat::Turtle) {
             Ok((re_upgraded, _)) => {
                 let validation = re_upgraded.validate();
                 if validation.has_errors() {

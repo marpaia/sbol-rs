@@ -128,7 +128,8 @@ pub mod schema;
 mod specification;
 pub mod upgrade;
 mod validation;
-mod vocab;
+#[doc(hidden)]
+pub mod vocab;
 
 pub use client::{
     Activity, ActivityBuilder, Agent, AgentBuilder, Association, AssociationBuilder, Attachment,
@@ -150,11 +151,11 @@ pub use client::{
     UnitMultiplicationBuilder, Usage, UsageBuilder, VariableFeature, VariableFeatureBuilder,
 };
 pub use conformance::render_conformance_report;
-pub use document::{Document, UpgradeFromPathError};
+pub use document::Document;
 pub use sbol_core::document::{ObjectStore, RawDocument};
 pub use downgrade::{
-    DowngradeCounts, DowngradeError, DowngradeOptions, DowngradeReport, DowngradeWarning,
-    sbol3_to_sbol2,
+    DowngradeCounts, DowngradeError, DowngradeOptions, DowngradeReport, DowngradeWarning, downgrade,
+    downgrade_with, sbol3_to_sbol2,
 };
 pub use error::{BuildError, ReadError, WriteError};
 pub use identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
@@ -171,8 +172,9 @@ pub use sbol_ontology::{Ontology, OntologyRegistry};
 pub use sbol_rdf::{Graph as RdfGraph, Iri, Literal, RdfFormat, Resource, Term, Triple};
 pub use specification::{SPEC_VERSION, SPECIFICATION_URL};
 pub use upgrade::{
-    MapsToSide, NamespaceSource, UpgradeCounts, UpgradeError, UpgradeOptions, UpgradeReport,
-    UpgradeWarning, parse_and_upgrade, sbol2_to_sbol3,
+    MapsToSide, NamespaceSource, UpgradeCounts, UpgradeError, UpgradeFromPathError, UpgradeOptions,
+    UpgradeReport, UpgradeWarning, parse_and_upgrade, sbol2_to_sbol3, upgrade_from_sbol2,
+    upgrade_from_sbol2_path, upgrade_from_sbol2_with,
 };
 #[cfg(feature = "http-resolver")]
 pub use validation::CachingHttpResolver;

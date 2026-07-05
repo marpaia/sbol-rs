@@ -8,7 +8,7 @@
 //!         │   sbol_genbank::GenbankImporter
 //!         ▼
 //!   sbol::Document  (SBOL 3)
-//!         │   document.downgrade_to_sbol2()
+//!         │   sbol::downgrade::downgrade(&document)
 //!         ▼
 //!   sbol_rdf::Graph  (SBOL 2)
 //!         │   graph.write(RdfFormat::RdfXml)
@@ -75,7 +75,7 @@ fn main() -> ExitCode {
                 continue;
             }
         };
-        let (sbol2_graph, _dreport) = match document.downgrade_to_sbol2() {
+        let (sbol2_graph, _dreport) = match sbol::downgrade::downgrade(&document) {
             Ok(pair) => pair,
             Err(err) => {
                 eprintln!("[FAIL] {name}: downgrade: {err}");

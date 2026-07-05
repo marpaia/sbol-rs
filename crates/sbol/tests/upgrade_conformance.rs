@@ -22,7 +22,7 @@
 
 use std::path::PathBuf;
 
-use sbol::{Document, RdfFormat, Triple};
+use sbol::{RdfFormat, Triple};
 
 fn workspace_root() -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -107,7 +107,7 @@ fn run_upgrade(name: &str) -> Vec<String> {
     let input_path = input_path_for(name);
     let input = std::fs::read_to_string(&input_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", input_path.display()));
-    let (document, _report) = Document::upgrade_from_sbol2(&input, RdfFormat::RdfXml)
+    let (document, _report) = sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::RdfXml)
         .unwrap_or_else(|err| panic!("upgrade {name}: {err}"));
     let mut actual: Vec<String> = document
         .rdf_graph()

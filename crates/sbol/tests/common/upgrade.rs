@@ -18,7 +18,7 @@ pub fn upgrade_fixture(name: &str) -> Document {
     let path = workspace_fixture(name);
     let input = std::fs::read_to_string(&path)
         .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
-    let (document, report) = Document::upgrade_from_sbol2(&input, RdfFormat::Turtle)
+    let (document, report) = sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::Turtle)
         .unwrap_or_else(|err| panic!("upgrade {}: {err}", path.display()));
     assert!(
         report.is_clean(),
@@ -41,5 +41,5 @@ pub fn real_fixture(name: &str) -> PathBuf {
 pub fn upgrade_real(name: &str) -> (Document, sbol::UpgradeReport) {
     let path = real_fixture(name);
     let input = std::fs::read_to_string(&path).unwrap();
-    Document::upgrade_from_sbol2(&input, RdfFormat::RdfXml).expect("real fixture upgrade")
+    sbol::upgrade::upgrade_from_sbol2(&input, RdfFormat::RdfXml).expect("real fixture upgrade")
 }

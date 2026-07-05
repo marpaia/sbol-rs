@@ -8,11 +8,13 @@
 //! of the supported RDF formats.
 //!
 //! ```no_run
-//! use sbol::{Document, RdfFormat};
+//! use sbol::Document;
+//! use sbol::RdfFormat;
+//! use sbol::downgrade::downgrade;
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let document = Document::read_path("design.ttl")?;
-//! let (sbol2_graph, report) = document.downgrade_to_sbol2()?;
+//! let (sbol2_graph, report) = downgrade(&document)?;
 //! for warning in report.warnings() {
 //!     eprintln!("{warning:?}");
 //! }
@@ -252,22 +254,19 @@ pub fn sbol3_to_sbol2(
     Ok((Graph::new(engine.output_triples), engine.report))
 }
 
-impl Document {
-    /// Downgrades this SBOL 3 document to SBOL 2 RDF, returning the
-    /// resulting graph alongside a [`DowngradeReport`]. See
-    /// [`sbol::downgrade`](crate::downgrade) for the loss model.
-    pub fn downgrade_to_sbol2(&self) -> Result<(Graph, DowngradeReport), DowngradeError> {
-        sbol3_to_sbol2(self, DowngradeOptions::default())
-    }
+/// Downgrades an SBOL 3 [`Document`] to SBOL 2 RDF, returning the
+/// resulting graph alongside a [`DowngradeReport`]. See
+/// [`sbol::downgrade`](crate::downgrade) for the loss model.
+pub fn downgrade(document: &Document) -> Result<(Graph, DowngradeReport), DowngradeError> {
+    sbol3_to_sbol2(document, DowngradeOptions::default())
+}
 
-    /// Like [`Document::downgrade_to_sbol2`], with explicit
-    /// [`DowngradeOptions`].
-    pub fn downgrade_to_sbol2_with(
-        &self,
-        options: DowngradeOptions,
-    ) -> Result<(Graph, DowngradeReport), DowngradeError> {
-        sbol3_to_sbol2(self, options)
-    }
+/// Like [`downgrade`], with explicit [`DowngradeOptions`].
+pub fn downgrade_with(
+    document: &Document,
+    options: DowngradeOptions,
+) -> Result<(Graph, DowngradeReport), DowngradeError> {
+    sbol3_to_sbol2(document, options)
 }
 
 struct Engine<'a> {

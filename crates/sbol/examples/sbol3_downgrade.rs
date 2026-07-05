@@ -17,13 +17,13 @@
 //!         │   Document::read_path
 //!         ▼
 //!   sbol::Document
-//!         │   document.downgrade_to_sbol2()
+//!         │   sbol::downgrade::downgrade(&document)
 //!         ▼
 //!   sbol_rdf::Graph (SBOL 2)
 //!         │   graph.write(RdfFormat::RdfXml)
 //!         ▼
 //!   serialized SBOL 2 RDF/XML on disk
-//!         │   Document::upgrade_from_sbol2  (--validate)
+//!         │   sbol::upgrade::upgrade_from_sbol2  (--validate)
 //!         ▼
 //!   re-upgraded SBOL 3 + validation report
 //! ```
@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     println!("\n▸ stage 2: downgrade to SBOL 2");
-    let (sbol2_graph, report) = document.downgrade_to_sbol2()?;
+    let (sbol2_graph, report) = sbol::downgrade::downgrade(&document)?;
     let counts = report.counts();
     println!(
         "   {} CD, {} MD, {} SubComponent, {} SequenceFeature, {} backport-restored, {} synthesized",
@@ -110,7 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n▸ stage 4: round-trip validate");
     let turtle = sbol2_graph.write(RdfFormat::Turtle)?;
-    match Document::upgrade_from_sbol2(&turtle, RdfFormat::Turtle) {
+    match sbol::upgrade::upgrade_from_sbol2(&turtle, RdfFormat::Turtle) {
         Ok((reupgraded, _)) => {
             let validation = reupgraded.validate();
             let errors = validation

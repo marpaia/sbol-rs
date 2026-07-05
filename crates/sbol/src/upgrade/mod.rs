@@ -12,10 +12,10 @@
 //! warnings.
 //!
 //! ```no_run
-//! use sbol::{Document, RdfFormat};
+//! use sbol::upgrade::upgrade_from_sbol2_path;
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! let (document, report) = Document::upgrade_from_sbol2_path("design.xml")?;
+//! let (document, report) = upgrade_from_sbol2_path("design.xml")?;
 //!
 //! for warning in report.warnings() {
 //!     eprintln!("{warning:?}");
@@ -41,7 +41,9 @@
 //! [conversion-md]: https://github.com/marpaia/sbol-rs/blob/master/docs/conversion.md
 
 use std::collections::{HashMap, HashSet};
+use std::path::Path;
 
+use crate::Document;
 use crate::sbol2_vocab as v2;
 use crate::vocab as v3;
 use crate::{Iri, Resource, Term, Triple};
@@ -303,6 +305,107 @@ pub fn parse_and_upgrade(
 ) -> Result<(Graph, UpgradeReport), UpgradeError> {
     let graph = Graph::parse(input, format)?;
     sbol2_to_sbol3(&graph, options)
+}
+
+/// Upgrades an SBOL 2 RDF document to SBOL 3 and returns the resulting
+/// [`Document`] alongside an [`UpgradeReport`] of any non-fatal issues
+/// encountered during conversion.
+///
+/// The returned [`Document`] is always produced when the input parses as
+/// valid SBOL 2 RDF — call [`Document::check`] if you want a strict
+/// pipeline that rejects content the upgrade could not coerce into
+/// fully-conformant SBOL 3.
+pub fn upgrade_from_sbol2(
+    input: &str,
+    format: RdfFormat,
+) -> Result<(Document, UpgradeReport), UpgradeError> {
+    upgrade_from_sbol2_with(input, format, UpgradeOptions::default())
+}
+
+/// Like [`upgrade_from_sbol2`], with explicit [`UpgradeOptions`].
+pub fn upgrade_from_sbol2_with(
+    input: &str,
+    format: RdfFormat,
+    options: UpgradeOptions,
+) -> Result<(Document, UpgradeReport), UpgradeError> {
+    let parsed = Graph::parse(input, format).map_err(UpgradeError::Parse)?;
+    let (upgraded, report) = sbol2_to_sbol3(&parsed, options)?;
+    Ok((Document::from_rdf_graph(upgraded), report))
+}
+
+/// Reads an SBOL 2 RDF file from disk and upgrades it to SBOL 3. The
+/// format is inferred from the path's extension (`.ttl`, `.rdf`, `.xml`,
+/// `.jsonld`, `.nt`).
+pub fn upgrade_from_sbol2_path(
+    path: impl AsRef<Path>,
+) -> Result<(Document, UpgradeReport), UpgradeFromPathError> {
+    let path = path.as_ref();
+    let format =
+        infer_sbol2_rdf_format(path).ok_or_else(|| UpgradeFromPathError::UnknownFormat {
+            path: path.to_path_buf(),
+            extension: path
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .map(str::to_owned),
+        })?;
+    let input = std::fs::read_to_string(path).map_err(|source| UpgradeFromPathError::Io {
+        path: path.to_path_buf(),
+        source,
+    })?;
+    upgrade_from_sbol2(&input, format).map_err(UpgradeFromPathError::Upgrade)
+}
+
+fn infer_sbol2_rdf_format(path: &Path) -> Option<RdfFormat> {
+    if let Some(format) = RdfFormat::from_path(path) {
+        return Some(format);
+    }
+    let extension = path.extension()?.to_str()?.to_ascii_lowercase();
+    (extension == "xml").then_some(RdfFormat::RdfXml)
+}
+
+/// Errors returned by [`upgrade_from_sbol2_path`].
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum UpgradeFromPathError {
+    /// Failed to read the file at the given path.
+    Io {
+        path: std::path::PathBuf,
+        source: std::io::Error,
+    },
+    /// The path's extension did not match any supported RDF serialization.
+    UnknownFormat {
+        path: std::path::PathBuf,
+        extension: Option<String>,
+    },
+    /// The file was loaded but the upgrade itself failed.
+    Upgrade(UpgradeError),
+}
+
+impl std::fmt::Display for UpgradeFromPathError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Io { path, source } => write!(f, "failed to read {}: {source}", path.display()),
+            Self::UnknownFormat { path, extension } => {
+                let ext = extension.as_deref().unwrap_or("<none>");
+                write!(
+                    f,
+                    "unsupported extension `{ext}` for {} — supported: .ttl, .rdf, .jsonld, .nt",
+                    path.display()
+                )
+            }
+            Self::Upgrade(err) => write!(f, "{err}"),
+        }
+    }
+}
+
+impl std::error::Error for UpgradeFromPathError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Io { source, .. } => Some(source),
+            Self::UnknownFormat { .. } => None,
+            Self::Upgrade(err) => Some(err),
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
