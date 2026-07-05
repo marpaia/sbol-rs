@@ -54,7 +54,6 @@ fn main() -> ExitCode {
     };
 
     let workspace = workspace_root();
-    let sboltest_root = workspace.join("tests/fixtures/sbol3");
     let run_id = format!(
         "{}",
         SystemTime::now()
@@ -94,13 +93,22 @@ fn main() -> ExitCode {
     let mut any_native_failure = false;
 
     for fixture in &config.fixtures {
-        let source = sboltest_root.join(fixture.source);
+        // Only the cases whose model version matches the fixture apply.
+        let cases = || {
+            BENCH_CASES
+                .iter()
+                .filter(|case| case.version == fixture.version)
+        };
+        let source = workspace
+            .join(fixture.version.fixture_dir())
+            .join(fixture.source);
         if !source.is_file() {
             eprintln!(
-                "fixture missing at {}; populate the cache by running the sbol3_fixtures test once",
+                "fixture missing at {}; populate the fixture cache (run the \
+                 corresponding integration test once)",
                 source.display()
             );
-            for case in BENCH_CASES {
+            for case in cases() {
                 outcomes.push(CaseOutcome {
                     case: *case,
                     fixture: *fixture,
@@ -112,26 +120,30 @@ fn main() -> ExitCode {
             continue;
         }
 
-        let prepared =
-            match prepare_fixture_in_every_format(&source, &workspace, &scratch_root, fixture.stem)
-            {
-                Ok(prepared) => prepared,
-                Err(error) => {
-                    eprintln!("failed to prepare {}: {error}", fixture.stem);
-                    for case in BENCH_CASES {
-                        outcomes.push(CaseOutcome {
-                            case: *case,
-                            fixture: *fixture,
-                            state: CaseState::Skipped {
-                                reason: format!("could not pre-convert fixture: {error}"),
-                            },
-                        });
-                    }
-                    continue;
+        let prepared = match prepare_fixture_in_every_format(
+            &source,
+            &workspace,
+            &scratch_root,
+            fixture.stem,
+            fixture.version,
+        ) {
+            Ok(prepared) => prepared,
+            Err(error) => {
+                eprintln!("failed to prepare {}: {error}", fixture.stem);
+                for case in cases() {
+                    outcomes.push(CaseOutcome {
+                        case: *case,
+                        fixture: *fixture,
+                        state: CaseState::Skipped {
+                            reason: format!("could not pre-convert fixture: {error}"),
+                        },
+                    });
                 }
-            };
+                continue;
+            }
+        };
 
-        for case in BENCH_CASES {
+        for case in cases() {
             let input_path = prepared
                 .get(&case.parse_format)
                 .expect("every format was prepared above");

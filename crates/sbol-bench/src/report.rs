@@ -10,6 +10,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use crate::bench::format_name;
 use crate::bench::{CaseOutcome, CaseState};
 use crate::cli::Config;
+use crate::matrix::Version;
 
 #[derive(Debug, Clone, Copy, serde::Serialize)]
 pub(crate) struct Stats {
@@ -49,15 +50,21 @@ pub(crate) fn stats(samples: &[u64]) -> Option<Stats> {
 }
 
 pub(crate) fn print_report(outcomes: &[CaseOutcome]) {
-    let mut by_fixture: BTreeMap<&'static str, Vec<&CaseOutcome>> = BTreeMap::new();
+    let mut by_group: BTreeMap<(Version, &'static str), Vec<&CaseOutcome>> = BTreeMap::new();
     for outcome in outcomes {
-        by_fixture
-            .entry(outcome.fixture.stem)
+        by_group
+            .entry((outcome.fixture.version, outcome.fixture.stem))
             .or_default()
             .push(outcome);
     }
 
-    for (fixture_stem, fixture_outcomes) in by_fixture {
+    let mut current_version: Option<Version> = None;
+    for ((version, fixture_stem), fixture_outcomes) in by_group {
+        if current_version != Some(version) {
+            println!();
+            println!("################ {} ################", version.label());
+            current_version = Some(version);
+        }
         println!();
         println!("=== fixture: {fixture_stem} ===");
         println!(
@@ -150,6 +157,7 @@ pub(crate) struct ReportFile<'a> {
 
 #[derive(serde::Serialize)]
 pub(crate) struct ReportCase<'a> {
+    pub(crate) version: &'a str,
     pub(crate) fixture: &'a str,
     pub(crate) implementation: &'a str,
     pub(crate) parse_format: &'a str,
@@ -217,6 +225,7 @@ pub(crate) fn write_json_report(
                 },
             };
             ReportCase {
+                version: outcome.fixture.version.id(),
                 fixture: outcome.fixture.stem,
                 implementation: outcome.case.implementation.id(),
                 parse_format: format_name(outcome.case.parse_format),
