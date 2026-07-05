@@ -78,6 +78,29 @@ fn compliant_persistent_identity_10216() {
     assert!(reports_rule(&document.validate(), "sbol2-10216"));
 }
 
+// 10217: a compliant child object's persistentIdentity must extend its
+// parent's. Gated on the compliant family.
+#[test]
+fn compliant_child_persistent_identity_10217() {
+    let turtle = format!(
+        "{PREAMBLE}\
+         <http://ex/cd/1> a sbol:ComponentDefinition ;\n\
+           sbol:displayId \"cd\" ;\n\
+           sbol:persistentIdentity <http://ex/cd> ;\n\
+           sbol:type <http://www.biopax.org/release/biopax-level3.owl#DnaRegion> ;\n\
+           sbol:component <http://ex/cd/c/1> .\n\
+         <http://ex/cd/c/1> a sbol:Component ;\n\
+           sbol:displayId \"c\" ;\n\
+           sbol:persistentIdentity <http://ex/wrong/c> ;\n\
+           sbol:access <http://sbols.org/v2#public> ;\n\
+           sbol:definition <http://ex/other> .\n"
+    );
+    let document = doc(&turtle);
+    let off = document.validate_with_config(&ValidationConfig::default().with_compliant(false));
+    assert!(!reports_rule(&off, "sbol2-10217"));
+    assert!(reports_rule(&document.validate(), "sbol2-10217"));
+}
+
 // 10604: a FunctionalComponent definition must resolve in a complete document.
 // Gated on the completeness family.
 #[test]

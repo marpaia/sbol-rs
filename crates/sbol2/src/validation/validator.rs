@@ -61,9 +61,11 @@ impl<'a> Validator<'a> {
 
         // Gated families, dispatched exactly as SBOLValidate does.
         if config.compliant {
+            let parents = self.build_parent_map();
             for object in self.document.objects().values() {
                 if is_sbol_object(object) {
                     self.validate_compliance(object);
+                    self.validate_child_compliance(object, &parents);
                 }
             }
         }
@@ -871,19 +873,26 @@ impl<'a> Validator<'a> {
         let version = self.literal(object, SBOL2_VERSION);
 
         if object.is_top_level() {
-            // 10216: TopLevel persistentIdentity ends with delimiter + displayId.
-            if let Some(pid) = &persistent
-                && !ends_with_delimited(pid, &display_id) {
-                    self.error(
-                        "sbol2-10216",
-                        object,
-                        Some(SBOL2_PERSISTENT_IDENTITY),
-                        format!(
-                            "compliant TopLevel persistentIdentity `{pid}` must end with a \
-                             delimiter followed by displayId `{display_id}`"
-                        ),
-                    );
-                }
+            // 10216: a compliant TopLevel requires a persistentIdentity that
+            // ends with a delimiter followed by its displayId.
+            match &persistent {
+                None => self.error(
+                    "sbol2-10216",
+                    object,
+                    Some(SBOL2_PERSISTENT_IDENTITY),
+                    "a compliant TopLevel requires a persistentIdentity",
+                ),
+                Some(pid) if !ends_with_delimited(pid, &display_id) => self.error(
+                    "sbol2-10216",
+                    object,
+                    Some(SBOL2_PERSISTENT_IDENTITY),
+                    format!(
+                        "compliant TopLevel persistentIdentity `{pid}` must end with a \
+                         delimiter followed by displayId `{display_id}`"
+                    ),
+                ),
+                _ => {}
+            }
         }
 
         // 10218: identity relates to persistentIdentity and version.
@@ -903,6 +912,108 @@ impl<'a> Validator<'a> {
                     ),
                 );
             }
+        }
+    }
+
+    /// Maps each composite child object's identity to the identity of the
+    /// object that contains it. Built from the child-bearing properties of the
+    /// SBOL 2 data model.
+    fn build_parent_map(&self) -> BTreeMap<String, String> {
+        let mut map = BTreeMap::new();
+        for object in self.document.objects().values() {
+            let Some(parent) = object.identity().as_iri() else {
+                continue;
+            };
+            // A composite child is one referenced through a property whose
+            // schema reference is local (contained in-document), which
+            // distinguishes containment (a CD's `component`) from a same-named
+            // cross-reference (a SequenceAnnotation's `component`).
+            for spec in property_specs_for(object).values() {
+                let owns = spec.reference.is_some_and(|reference| reference.require_local);
+                if !owns {
+                    continue;
+                }
+                for child in object.resources(spec.predicate) {
+                    if let Some(child) = child.as_iri() {
+                        map.insert(child.as_str().to_owned(), parent.as_str().to_owned());
+                    }
+                }
+            }
+        }
+        map
+    }
+
+    /// Compliance rules that relate a child object to its parent: the child's
+    /// persistentIdentity must extend the parent's (10217), and their versions
+    /// must agree (10219).
+    fn validate_child_compliance(&mut self, object: &Object, parents: &BTreeMap<String, String>) {
+        if object.is_top_level() {
+            return;
+        }
+        let Some(child_id) = object.identity().as_iri().map(|iri| iri.as_str().to_owned()) else {
+            return;
+        };
+        let Some(parent_id) = parents.get(&child_id) else {
+            return;
+        };
+        let Some(display_id) = object.identified().display_id.clone() else {
+            return;
+        };
+        let child_pid = object
+            .first_resource(SBOL2_PERSISTENT_IDENTITY)
+            .and_then(Resource::as_iri)
+            .map(|iri| iri.as_str().to_owned());
+        let child_version = self.literal(object, SBOL2_VERSION);
+        let Some(parent) = self.resolve(parent_id) else {
+            return;
+        };
+        let parent_pid = parent
+            .first_resource(SBOL2_PERSISTENT_IDENTITY)
+            .and_then(Resource::as_iri)
+            .map(|iri| iri.as_str().to_owned());
+        let parent_version = self.literal(parent, SBOL2_VERSION);
+
+        // 10217: a compliant child requires a persistentIdentity, and it must
+        // be the parent's persistentIdentity, a delimiter, then the child's
+        // displayId.
+        match (&child_pid, &parent_pid) {
+            (None, _) => self.error(
+                "sbol2-10217",
+                object,
+                Some(SBOL2_PERSISTENT_IDENTITY),
+                "a compliant child object requires a persistentIdentity",
+            ),
+            (Some(child_pid), Some(parent_pid))
+                if !['/', '#', ':']
+                    .iter()
+                    .any(|d| *child_pid == format!("{parent_pid}{d}{display_id}")) =>
+            {
+                self.error(
+                    "sbol2-10217",
+                    object,
+                    Some(SBOL2_PERSISTENT_IDENTITY),
+                    format!(
+                        "compliant child persistentIdentity `{child_pid}` must extend parent \
+                         persistentIdentity `{parent_pid}` with displayId `{display_id}`"
+                    ),
+                );
+            }
+            _ => {}
+        }
+
+        // 10219: a compliant child's version must match its parent's version.
+        let version_mismatch = match (&parent_version, &child_version) {
+            (Some(p), Some(c)) => p != c,
+            (Some(_), None) | (None, Some(_)) => true,
+            (None, None) => false,
+        };
+        if version_mismatch {
+            self.error(
+                "sbol2-10219",
+                object,
+                Some(SBOL2_VERSION),
+                "a compliant child object must have the same version as its parent",
+            );
         }
     }
 
