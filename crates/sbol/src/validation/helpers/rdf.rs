@@ -30,7 +30,10 @@ pub(crate) fn known_external_resource(iri: &str) -> Option<ExternalResource> {
 
 pub(crate) fn object_matches_target(object: &Object, target: TargetClass) -> bool {
     match target {
-        TargetClass::Sbol(class) => object.has_class(class),
+        TargetClass::Sbol(class_iri) => crate::SbolClass::from_iri(&crate::Iri::new_unchecked(
+            class_iri,
+        ))
+        .is_some_and(|class| object.has_class(class)),
         TargetClass::ProvActivity => object_has_rdf_type(object, PROV_ACTIVITY),
         TargetClass::ProvAgent => object_has_rdf_type(object, PROV_AGENT_CLASS),
         TargetClass::ProvAssociation => object_has_rdf_type(object, PROV_ASSOCIATION),
@@ -39,11 +42,17 @@ pub(crate) fn object_matches_target(object: &Object, target: TargetClass) -> boo
         TargetClass::OmMeasure => object_has_rdf_type(object, OM_MEASURE),
         TargetClass::OmUnit => object_type_is_or_inherits(object, OM_UNIT),
         TargetClass::OmPrefix => object_type_is_or_inherits(object, OM_PREFIX),
+        _ => false,
     }
 }
 
 pub(crate) fn is_external_top_level_reference(target: TargetClass) -> bool {
-    matches!(target, TargetClass::Sbol(class) if class.is_top_level())
+    matches!(
+        target,
+        TargetClass::Sbol(class_iri)
+            if crate::SbolClass::from_iri(&crate::Iri::new_unchecked(class_iri))
+                .is_some_and(|class| class.is_top_level())
+    )
 }
 
 pub(crate) fn object_has_rdf_type(object: &Object, iri: &str) -> bool {

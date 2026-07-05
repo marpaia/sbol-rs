@@ -182,5 +182,6 @@ pub(crate) fn value_matches_kind(term: &Term, value_kind: ValueKind) -> bool {
             (xsd(dt) && xsd_local(dt) == Some("dateTime") || is_string_datatype(dt))
                 && is_xsd_datetime_lexical(literal.value())
         }),
+        _ => false,
     }
 }

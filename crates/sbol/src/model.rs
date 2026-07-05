@@ -214,7 +214,7 @@ impl SbolClass {
         )
     }
 
-    pub fn iri(self) -> &'static str {
+    pub const fn iri(self) -> &'static str {
         match self {
             Self::Identified => SBOL_IDENTIFIED_CLASS,
             Self::TopLevel => SBOL_TOP_LEVEL_CLASS,

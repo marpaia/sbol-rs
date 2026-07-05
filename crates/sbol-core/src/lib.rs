@@ -10,5 +10,6 @@
 
 pub mod error;
 pub mod iri;
+pub mod schema;
 pub mod syntax;
 pub mod validation;

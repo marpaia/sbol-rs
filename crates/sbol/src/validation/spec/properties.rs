@@ -14,27 +14,15 @@ const fn prop(
     value_kind: ValueKind,
     reference: Option<ReferenceSpec>,
 ) -> PropertySpec {
-    PropertySpec {
-        predicate,
-        rule,
-        cardinality,
-        value_kind,
-        reference,
-    }
+    PropertySpec::new(predicate, rule, cardinality, value_kind, reference)
 }
 
 const fn local_ref(target: TargetClass) -> Option<ReferenceSpec> {
-    Some(ReferenceSpec {
-        target,
-        require_local: true,
-    })
+    Some(ReferenceSpec::new(target, true))
 }
 
 const fn external_ref(target: TargetClass) -> Option<ReferenceSpec> {
-    Some(ReferenceSpec {
-        target,
-        require_local: false,
-    })
+    Some(ReferenceSpec::new(target, false))
 }
 
 pub(super) const IDENTIFIED_PROPS: &[PropertySpec] = &[
@@ -94,7 +82,7 @@ pub(super) const TOP_LEVEL_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Attachment)),
+        external_ref(TargetClass::Sbol(SbolClass::Attachment.iri())),
     ),
 ];
 pub(super) const ATTACHMENT_PROPS: &[PropertySpec] = &[
@@ -139,7 +127,7 @@ pub(super) const COLLECTION_PROPS: &[PropertySpec] = &[prop(
     "sbol3-10110",
     Cardinality::ZeroOrMore,
     ValueKind::Uri,
-    external_ref(TargetClass::Sbol(SbolClass::TopLevel)),
+    external_ref(TargetClass::Sbol(SbolClass::TopLevel.iri())),
 )];
 pub(super) const COMBINATORIAL_DERIVATION_PROPS: &[PropertySpec] = &[
     prop(
@@ -147,7 +135,7 @@ pub(super) const COMBINATORIAL_DERIVATION_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ExactlyOne,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Component)),
+        external_ref(TargetClass::Sbol(SbolClass::Component.iri())),
     ),
     prop(
         SBOL_STRATEGY,
@@ -161,7 +149,7 @@ pub(super) const COMBINATORIAL_DERIVATION_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        local_ref(TargetClass::Sbol(SbolClass::VariableFeature)),
+        local_ref(TargetClass::Sbol(SbolClass::VariableFeature.iri())),
     ),
 ];
 pub(super) const COMPONENT_REFERENCE_PROPS: &[PropertySpec] = &[
@@ -170,14 +158,14 @@ pub(super) const COMPONENT_REFERENCE_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ExactlyOne,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Feature)),
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
     ),
     prop(
         SBOL_IN_CHILD_OF,
         "sbol3-10110",
         Cardinality::ExactlyOne,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::SubComponent)),
+        external_ref(TargetClass::Sbol(SbolClass::SubComponent.iri())),
     ),
 ];
 pub(super) const COMPONENT_PROPS: &[PropertySpec] = &[
@@ -186,7 +174,7 @@ pub(super) const COMPONENT_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Sequence)),
+        external_ref(TargetClass::Sbol(SbolClass::Sequence.iri())),
     ),
     prop(
         SBOL_ROLE,
@@ -207,35 +195,35 @@ pub(super) const COMPONENT_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        local_ref(TargetClass::Sbol(SbolClass::Constraint)),
+        local_ref(TargetClass::Sbol(SbolClass::Constraint.iri())),
     ),
     prop(
         SBOL_HAS_FEATURE,
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        local_ref(TargetClass::Sbol(SbolClass::Feature)),
+        local_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
     ),
     prop(
         SBOL_HAS_INTERACTION,
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        local_ref(TargetClass::Sbol(SbolClass::Interaction)),
+        local_ref(TargetClass::Sbol(SbolClass::Interaction.iri())),
     ),
     prop(
         SBOL_HAS_INTERFACE,
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        local_ref(TargetClass::Sbol(SbolClass::Interface)),
+        local_ref(TargetClass::Sbol(SbolClass::Interface.iri())),
     ),
     prop(
         SBOL_HAS_MODEL,
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Model)),
+        external_ref(TargetClass::Sbol(SbolClass::Model.iri())),
     ),
 ];
 pub(super) const CONSTRAINT_PROPS: &[PropertySpec] = &[
@@ -244,7 +232,7 @@ pub(super) const CONSTRAINT_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ExactlyOne,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Feature)),
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
     ),
     prop(
         SBOL_RESTRICTION,
@@ -258,7 +246,7 @@ pub(super) const CONSTRAINT_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ExactlyOne,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Feature)),
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
     ),
 ];
 pub(super) const CUT_PROPS: &[PropertySpec] = &[prop(
@@ -305,7 +293,7 @@ pub(super) const IMPLEMENTATION_PROPS: &[PropertySpec] = &[prop(
     "sbol3-10110",
     Cardinality::ZeroOrOne,
     ValueKind::Uri,
-    external_ref(TargetClass::Sbol(SbolClass::Component)),
+    external_ref(TargetClass::Sbol(SbolClass::Component.iri())),
 )];
 pub(super) const INTERACTION_PROPS: &[PropertySpec] = &[
     prop(
@@ -320,7 +308,7 @@ pub(super) const INTERACTION_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        local_ref(TargetClass::Sbol(SbolClass::Participation)),
+        local_ref(TargetClass::Sbol(SbolClass::Participation.iri())),
     ),
 ];
 pub(super) const INTERFACE_PROPS: &[PropertySpec] = &[
@@ -329,21 +317,21 @@ pub(super) const INTERFACE_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Feature)),
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
     ),
     prop(
         SBOL_OUTPUT,
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Feature)),
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
     ),
     prop(
         SBOL_NONDIRECTIONAL,
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Feature)),
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
     ),
 ];
 pub(super) const LOCATION_PROPS: &[PropertySpec] = &[
@@ -366,7 +354,7 @@ pub(super) const LOCATION_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ExactlyOne,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Sequence)),
+        external_ref(TargetClass::Sbol(SbolClass::Sequence.iri())),
     ),
 ];
 pub(super) const LOCAL_SUB_COMPONENT_PROPS: &[PropertySpec] = &[
@@ -375,7 +363,7 @@ pub(super) const LOCAL_SUB_COMPONENT_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        local_ref(TargetClass::Sbol(SbolClass::Location)),
+        local_ref(TargetClass::Sbol(SbolClass::Location.iri())),
     ),
     prop(
         SBOL_TYPE,
@@ -414,14 +402,14 @@ pub(super) const PARTICIPATION_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ZeroOrOne,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Feature)),
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
     ),
     prop(
         SBOL_HIGHER_ORDER_PARTICIPANT,
         "sbol3-10110",
         Cardinality::ZeroOrOne,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Interaction)),
+        external_ref(TargetClass::Sbol(SbolClass::Interaction.iri())),
     ),
     prop(
         SBOL_ROLE,
@@ -452,7 +440,7 @@ pub(super) const SEQUENCE_FEATURE_PROPS: &[PropertySpec] = &[prop(
     "sbol3-10110",
     Cardinality::OneOrMore,
     ValueKind::Uri,
-    local_ref(TargetClass::Sbol(SbolClass::Location)),
+    local_ref(TargetClass::Sbol(SbolClass::Location.iri())),
 )];
 pub(super) const SEQUENCE_PROPS: &[PropertySpec] = &[
     prop(
@@ -476,7 +464,7 @@ pub(super) const SUB_COMPONENT_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ExactlyOne,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Component)),
+        external_ref(TargetClass::Sbol(SbolClass::Component.iri())),
     ),
     prop(
         SBOL_ROLE_INTEGRATION,
@@ -490,14 +478,14 @@ pub(super) const SUB_COMPONENT_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        local_ref(TargetClass::Sbol(SbolClass::Location)),
+        local_ref(TargetClass::Sbol(SbolClass::Location.iri())),
     ),
     prop(
         SBOL_HAS_LOCATION,
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        local_ref(TargetClass::Sbol(SbolClass::Location)),
+        local_ref(TargetClass::Sbol(SbolClass::Location.iri())),
     ),
 ];
 pub(super) const VARIABLE_FEATURE_PROPS: &[PropertySpec] = &[
@@ -513,21 +501,21 @@ pub(super) const VARIABLE_FEATURE_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ExactlyOne,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Feature)),
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
     ),
     prop(
         SBOL_VARIANT_COLLECTION,
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Collection)),
+        external_ref(TargetClass::Sbol(SbolClass::Collection.iri())),
     ),
     prop(
         SBOL_VARIANT_DERIVATION,
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::CombinatorialDerivation)),
+        external_ref(TargetClass::Sbol(SbolClass::CombinatorialDerivation.iri())),
     ),
     prop(
         SBOL_VARIANT_MEASURE,
@@ -541,7 +529,7 @@ pub(super) const VARIABLE_FEATURE_PROPS: &[PropertySpec] = &[
         "sbol3-10110",
         Cardinality::ZeroOrMore,
         ValueKind::Uri,
-        external_ref(TargetClass::Sbol(SbolClass::Component)),
+        external_ref(TargetClass::Sbol(SbolClass::Component.iri())),
     ),
 ];
 pub(super) const PROV_ACTIVITY_PROPS: &[PropertySpec] = &[
