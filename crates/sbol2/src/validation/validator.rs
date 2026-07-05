@@ -52,6 +52,7 @@ impl<'a> Validator<'a> {
             self.validate_value_bounds(object);
             self.validate_derivation_cycles(object);
             self.validate_containment(object);
+            self.validate_child_semantics(object);
         }
 
         // Always: whole-document checks.
@@ -499,6 +500,75 @@ impl<'a> Validator<'a> {
         None
     }
 
+    /// Always-on structural rules over an object's own children: the class of
+    /// the measures it carries, and the uniqueness of Component references
+    /// across a ComponentDefinition's SequenceAnnotations.
+    fn validate_child_semantics(&mut self, object: &Object) {
+        // 10608 / 11707 / 12008: every measure must resolve to an om:Measure.
+        let measure_rule = if object.has_class(Sbol2Class::Module) {
+            Some("sbol2-11707")
+        } else if object.has_class(Sbol2Class::Component)
+            || object.has_class(Sbol2Class::FunctionalComponent)
+        {
+            Some("sbol2-10608")
+        } else if object.has_class(Sbol2Class::Participation) {
+            Some("sbol2-12008")
+        } else {
+            None
+        };
+        if let Some(rule) = measure_rule {
+            let mut bad = Vec::new();
+            for value in object.resources(SBOL2_MEASURE) {
+                let Some(iri) = value.as_iri() else { continue };
+                if let Some(target) = self.resolve(iri.as_str())
+                    && !target.has_class(Sbol2Class::OmMeasure)
+                {
+                    bad.push(iri.as_str().to_owned());
+                }
+            }
+            for iri in bad {
+                self.error(
+                    rule,
+                    object,
+                    Some(SBOL2_MEASURE),
+                    format!("measure refers to `{iri}`, which is not an om:Measure"),
+                );
+            }
+        }
+
+        // 10522: no two SequenceAnnotations of a ComponentDefinition may refer
+        // to the same Component.
+        if object.has_class(Sbol2Class::ComponentDefinition) {
+            // Map each distinct SequenceAnnotation to the Component it targets;
+            // RDF/XML may serialize one SA in two places, so dedupe by SA
+            // identity before looking for two SAs sharing a Component.
+            let mut by_sa: BTreeMap<String, String> = BTreeMap::new();
+            for sa_ref in object.resources(SBOL2_SEQUENCE_ANNOTATION) {
+                let Some(sa_id) = sa_ref.as_iri().map(|iri| iri.as_str().to_owned()) else {
+                    continue;
+                };
+                let Some(sa) = self.document.get(sa_ref) else {
+                    continue;
+                };
+                if let Some(component) =
+                    sa.first_resource(SBOL2_COMPONENT).and_then(Resource::as_iri)
+                {
+                    by_sa.insert(sa_id, component.as_str().to_owned());
+                }
+            }
+            let mut seen = std::collections::BTreeSet::new();
+            let duplicate = by_sa.values().any(|component| !seen.insert(component.clone()));
+            if duplicate {
+                self.error(
+                    "sbol2-10522",
+                    object,
+                    Some(SBOL2_SEQUENCE_ANNOTATION),
+                    "no two SequenceAnnotations may refer to the same Component",
+                );
+            }
+        }
+    }
+
     /// Cross-object containment: the Component/FunctionalComponent references
     /// carried by SequenceAnnotation, SequenceConstraint, Participation, and
     /// MapsTo must point at instances contained by the appropriate parent
@@ -919,6 +989,24 @@ impl<'a> Validator<'a> {
             }
             bad
         };
+
+        // 10604: a Component/FunctionalComponent definition must resolve to a
+        // ComponentDefinition. (A Module definition targets a ModuleDefinition,
+        // rule 11703, already handled by the completeness engine.)
+        if (object.has_class(Sbol2Class::Component)
+            || object.has_class(Sbol2Class::FunctionalComponent))
+            && !object.has_class(Sbol2Class::Module)
+        {
+            let bad = wrong_class(self, SBOL2_DEFINITION, &[Sbol2Class::ComponentDefinition]);
+            for iri in bad {
+                self.error(
+                    "sbol2-10604",
+                    object,
+                    Some(SBOL2_DEFINITION),
+                    format!("definition refers to `{iri}`, which is not a ComponentDefinition"),
+                );
+            }
+        }
 
         let checks: &[(&str, &[Sbol2Class], &str)] = &[
             (PROV_WAS_GENERATED_BY, &[Sbol2Class::ProvActivity], "sbol2-10222"),
