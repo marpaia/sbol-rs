@@ -11,9 +11,9 @@
 //! directory changes (the caller emits the `cargo:rerun-if-changed` directives).
 //!
 //! Outputs into `out_dir`:
-//!   - `rule_catalog.rs` — `VALIDATION_RULE_STATUSES` slice literal, sorted by
+//!   - `rule_catalog.rs`: `VALIDATION_RULE_STATUSES` slice literal, sorted by
 //!     rule id for diff stability.
-//!   - `rule_spec_meta.rs` — the `VALIDATION_RULE_SPEC_*` constants sourced from
+//!   - `rule_spec_meta.rs`: the `VALIDATION_RULE_SPEC_*` constants sourced from
 //!     the TOML `[meta]` block.
 //!
 //! Failures (TOML parse error, unknown enum variant, missing required field,
@@ -166,7 +166,7 @@ fn validate_gate(rule_id: &str, gate: Option<&str>) {
 }
 
 fn validate_blocker(rule_id: &str, status: &str, blocker: Option<&str>) {
-    // `Error` and `Warning` are unconditional algorithms — no blocker.
+    // `Error` and `Warning` are unconditional algorithms with no blocker.
     // Every other status carries a blocker that names the configuration
     // axis (Configurable), the spec context (MachineUncheckable), or
     // what's needed to implement (Unimplemented).

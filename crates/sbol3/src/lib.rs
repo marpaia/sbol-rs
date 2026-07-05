@@ -30,7 +30,7 @@
 //! split into two layers:
 //!
 //! - **Top-level objects** live directly in a [`Document`]:
-//!   [`Component`] (the central design unit — DNA, RNA, protein, complexes,
+//!   [`Component`] (the central design unit: DNA, RNA, protein, complexes,
 //!   functional descriptions), [`Sequence`], [`Collection`],
 //!   [`CombinatorialDerivation`], [`Implementation`], [`ExperimentalData`],
 //!   [`Experiment`], [`Model`], [`Attachment`], plus PROV-O activities
@@ -46,7 +46,7 @@
 //! References between objects are typed: a [`SubComponent`] names the
 //! [`Component`] it instantiates, an [`ExternallyDefined`] points to a term in
 //! an external ontology, and so on. Reference traversal lives on the typed
-//! structs and takes anything implementing [`ObjectGraph`] — a [`Document`]
+//! structs and takes anything implementing [`ObjectGraph`]: a [`Document`]
 //! for single-file work, a [`DocumentSet`] when references cross document
 //! boundaries.
 //!
@@ -58,8 +58,8 @@
 //!    extension; [`Document::read`] takes an explicit [`RdfFormat`] for
 //!    in-memory input.
 //! 2. **Validate.** [`Document::validate`] returns a full
-//!    [`ValidationReport`] with errors, warnings, and per-rule coverage —
-//!    use it when you want to inspect or render the report regardless of
+//!    [`ValidationReport`] with errors, warnings, and per-rule coverage.
+//!    Use it when you want to inspect or render the report regardless of
 //!    pass/fail state. [`Document::check`] is the `?`-friendly convenience
 //!    that maps errors to `Err` (warnings ignored), and
 //!    [`Document::check_complete`] additionally fails on
@@ -77,31 +77,31 @@
 //! Errors are surfaced through four distinct types so callers can branch on
 //! the failure mode without parsing strings:
 //!
-//! - [`ReadError`] — I/O or parse failure when ingesting RDF.
-//! - [`BuildError`] — invariant violation at builder time (invalid
+//! - [`ReadError`]: I/O or parse failure when ingesting RDF.
+//! - [`BuildError`]: invariant violation at builder time (invalid
 //!   `displayId`, malformed namespace, missing required field).
-//! - [`WriteError`] — serialization failure.
-//! - [`ValidationReport`] — structured diagnostics from validation
+//! - [`WriteError`]: serialization failure.
+//! - [`ValidationReport`]: structured diagnostics from validation
 //!   (multiple issues per call, each with its `sbol3-*` rule identifier).
 //!
 //! # Where to go next
 //!
-//! - **[Crate guide](https://github.com/marpaia/sbol-rs/blob/master/docs/crate-guide.md)** —
+//! - **[Crate guide](https://github.com/marpaia/sbol-rs/blob/master/docs/crate-guide.md)**:
 //!   architectural tour and where each subsystem lives.
-//! - **[Validation system overview](https://github.com/marpaia/sbol-rs/blob/master/docs/validation.md)** —
+//! - **[Validation system overview](https://github.com/marpaia/sbol-rs/blob/master/docs/validation.md)**:
 //!   what the validator covers, `check` vs `check_complete`, CI wiring,
 //!   trust boundaries.
-//! - **[RDF I/O](https://github.com/marpaia/sbol-rs/blob/master/docs/rdf-io.md)** —
+//! - **[RDF I/O](https://github.com/marpaia/sbol-rs/blob/master/docs/rdf-io.md)**:
 //!   format inference, round-trip guarantees, cross-implementation
 //!   conformance.
-//! - **[Conformance grid](https://github.com/marpaia/sbol-rs/blob/master/docs/conformance.md)** —
+//! - **[Conformance grid](https://github.com/marpaia/sbol-rs/blob/master/docs/conformance.md)**:
 //!   generated per-rule status for every SBOL 3.1.0 rule.
-//! - **[`prelude`]** — re-exports the symbols you'll need for most code;
+//! - **[`prelude`]**: re-exports the symbols you'll need for most code;
 //!   `use sbol3::prelude::*;` is the conventional import. It includes the
 //!   [`SbolIdentified`] and [`SbolTopLevel`] accessor traits so methods
 //!   like `component.name()`, `component.display_id()`, and
 //!   `component.namespace()` are available on every typed object.
-//! - **[`constants`]** — IRIs for SBO / SO / EDAM / SBOL terms that show up
+//! - **[`constants`]**: IRIs for SBO / SO / EDAM / SBOL terms that show up
 //!   as builder arguments (`SBO_DNA`, `SO_PROMOTER`, etc.).
 
 #![forbid(unsafe_code)]

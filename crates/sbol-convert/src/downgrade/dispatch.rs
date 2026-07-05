@@ -73,7 +73,7 @@ impl<'a> Engine<'a> {
             return;
         }
 
-        // dcterms:title / dcterms:description — passthrough (SBOL 2 also
+        // dcterms:title / dcterms:description: passthrough (SBOL 2 also
         // uses Dublin Core metadata for these).
         if predicate == v2::DCTERMS_TITLE || predicate == v2::DCTERMS_DESCRIPTION {
             self.output_triples.push(self.rewrite_triple(triple));
@@ -152,7 +152,7 @@ impl<'a> Engine<'a> {
             return;
         }
 
-        // Use the backport-recorded SBOL 2 type when available — it's
+        // Use the backport-recorded SBOL 2 type when available; it's
         // the authoritative signal for documents that came through
         // sbol-rs upgrade.
         let target = self.sbol2_type_for_subject_type(&subject_iri, object_iri);
@@ -181,7 +181,7 @@ impl<'a> Engine<'a> {
             return;
         }
 
-        // Unknown SBOL 3 type — surface as a warning and drop.
+        // Unknown SBOL 3 type: surface as a warning and drop.
         self.report.push(DowngradeWarning::UnsupportedSbol3Type {
             subject: subject_iri,
             sbol3_type: object_iri.to_owned(),
@@ -219,7 +219,7 @@ impl<'a> Engine<'a> {
 
     /// Emits the rdf:type triples for each variant of a SubComponent
     /// triple-split. Existence of `module_iri` is gated by the
-    /// SubComponent's target shape — only MD-shaped targets receive a
+    /// SubComponent's target shape: only MD-shaped targets receive a
     /// `sbol2:Module` variant (a Module's `definition` must be an MD).
     pub(super) fn emit_subcomponent_split_types(&mut self, split: &SubComponentSplit) {
         let component_v2 = self.rewrite_iri(&split.component_iri).to_owned();
@@ -277,7 +277,7 @@ impl<'a> Engine<'a> {
                     self.rewrite_iri(&target_split.cd_iri).to_owned(),
                     self.rewrite_iri(&target_split.md_iri).to_owned(),
                 ),
-                // Target isn't a tracked Component split (rare — would
+                // Target isn't a tracked Component split (rare: would
                 // be a SubComponent whose target is somehow not the
                 // SBOL 3 graph). Fall back to the rewritten target IRI
                 // for all three definition triples.
@@ -380,8 +380,8 @@ impl<'a> Engine<'a> {
             return;
         }
 
-        // Everything else routes to the FunctionalComponent variant —
-        // that's where SBOL 2 plumbing (measure, sourceLocation,
+        // Everything else routes to the FunctionalComponent variant.
+        // That's where SBOL 2 plumbing (measure, sourceLocation,
         // roleIntegration, …) most naturally lives on subcomponents.
         let object = self.rewrite_term(&triple.object);
         if let Some(renamed) = map_sbol3_predicate_to_sbol2(predicate) {
@@ -418,7 +418,7 @@ impl<'a> Engine<'a> {
                 // Derive each half's displayId from its IRI's last
                 // segment rather than from `source + suffix`. This
                 // matters when `next_available_iri` had to disambiguate
-                // the half's IRI (e.g. `_component_2`) — using the
+                // the half's IRI (e.g. `_component_2`); using the
                 // source displayId + raw suffix would leave displayId
                 // out of sync with the IRI's last segment and violate
                 // SBOL 2 compliance (sbol-12302).
@@ -522,8 +522,8 @@ impl<'a> Engine<'a> {
             }
             _ => {
                 // Anything else: rewrite the predicate via the default
-                // table and emit on the half whose suffix is empty —
-                // the half that kept the bare IRI matches the original
+                // table and emit on the half whose suffix is empty.
+                // The half that kept the bare IRI matches the original
                 // SBOL 2 source (CD or MD) when there is one, so
                 // attaching the unclassified predicate there preserves
                 // the most natural attribution for documents that came
@@ -602,7 +602,7 @@ impl<'a> Engine<'a> {
                 });
             }
             // Update participant_remap so any Participation referencing
-            // this SubComponent rewrites to the FC variant — that's
+            // this SubComponent rewrites to the FC variant; that's
             // where SBOL 2 expects `sbol2:participant` to point.
             self.participant_remap.insert(feature_iri, fc_v2);
             return;

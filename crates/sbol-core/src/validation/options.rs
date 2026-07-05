@@ -110,7 +110,7 @@ pub enum ExternalValidationMode {
 #[non_exhaustive]
 pub enum RuleOverride {
     /// Drop diagnostics for this rule. Coverage still records the rule
-    /// as applied — the caller asked for the result to be discarded,
+    /// as applied: the caller asked for the result to be discarded,
     /// not for the check to be skipped.
     Suppress,
     /// Force severity for this rule regardless of the catalog default.
@@ -118,7 +118,7 @@ pub enum RuleOverride {
 }
 
 /// Returned when a per-rule override targets a rule that is not in the
-/// catalog — almost always a typo at the call site.
+/// catalog. Almost always a typo at the call site.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct UnknownRule {
     pub rule: String,

@@ -4,7 +4,7 @@
 //! formats. The first byte of the input selects the format; the
 //! remainder is fed to the parser as UTF-8 text. If the first parse
 //! succeeds, the document must serialize and reparse without panic
-//! in the same format. Validation is intentionally skipped — this
+//! in the same format. Validation is intentionally skipped. This
 //! target stresses the format backends, not the rule suite.
 
 use libfuzzer_sys::fuzz_target;

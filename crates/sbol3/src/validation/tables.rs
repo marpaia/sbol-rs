@@ -208,7 +208,7 @@ fn matches_table_entry(iri: &str, table: &[&'static str]) -> Option<&'static str
 
 /// Returns the canonical Table 15 (Model language) URI if `iri` is a
 /// known alias of one of the three Table 15 entries. Returns `None`
-/// for unknown IRIs — the validator treats unknown as undecided rather
+/// for unknown IRIs. The validator treats unknown as undecided rather
 /// than emitting a warning, mirroring the Table 1 sequence-encoding
 /// pattern.
 pub(crate) fn canonical_model_language_iri(iri: &str) -> Option<&'static str> {
@@ -223,7 +223,7 @@ pub(crate) fn canonical_model_framework_iri(iri: &str) -> Option<&'static str> {
 
 /// Returns `true` when `iri` is in a known non-EDAM bundled ontology
 /// namespace. Used as the "known wrong" half of the
-/// `sbol3-12504` check — warn only when we are confident the language
+/// `sbol3-12504` check: warn only when we are confident the language
 /// IRI is from somewhere other than EDAM (SBO, SO, GO, ChEBI, CL), and
 /// stay silent for unknown URIs and EDAM terms not in the bundle.
 pub(crate) fn is_known_non_edam_namespace(ontology: &Ontology, iri: &str) -> bool {

@@ -14,10 +14,10 @@
 //!
 //! Inherited `Identified` and `TopLevel` properties (`name`, `description`,
 //! `derived_from`, `generated_by`, `measures`, `attachments`) are flat methods
-//! on each builder — no nested `.identified().name(...)` paths.
+//! on each builder, with no nested `.identified().name(...)` paths.
 //!
 //! The builders are grouped by domain: [`top_level`] (the TopLevel classes),
-//! [`feature`] (Component children — features, locations, and the
+//! [`feature`] (Component children: features, locations, and the
 //! constraint/interaction family), [`prov`] (PROV-O), and [`om`] (units and
 //! measures). The shared setter macros and identity seeds below back every
 //! group.

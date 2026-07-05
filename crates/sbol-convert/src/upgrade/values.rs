@@ -1,7 +1,7 @@
 //! Enumerated-value rewrites for the SBOL 2 → SBOL 3 upgrade.
 //!
 //! Every function here is a pure mapping from SBOL 2 IRI strings to SBOL 3 IRI
-//! strings. Unknown inputs are returned unchanged — the conversion is lossless
+//! strings. Unknown inputs are returned unchanged; the conversion is lossless
 //! for vocabulary we don't recognize.
 #![allow(dead_code)]
 
@@ -47,7 +47,7 @@ pub(super) fn map_biopax_type(iri: &str) -> Option<&'static str> {
 ///
 /// `merge` resolves to `sbol3:replaces` because the SBOL 3.1.0 spec
 /// (§10.2) directs converters to treat `sbol2:merge` as a synonym for
-/// `sbol2:useRemote` — the merge refinement was never well defined and
+/// `sbol2:useRemote`. The merge refinement was never well defined and
 /// has been removed from SBOL 3.
 pub(super) fn map_refinement(iri: &str) -> Option<&'static str> {
     match iri {

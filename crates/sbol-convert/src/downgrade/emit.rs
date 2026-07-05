@@ -30,7 +30,7 @@ impl<'a> Engine<'a> {
     /// For each `sbol2:member` triple whose object is the bare-IRI
     /// half of a dual-role split, emit a companion member pointing at
     /// the other half. Without this an SBOL 2 Collection in the output
-    /// would only reference one half — losing the structural OR
+    /// would only reference one half, losing the structural OR
     /// functional view of the split Component.
     pub(super) fn duplicate_collection_memberships(&mut self) {
         if self.component_splits.is_empty() {
@@ -290,7 +290,7 @@ impl<'a> Engine<'a> {
 
         // Build the (subject, predicate) index once instead of rescanning
         // `output_triples` per check. Without this the per-feature
-        // existence check is O(N) and the loop overall is O(M·N) — slow on
+        // existence check is O(N) and the loop overall is O(M·N), slow on
         // library-scale designs.
         let mut existing = self.build_subject_predicate_index();
 
@@ -407,7 +407,7 @@ impl<'a> Engine<'a> {
         // existing triple in O(1), turning the per-feature scan from
         // O(N) into O(1). The previous shape was O(M·N) on the
         // FunctionalComponent loop (two checks × number of FCs × every
-        // existing triple) — visible at library scale.
+        // existing triple), visible at library scale.
         let mut existing = self.build_subject_predicate_index();
 
         let mut components: Vec<String> = components.into_iter().collect();

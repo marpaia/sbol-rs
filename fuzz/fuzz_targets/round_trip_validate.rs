@@ -2,7 +2,7 @@
 
 //! Fuzzes parse → check → serialize → reparse → check. Asserts the
 //! issue rule-id set is identical across the round-trip, catching
-//! validator output that depends on map iteration order — a real
+//! validator output that depends on map iteration order, a real
 //! class of bug in HashMap-driven validators.
 
 use std::collections::BTreeSet;

@@ -3,7 +3,7 @@
 //! Writes `tests/fixtures/genbank/expected/{name}.nt` for every committed
 //! `.gb` / `.gbk` file under `tests/fixtures/genbank/`. Diffing against
 //! these snapshots is the critical conformance gate for the
-//! `sbol-genbank` importer. The whole regen runs in pure Rust — no
+//! `sbol-genbank` importer. The whole regen runs in pure Rust: no
 //! Docker, no Python, no Node.
 //!
 //! Usage:

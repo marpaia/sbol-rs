@@ -2,7 +2,7 @@
 //! `crates/sbol3/tests/validation_rules.rs`: every machine-checkable rule must
 //! carry a firing negative fixture (a document that reports the rule at its
 //! catalog severity) and a non-firing positive fixture (a valid instance that
-//! does not). The gate is real — a rule without either fixture fails the suite.
+//! does not). The gate is real: a rule without either fixture fails the suite.
 
 use std::collections::{BTreeMap, BTreeSet};
 

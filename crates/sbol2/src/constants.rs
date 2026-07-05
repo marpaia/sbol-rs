@@ -8,7 +8,7 @@
 use crate::Iri;
 use crate::vocab;
 
-// === BioPAX — ComponentDefinition.type values ===
+// === BioPAX: ComponentDefinition.type values ===
 
 pub const BIOPAX_DNA: Iri =
     Iri::from_static("http://www.biopax.org/release/biopax-level3.owl#DnaRegion");
@@ -21,7 +21,7 @@ pub const BIOPAX_SMALL_MOLECULE: Iri =
 pub const BIOPAX_COMPLEX: Iri =
     Iri::from_static("http://www.biopax.org/release/biopax-level3.owl#Complex");
 
-// === Sequence Ontology (SO) — ComponentDefinition.role values ===
+// === Sequence Ontology (SO): ComponentDefinition.role values ===
 
 pub const SO_PROMOTER: Iri = Iri::from_static("http://identifiers.org/so/SO:0000167");
 pub const SO_CDS: Iri = Iri::from_static("http://identifiers.org/so/SO:0000316");

@@ -1,7 +1,7 @@
 #![no_main]
 
 //! Fuzzes `Document::check` for panics. Inputs that don't parse as
-//! Turtle are skipped — we're hunting for validator-side panics or
+//! Turtle are skipped. We're hunting for validator-side panics or
 //! infinite loops, not for parser bugs (those are covered by
 //! `read_turtle`).
 

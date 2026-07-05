@@ -22,7 +22,7 @@ impl<'a> Validator<'a> {
     }
 
     pub(crate) fn validate_was_generated_by_cycles(&mut self) {
-        // sbol3-10204 — the chain of `Identified -> prov:wasGeneratedBy ->
+        // sbol3-10204: the chain of `Identified -> prov:wasGeneratedBy ->
         // prov:Activity -> prov:qualifiedUsage -> prov:Usage -> prov:entity
         // -> Identified ...` must be acyclic. The spec's scope is a
         // resolver-aware "provenance history" that crosses documents;

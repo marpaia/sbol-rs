@@ -2,7 +2,7 @@
 //!
 //! These mirror the constants in `sbols.org/v2` and the
 //! `sboltools/sbolgraph` TypeScript port. They are intentionally kept
-//! `pub(crate)` — SBOL 2 URIs are an implementation detail of the
+//! `pub(crate)`: SBOL 2 URIs are an implementation detail of the
 //! conversion pipeline, never part of the public SBOL 3 surface.
 //!
 //! Backport namespace constants follow the convention used by
@@ -115,7 +115,7 @@ pub(crate) const SBOL2_ORIENTATION_INLINE: &str = "http://sbols.org/v2#inline";
 pub(crate) const SBOL2_ORIENTATION_REVERSE_COMPLEMENT: &str =
     "http://sbols.org/v2#reverseComplement";
 
-// SBOL 2 sequence encoding URIs (legacy IUPAC pages) — map to/from SBOL 3 EDAM URIs.
+// SBOL 2 sequence encoding URIs (legacy IUPAC pages), mapped to/from SBOL 3 EDAM URIs.
 pub(crate) const SBOL2_ENCODING_IUPAC_DNA: &str =
     "http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html";
 pub(crate) const SBOL2_ENCODING_IUPAC_PROTEIN: &str = "http://www.chem.qmul.ac.uk/iupac/AminoAcid/";

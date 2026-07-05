@@ -17,7 +17,7 @@ use crate::{Iri, Object, Resource, SbolClass, Triple};
 /// Looks up the `Component` that owns `feature` via `sbol:hasFeature`.
 ///
 /// Returns `None` if no enclosing component is present in the document.
-/// Linear in the number of components — sufficient for typical-sized
+/// Linear in the number of components, sufficient for typical-sized
 /// SBOL documents; a cached reverse index can be layered on later if
 /// large-document workflows demand it.
 fn parent_component<'a>(doc: &'a Document, feature: &Resource) -> Option<&'a Component> {

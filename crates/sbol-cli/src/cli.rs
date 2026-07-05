@@ -194,7 +194,7 @@ pub(crate) enum CatalogVersionArg {
 #[derive(Args)]
 pub(crate) struct ValidateArgs {
     /// Path to an SBOL 2 or SBOL 3 document. Format is inferred from the
-    /// extension — `.ttl` (Turtle), `.rdf` / `.xml` (RDF/XML), `.jsonld`
+    /// extension: `.ttl` (Turtle), `.rdf` / `.xml` (RDF/XML), `.jsonld`
     /// (JSON-LD), or `.nt` (N-Triples).
     pub(crate) path: PathBuf,
 
@@ -309,7 +309,7 @@ pub(crate) enum UpgradeReportFormat {
 #[derive(Args)]
 pub(crate) struct UpgradeArgs {
     /// Path to an SBOL 2 RDF document. Input format is inferred from the
-    /// extension — `.ttl` (Turtle), `.rdf` / `.xml` (RDF/XML), `.jsonld`
+    /// extension: `.ttl` (Turtle), `.rdf` / `.xml` (RDF/XML), `.jsonld`
     /// (JSON-LD), or `.nt` (N-Triples). Use `--from` to override.
     pub(crate) path: PathBuf,
 
@@ -480,7 +480,7 @@ pub(crate) struct ImportGenbankArgs {
 #[derive(Args)]
 pub(crate) struct ConvertArgs {
     /// Path to an SBOL 3 document. Input format is inferred from the
-    /// extension — `.ttl` (Turtle), `.rdf` (RDF/XML), `.jsonld` (JSON-LD),
+    /// extension: `.ttl` (Turtle), `.rdf` (RDF/XML), `.jsonld` (JSON-LD),
     /// or `.nt` (N-Triples).
     pub(crate) path: PathBuf,
 

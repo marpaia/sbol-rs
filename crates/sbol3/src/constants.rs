@@ -1,6 +1,6 @@
 //! Common ontology IRIs for building SBOL documents.
 //!
-//! These mirror pySBOL3's `sbol3.constants` module — the constants are the
+//! These mirror pySBOL3's `sbol3.constants` module. The constants are the
 //! canonical IRIs from the Systems Biology Ontology (SBO), Sequence Ontology
 //! (SO), EDAM, and the SBOL vocabulary itself. Each constant is a [`pub const
 //! Iri`](crate::Iri) built via [`Iri::from_static`](crate::Iri::from_static),
@@ -16,7 +16,7 @@
 use crate::Iri;
 use crate::vocab;
 
-// === Systems Biology Ontology (SBO) — Component.type values ===
+// === Systems Biology Ontology (SBO): Component.type values ===
 
 pub const SBO_DNA: Iri = Iri::from_static("https://identifiers.org/SBO:0000251");
 pub const SBO_RNA: Iri = Iri::from_static("https://identifiers.org/SBO:0000250");
@@ -25,7 +25,7 @@ pub const SBO_SIMPLE_CHEMICAL: Iri = Iri::from_static("https://identifiers.org/S
 pub const SBO_NON_COVALENT_COMPLEX: Iri = Iri::from_static("https://identifiers.org/SBO:0000253");
 pub const SBO_FUNCTIONAL_ENTITY: Iri = Iri::from_static("https://identifiers.org/SBO:0000241");
 
-// === Systems Biology Ontology (SBO) — Interaction.type values ===
+// === Systems Biology Ontology (SBO): Interaction.type values ===
 
 pub const SBO_INHIBITION: Iri = Iri::from_static("https://identifiers.org/SBO:0000169");
 pub const SBO_STIMULATION: Iri = Iri::from_static("https://identifiers.org/SBO:0000170");
@@ -35,7 +35,7 @@ pub const SBO_GENETIC_PRODUCTION: Iri = Iri::from_static("https://identifiers.or
 pub const SBO_CONTROL: Iri = Iri::from_static("https://identifiers.org/SBO:0000168");
 pub const SBO_DEGRADATION: Iri = Iri::from_static("https://identifiers.org/SBO:0000179");
 
-// === Systems Biology Ontology (SBO) — Participation.role values ===
+// === Systems Biology Ontology (SBO): Participation.role values ===
 
 pub const SBO_INHIBITOR: Iri = Iri::from_static("https://identifiers.org/SBO:0000020");
 pub const SBO_STIMULATOR: Iri = Iri::from_static("https://identifiers.org/SBO:0000459");
@@ -46,7 +46,7 @@ pub const SBO_TEMPLATE: Iri = Iri::from_static("https://identifiers.org/SBO:0000
 pub const SBO_MODIFIER: Iri = Iri::from_static("https://identifiers.org/SBO:0000019");
 pub const SBO_MODIFIED: Iri = Iri::from_static("https://identifiers.org/SBO:0000644");
 
-// === Sequence Ontology (SO) — Component.role values ===
+// === Sequence Ontology (SO): Component.role values ===
 
 pub const SO_PROMOTER: Iri = Iri::from_static("https://identifiers.org/SO:0000167");
 pub const SO_CDS: Iri = Iri::from_static("https://identifiers.org/SO:0000316");
@@ -58,12 +58,12 @@ pub const SO_MRNA: Iri = Iri::from_static("https://identifiers.org/SO:0000234");
 pub const SO_ENGINEERED_REGION: Iri = Iri::from_static("https://identifiers.org/SO:0000804");
 pub const SO_ENGINEERED_GENE: Iri = Iri::from_static("https://identifiers.org/SO:0000280");
 
-// === Sequence Ontology (SO) — topology values ===
+// === Sequence Ontology (SO): topology values ===
 
 pub const SO_CIRCULAR: Iri = Iri::from_static("https://identifiers.org/SO:0000988");
 pub const SO_LINEAR: Iri = Iri::from_static("https://identifiers.org/SO:0000987");
 
-// === EDAM — Sequence.encoding values ===
+// === EDAM: Sequence.encoding values ===
 
 pub const EDAM_IUPAC_DNA: Iri = Iri::from_static("https://identifiers.org/edam:format_1207");
 pub const EDAM_IUPAC_PROTEIN: Iri = Iri::from_static("https://identifiers.org/edam:format_1208");

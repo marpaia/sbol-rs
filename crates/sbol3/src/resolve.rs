@@ -29,8 +29,8 @@
 //! # Ok(()) }
 //! ```
 //!
-//! Failures during traversal — missing fields, dangling IRIs, cycles, or
-//! type mismatches — surface as [`ReferenceError`]. This is distinct from
+//! Failures during traversal (missing fields, dangling IRIs, cycles, or
+//! type mismatches) surface as [`ReferenceError`]. This is distinct from
 //! [`crate::validation::ResolutionError`], which signals failure to fetch
 //! an *external* resource (HTTP, IO, parse). The two never overlap.
 
@@ -50,8 +50,8 @@ use crate::{Document, Object, Resource, SbolClass};
 ///
 /// Implemented for [`Document`] (single document) and [`DocumentSet`]
 /// (composition of documents). Reference-resolution methods on typed structs
-/// — [`SubComponent::definition`], [`ComponentReference::target`],
-/// [`ComponentReference::trace`], [`CombinatorialDerivation::variants`] —
+/// ([`SubComponent::definition`], [`ComponentReference::target`],
+/// [`ComponentReference::trace`], [`CombinatorialDerivation::variants`])
 /// accept any [`ObjectGraph`], so the same code serves both cases.
 ///
 /// Most callers will not invoke trait methods directly; the typed accessors

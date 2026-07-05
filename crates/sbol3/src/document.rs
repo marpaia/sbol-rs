@@ -123,7 +123,7 @@ impl Document {
     /// Returns RDF-backed objects indexed by identity.
     ///
     /// These are property-bag values preserving every triple under each
-    /// subject — including PROV/OM and extension classes that do not yet
+    /// subject, including PROV/OM and extension classes that do not yet
     /// have an owned typed representation. For SBOL classes with an owned
     /// surface, prefer [`Document::components`] and friends.
     pub fn objects(&self) -> &BTreeMap<Resource, Object> {
@@ -286,7 +286,7 @@ impl Document {
     }
 
     /// Like [`check`], but also returns `Err` when any rule's coverage
-    /// is partial — i.e. the validator was unable to fully evaluate it
+    /// is partial, i.e. the validator was unable to fully evaluate it
     /// for this run. Use for CI gates against documents the team
     /// controls end-to-end.
     ///

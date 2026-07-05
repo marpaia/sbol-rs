@@ -35,16 +35,16 @@ impl<'a> Engine<'a> {
     pub(super) fn preflight(&mut self) -> Result<(), UpgradeError> {
         // Seed the used-IRI pool with every input subject IRI in its
         // canonical (post-`identity.rewrite_iri`) form. Every synthesis
-        // site downstream — SA-collapse Location rewrite,
+        // site downstream (SA-collapse Location rewrite,
         // ComponentReference/Constraint allocation for MapsTo
-        // decomposition, synthesized Interface IRI — routes its
+        // decomposition, synthesized Interface IRI) routes its
         // candidate IRI through `next_available_*` against this pool,
         // so no synthesized SBOL 3 IRI silently lands on an existing
         // subject. (Mirrors the same invariant the downgrade engine
         // enforces.)
         //
         // The same pass groups input subjects by canonical IRI so we
-        // can surface identity collisions — two distinct input
+        // can surface identity collisions: two distinct input
         // subjects whose version-stripped (or persistentIdentity-keyed)
         // canonical forms coincide. The conversion still runs and the
         // merged subject keeps every input triple, but the result is a
@@ -193,8 +193,8 @@ impl<'a> Engine<'a> {
         // Reject only when the document has NEITHER an SBOL 2 predicate NOR a
         // recognized SBOL 2 / PROV / OM rdf:type. Genuine SBOL 3 and non-SBOL
         // input carry no SBOL 2 predicates and land here.
-        // An empty graph is trivially a valid (empty) SBOL 2 document — and a
-        // valid empty SBOL 3 document — so it upgrades to empty rather than
+        // An empty graph is trivially a valid (empty) SBOL 2 document, and a
+        // valid empty SBOL 3 document, so it upgrades to empty rather than
         // being rejected. Only a graph that carries triples yet none of the
         // SBOL 2 markers (i.e. genuine SBOL 3 or non-SBOL input) is rejected.
         let has_recognized_type = self
@@ -266,7 +266,7 @@ impl<'a> Engine<'a> {
         // `_N` suffix) rather than silently merging both Locations
         // onto a single subject. When disambiguation fires the
         // emitted `sbol3:displayId` value must also pick up the
-        // suffix so sbol3-10204 still holds — that override is
+        // suffix so sbol3-10204 still holds. That override is
         // recorded in `location_display_id_overrides` and consulted by
         // `handle_sbol2_predicate` when it emits the rewritten
         // `sbol3:displayId` triple.
@@ -289,7 +289,7 @@ impl<'a> Engine<'a> {
                 last_path_segment(self.identity.rewrite_iri(&loc_iri)).to_owned()
             });
             // Release the Location's existing canonical IRI from the
-            // pool before allocating — we're about to re-map this
+            // pool before allocating. We're about to re-map this
             // identity onto its new SubComponent-relative slot, so its
             // old slot no longer represents a distinct subject. Without
             // this, an upgrade-downgrade-upgrade round-trip where the
@@ -580,7 +580,7 @@ impl<'a> Engine<'a> {
                 return;
             }
             _ => {
-                // Non-SBOL2 type (e.g. BioPAX or custom) — keep, possibly
+                // Non-SBOL2 type (e.g. BioPAX or custom): keep, possibly
                 // rewriting BioPAX → SBO terms.
                 let mapped = values::map_biopax_type(object_iri).unwrap_or(object_iri);
                 self.output_triples.push(Triple {
@@ -605,7 +605,7 @@ impl<'a> Engine<'a> {
                 }
                 v2::SBOL2_MODULE_DEFINITION => {
                     self.report.counts.module_definitions += 1;
-                    // SBOL 2 ModuleDefinitions don't carry a `type` — but
+                    // SBOL 2 ModuleDefinitions don't carry a `type`, but
                     // the SBOL 3 Component they become requires at least
                     // one. Inject `SBO:functionalEntity` so the converted
                     // document satisfies sbol3-10110 cardinality without
@@ -647,7 +647,7 @@ impl<'a> Engine<'a> {
             return;
         }
 
-        // Drop the parent's `sbol2:mapsTo` triple — the MapsTo shell is
+        // Drop the parent's `sbol2:mapsTo` triple. The MapsTo shell is
         // replaced by ComponentReference + Constraint in
         // emit_synthesized_triples().
         if predicate == v2::SBOL2_MAPS_TO_PROP
@@ -657,7 +657,7 @@ impl<'a> Engine<'a> {
             return;
         }
 
-        // Drop every triple whose subject is a MapsTo — the decomposition
+        // Drop every triple whose subject is a MapsTo. The decomposition
         // emits the equivalent SBOL 3 triples explicitly.
         if let Some(subject_iri) = triple.subject.as_iri()
             && self.mapsto_info.contains_key(subject_iri.as_str())

@@ -16,7 +16,7 @@
 //! Prerequisites:
 //!   - Docker daemon reachable on the host
 //!
-//! Failure modes are fail-loud — missing Docker, image not built, or a
+//! Failure modes are fail-loud: missing Docker, image not built, or a
 //! non-zero exit from the container all surface as an error message and
 //! a non-zero exit.
 

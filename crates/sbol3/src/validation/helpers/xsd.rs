@@ -4,7 +4,7 @@ use super::*;
 
 /// W3C XML Schema datatype IRIs and the RDF 1.1 language-string IRI
 /// that `value_matches_kind` checks against. The set is intentionally
-/// small — only datatypes that Table 23 references (or that an SBOL
+/// small: only datatypes that Table 23 references (or that an SBOL
 /// document might plausibly use) appear here.
 const XSD_NS: &str = "http://www.w3.org/2001/XMLSchema#";
 const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
@@ -83,7 +83,7 @@ fn is_xsd_float_lexical(value: &str) -> bool {
 /// with an optional fractional-second part and an optional timezone
 /// (`Z` or `±hh:mm`). The check rejects partial dates, plain dates,
 /// and times without a date. Negative years (`-YYYY-...`) are
-/// rejected — they are well-formed XSD but nonsensical in SBOL and
+/// rejected. They are well-formed XSD but nonsensical in SBOL, and
 /// pinning to four-digit positive years simplifies parsing.
 fn is_xsd_datetime_lexical(value: &str) -> bool {
     let bytes = value.as_bytes();
@@ -149,7 +149,7 @@ fn is_xsd_datetime_lexical(value: &str) -> bool {
 /// type compliance). The check requires both:
 ///
 ///   1. A compatible RDF datatype (or a permitted plain string literal
-///      where the value parses correctly — this matches the SBOL
+///      where the value parses correctly; this matches the SBOL
 ///      community convention of writing Range bounds as `"123"` in
 ///      Turtle rather than the typed short-form `123`).
 ///   2. A well-formed lexical value for the kind.

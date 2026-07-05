@@ -5,7 +5,7 @@ use crate::{Iri, Object, Resource, Term};
 /// A non-SBOL annotation triple attached to a typed object.
 ///
 /// Extension triples are predicates outside the SBOL, PROV, and OM
-/// vocabularies — for example, an external lab's `<lab:authoredBy>`
+/// vocabularies, for example an external lab's `<lab:authoredBy>`
 /// predicate. They survive round-tripping through the typed model so callers
 /// can read and write extension data without dropping out of the typed API.
 #[derive(Clone, Debug, PartialEq, Eq)]

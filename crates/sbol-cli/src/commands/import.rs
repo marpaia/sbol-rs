@@ -90,7 +90,7 @@ pub(crate) fn import_genbank(args: ImportGenbankArgs, styles: Styles) -> ExitCod
         return ExitCode::from(2);
     }
 
-    // Always print the import summary to stderr — it's the user's
+    // Always print the import summary to stderr. It's the user's
     // signal that the conversion actually picked up the right number of
     // Components, Sequences, and Features. Mirrors the `sbol upgrade`
     // summary line.

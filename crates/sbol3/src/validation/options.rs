@@ -69,7 +69,7 @@ impl ValidationOptions {
     }
 
     /// Toggle the best-practice family. Passing `false` suppresses
-    /// SHOULD-level warnings — the reviewer configuration that reports
+    /// SHOULD-level warnings, the reviewer configuration that reports
     /// only MUST violations.
     pub fn best_practice(mut self, on: bool) -> Self {
         self.config.best_practice = on;
@@ -90,7 +90,7 @@ impl ValidationOptions {
 
     /// Layer an additional [`Ontology`] snapshot on top of the bundled facts
     /// for the duration of this validation run. Use this to recognize terms
-    /// from ontologies that are too large to bundle by default — e.g. NCIT
+    /// from ontologies that are too large to bundle by default, e.g. NCIT
     /// loaded from an [`sbol_ontology::OntologyCache`].
     ///
     /// Bundled terms always win on conflicts; extensions can add new terms

@@ -22,9 +22,9 @@ impl RdfBackend for Backend {
         let mut triples = Vec::new();
 
         // Resolve relative IRIs against a base. SBOL documents that are not
-        // fully compliant — notably SBOLTestSuite fixtures whose `sbol:source`
+        // fully compliant (notably SBOLTestSuite fixtures whose `sbol:source`
         // and `sbol:attachment` name a sibling file with a relative reference
-        // and declare no `xml:base` — otherwise fail to parse, because the RDF
+        // and declare no `xml:base`) otherwise fail to parse, because the RDF
         // data model has no relative-IRI term. The base only affects relative
         // references; absolute IRIs (every SBOL identity) pass through
         // unchanged. N-Triples ignores the base per its grammar.

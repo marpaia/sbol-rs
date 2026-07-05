@@ -205,7 +205,7 @@ impl std::fmt::Display for SbolIdentity {
 
 /// A validated hash algorithm token for `Attachment.hashAlgorithm`.
 ///
-/// The set of accepted tokens mirrors the SBOL 3.1.0 specification — the
+/// The set of accepted tokens mirrors the SBOL 3.1.0 specification. The
 /// validator rejects values outside this set under rule sbol3-10802.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct HashAlgorithm(&'static str);

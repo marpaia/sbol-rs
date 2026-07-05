@@ -37,7 +37,7 @@
 //! losslessly because the upgrade preserves SBOL 2 provenance under
 //! the `http://sboltools.org/backport#` namespace; the downgrade reads
 //! those triples to restore the original SBOL 2 identities and types.
-//! Documents authored as native SBOL 3 will lose more on downgrade —
+//! Documents authored as native SBOL 3 will lose more on downgrade;
 //! the report explains where.
 //!
 //! # Dual-role Components
@@ -53,9 +53,9 @@
 //! split only fires for native SBOL 3 designs that genuinely combine
 //! the two concerns.
 //!
-//! For the full conversion model — the backport namespace, structural
+//! For the full conversion model (the backport namespace, structural
 //! collapses, dual-role classification rules, known divergences,
-//! known limitations — see the [conversion guide][conversion-md].
+//! known limitations) see the [conversion guide][conversion-md].
 //!
 //! [`RdfGraph`]: sbol3::RdfGraph
 //! [conversion-md]: https://github.com/marpaia/sbol-rs/blob/master/docs/conversion.md
@@ -83,7 +83,7 @@ mod values;
 pub struct DowngradeOptions {
     /// Version string to assign top-level objects whose source did not
     /// carry `backport:sbol2version`. `None` (the default) leaves them
-    /// unversioned — SBOL 2 makes `sbol2:version` optional, and the
+    /// unversioned. SBOL 2 makes `sbol2:version` optional, and the
     /// round-trip stays bit-identical for sources that omitted it.
     /// `Some("1")` matches the libSBOLj / SynBioHub convention of
     /// always carrying a version segment.
@@ -141,7 +141,7 @@ pub enum DowngradeWarning {
     /// plain SBOL 2 `SequenceConstraint` in the output.
     UnresolvableConstraintToMapsTo { constraint: String, reason: String },
     /// A `ComponentReference` didn't have a matching `Constraint`
-    /// partner. The reference is dropped from the SBOL 2 output —
+    /// partner. The reference is dropped from the SBOL 2 output;
     /// SBOL 2 has no standalone equivalent.
     OrphanComponentReference { component_reference: String },
     /// A subject of `rdf:type sbol3:T` had no SBOL 2 equivalent for
@@ -153,7 +153,7 @@ pub enum DowngradeWarning {
     /// opted into.
     SynthesizedVersion { subject: String, version: String },
     /// Two or more distinct SBOL 3 subjects rewrite to the same SBOL 2
-    /// versioned IRI — for example a Component at `<lab/foo>` carrying
+    /// versioned IRI. For example, a Component at `<lab/foo>` carrying
     /// `backport:sbol2version "1"` (rewritten to `<lab/foo/1>`) and a
     /// separate Component at `<lab/foo/1>` carrying no preserved
     /// version (rewritten to `<lab/foo/1>` unchanged). The conversion
@@ -211,7 +211,7 @@ pub struct DowngradeCounts {
     pub identities_synthesized: usize,
 }
 
-/// Errors returned by [`sbol3_to_sbol2`]. These are fatal — non-fatal
+/// Errors returned by [`sbol3_to_sbol2`]. These are fatal; non-fatal
 /// observations live on [`DowngradeReport`] instead.
 #[derive(Debug)]
 #[non_exhaustive]
@@ -280,7 +280,7 @@ struct Engine<'a> {
     /// Subjects whose version came from an explicit `backport:sbol2version`
     /// triple in the source document, rather than being synthesized by
     /// [`Engine::version_for`]. Only these get a `sbol2:version` property
-    /// triple emitted in the SBOL 2 output — synthesizing the IRI segment
+    /// triple emitted in the SBOL 2 output. Synthesizing the IRI segment
     /// is necessary for SBOL 2 structure, but emitting a fake version
     /// triple would pollute round-trips of documents that originally
     /// carried no `sbol2:version` (the SBOL 2 spec makes it optional).
@@ -360,7 +360,7 @@ struct Engine<'a> {
     /// Subjects whose triples must be dropped from the SBOL 2 output
     /// because they are SBOL 3-only structural plumbing the downgrade
     /// recognized but could not fold. Without suppression these would
-    /// survive as orphan subjects carrying SBOL 3 predicates — e.g.
+    /// survive as orphan subjects carrying SBOL 3 predicates, e.g.
     /// ComponentReferences whose paired Constraint was missing fields,
     /// which couldn't be reconstructed into a MapsTo.
     discarded_subjects: HashSet<String>,
@@ -416,7 +416,7 @@ struct Engine<'a> {
     /// in the input graph. Used to suppress duplicate emission of
     /// `dcterms:title` / `dcterms:description` when both Dublin Core
     /// and SBOL 3 forms (`sbol3:name` / `sbol3:description`) exist for
-    /// the same value — without this the downgrade would emit each
+    /// the same value. Without this the downgrade would emit each
     /// dcterms triple twice. O(1) lookup; the equivalent scan in
     /// `subject_already_has` was O(N) per call.
     dcterms_index: HashMap<(String, &'static str), HashSet<Term>>,
@@ -446,7 +446,7 @@ enum ComponentShape {
 /// Per-Component IRI/displayId assignments built during preflight.
 ///
 /// For [`ComponentShape::CdOnly`] and [`ComponentShape::MdOnly`] the CD
-/// and MD IRIs both equal the Component's own SBOL 2 IRI — the
+/// and MD IRIs both equal the Component's own SBOL 2 IRI; the
 /// non-applicable half is never emitted. For [`ComponentShape::DualRole`]
 /// the two IRIs differ: whichever half the SBOL 2 source originally was
 /// (per `backport:sbol2type`) keeps the bare IRI; the synthesized half
@@ -540,10 +540,10 @@ struct MapsToReconstruction {
     carrier_v3: String,
     /// MapsTo's `displayId` (preserved on the ComponentReference).
     display_id: String,
-    /// MapsTo `local` value — the SBOL 3 IRI of the FC at the same
+    /// MapsTo `local` value: the SBOL 3 IRI of the FC at the same
     /// level as the carrier, recovered from the Constraint's `subject`.
     local_v3: String,
-    /// MapsTo `remote` value — the SBOL 3 IRI of the FC inside the
+    /// MapsTo `remote` value: the SBOL 3 IRI of the FC inside the
     /// carrier's instanceOf target, recovered from the
     /// ComponentReference's `refersTo`.
     remote_v3: String,

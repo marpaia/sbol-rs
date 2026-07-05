@@ -1,4 +1,4 @@
-//! Tables 20 and 21 (Appendix A.1) — design-build-test-learn workflow
+//! Tables 20 and 21 (Appendix A.1): design-build-test-learn workflow
 //! constraints over `prov:Activity`, `prov:Association`, `prov:Usage`,
 //! and Identified objects with `prov:wasGeneratedBy`.
 

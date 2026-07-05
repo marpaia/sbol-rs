@@ -20,7 +20,7 @@
 //! after intentional changes to either converter.
 //!
 //! Note: `pUC19.gbk` is intentionally NOT pulled into the SBOL 2
-//! upgrade conformance corpus — it's part of the GenBank import
+//! upgrade conformance corpus. It's part of the GenBank import
 //! conformance harness instead. Only the iGEM `.gb` fixtures
 //! participate in the upgrade harness, because they were originally
 //! committed there for that purpose.

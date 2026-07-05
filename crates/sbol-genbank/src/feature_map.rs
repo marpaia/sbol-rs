@@ -80,7 +80,7 @@ pub(crate) const GENBANK_SO_MAP: &[(&str, &str)] = &[
 
 /// Returns the canonical Sequence Ontology IRI for a GenBank feature
 /// key, or `None` if the key isn't in the curated table. Returning
-/// `None` is informational — the importer falls back to
+/// `None` is informational. The importer falls back to
 /// [`GENERIC_FEATURE`] (`SO:0000110`, sequence_feature) and records the
 /// original key for the user.
 pub(crate) fn feature_key_to_so(kind: &str) -> Option<&'static str> {
@@ -90,7 +90,7 @@ pub(crate) fn feature_key_to_so(kind: &str) -> Option<&'static str> {
         .map(|(_, iri)| *iri)
 }
 
-/// `SO:0000110` — the umbrella "sequence_feature" term used as a
+/// `SO:0000110`, the umbrella "sequence_feature" term used as a
 /// fallback when a GenBank feature key isn't in our curated mapping.
 pub(crate) const GENERIC_FEATURE: &str = "https://identifiers.org/SO:0000110";
 

@@ -30,7 +30,7 @@ pub(super) fn map_encoding(iri: &str) -> Option<&'static str> {
 /// Maps an SBOL 3 Component type IRI (SBO term) back to the BioPAX
 /// type IRI used by SBOL 2 ComponentDefinitions. The upgrade folded
 /// both `BIOPAX_DNA` and `BIOPAX_DNA_REGION` to the same SBO term, so
-/// the downgrade picks `*Region` — the more common modern choice in
+/// the downgrade picks `*Region`, the more common modern choice in
 /// real-world data.
 pub(super) fn map_biopax_type(iri: &str) -> Option<&'static str> {
     match iri {
@@ -48,7 +48,7 @@ pub(super) fn map_biopax_type(iri: &str) -> Option<&'static str> {
 /// [`crate::upgrade::values::map_biopax_type`].
 ///
 /// Used during downgrade to pair a preserved BioPAX hint with the
-/// specific SBOL 3 type triple it originally produced — necessary when
+/// specific SBOL 3 type triple it originally produced, necessary when
 /// a single Component carries multiple BioPAX variants (e.g. both
 /// `biopax:Dna` and `biopax:DnaRegion` collapsed to `SBO:0000251`,
 /// alongside other distinct BioPAX types).
@@ -84,7 +84,7 @@ pub(super) fn map_restriction(iri: &str) -> Option<String> {
 /// - restriction `verifyIdentical` + CRef in either  → `verifyIdentical`
 ///
 /// Used when the source ComponentReference carried no explicit
-/// `backport:mapsToRefinement` hint — i.e. the document originated as
+/// `backport:mapsToRefinement` hint, i.e. the document originated as
 /// native SBOL 3 rather than an upgraded SBOL 2 file.
 pub(super) fn map_restriction_to_refinement(
     restriction: &str,

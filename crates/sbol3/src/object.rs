@@ -98,7 +98,7 @@ fn is_sbol_relevant(properties: &BTreeMap<Iri, Vec<Term>>) -> bool {
 }
 
 /// Returns `true` if the given predicate IRI is outside the SBOL, PROV, and
-/// OM vocabularies and is not `rdf:type` — i.e. it should be preserved as an
+/// OM vocabularies and is not `rdf:type`, i.e. it should be preserved as an
 /// extension/annotation triple rather than parsed into a typed field.
 pub(crate) fn is_extension_predicate(predicate: &str) -> bool {
     predicate != RDF_TYPE

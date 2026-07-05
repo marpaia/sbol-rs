@@ -5,8 +5,8 @@
 //! method calls so callers can write `component.name()` instead of
 //! `component.identified.name.as_deref()`.
 //!
-//! Bring them into scope through the prelude — `use sbol3::prelude::*;`
-//! re-exports both traits — and the accessors light up on every typed
+//! Bring them into scope through the prelude (`use sbol3::prelude::*;`
+//! re-exports both traits), and the accessors light up on every typed
 //! SBOL object.
 //!
 //! ```
@@ -90,7 +90,7 @@ pub trait SbolTopLevel: SbolIdentified {
 
     /// The object's `sbol:hasNamespace`, if present. TopLevel objects in
     /// well-formed SBOL documents always carry a namespace, but the
-    /// underlying graph may omit it — callers that require a namespace
+    /// underlying graph may omit it. Callers that require a namespace
     /// should validate the document first.
     fn namespace(&self) -> Option<&Iri> {
         self.top_level_data().namespace.as_ref()

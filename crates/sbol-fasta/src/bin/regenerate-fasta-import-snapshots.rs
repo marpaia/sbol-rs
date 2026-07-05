@@ -4,7 +4,7 @@
 //! committed `.fasta` / `.fa` / `.fna` / `.faa` file under
 //! `tests/fixtures/fasta/`. Diffing against these snapshots is the
 //! critical conformance gate for the `sbol-fasta` importer. The
-//! whole regen runs in pure Rust — no Docker, no Python, no Node.
+//! whole regen runs in pure Rust: no Docker, no Python, no Node.
 //!
 //! Usage:
 //!

@@ -136,7 +136,7 @@ impl SbolObject {
     /// For SBOL-compliant URLs of the form `{parent}/{display_id}`, returns
     /// the parent resource. TopLevel objects and objects with a non-IRI
     /// identity (e.g. blank nodes) return `None`. Child objects return
-    /// `Some` even when the parent is not in the same document — callers
+    /// `Some` even when the parent is not in the same document. Callers
     /// pair this with [`Document::resolve`] to look the parent up.
     ///
     /// [`Document::resolve`]: crate::Document::resolve

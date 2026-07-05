@@ -27,13 +27,13 @@
 //! ```
 //!
 //! The [`Document`] is always returned when the input parses as valid SBOL 2
-//! RDF — callers gate on validation with the existing [`Document::check`]
+//! RDF. Callers gate on validation with the existing [`Document::check`]
 //! method if they want a strict pipeline.
 //!
-//! For the full conversion model — workflows organized by what you have, the
+//! For the full conversion model (workflows organized by what you have, the
 //! `http://sboltools.org/backport#` namespace, structural collapses
 //! (SequenceAnnotation, MapsTo, Interface), known divergences, and known
-//! limitations — see the [conversion guide][conversion-md].
+//! limitations) see the [conversion guide][conversion-md].
 //!
 //! [`Document`]: sbol3::Document
 //! [`Document::check`]: sbol3::Document::check
@@ -90,14 +90,14 @@ impl UpgradeOptions {
 }
 
 /// Warnings emitted by [`sbol2_to_sbol3`]. The presence of warnings does not
-/// stop conversion — every warning records something the upgrade could not
+/// stop conversion. Every warning records something the upgrade could not
 /// translate cleanly but chose not to fail on.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum UpgradeWarning {
     /// A top-level subject's `hasNamespace` could not be derived from
-    /// `persistentIdentity` + `displayId` or from the IRI's URL origin
-    /// — the upgrade either used [`UpgradeOptions::default_namespace`]
+    /// `persistentIdentity` + `displayId` or from the IRI's URL origin.
+    /// The upgrade either used [`UpgradeOptions::default_namespace`]
     /// or left the subject without `hasNamespace`. URL-origin
     /// derivation is the canonical fallback for HTTP-style IRIs and
     /// does not warn.
@@ -135,7 +135,7 @@ pub enum UpgradeWarning {
         sequence_count: usize,
     },
     /// Two or more distinct SBOL 2 subjects in the input share a
-    /// canonical SBOL 3 IRI after version-stripping — for example
+    /// canonical SBOL 3 IRI after version-stripping. For example,
     /// `<lab/foo/1>` (whose canonical is `<lab/foo>`) and
     /// `<lab/foo>` itself. The conversion preserves every input triple
     /// but lands all of them at the same SBOL 3 subject, silently
@@ -159,7 +159,7 @@ pub enum NamespaceSource {
     UrlOrigin,
     /// Used [`UpgradeOptions::default_namespace`].
     DefaultOption,
-    /// No fallback applied — the object has no `hasNamespace` in the output.
+    /// No fallback applied; the object has no `hasNamespace` in the output.
     None,
 }
 
@@ -172,7 +172,7 @@ pub enum MapsToSide {
     /// The MapsTo had no enclosing
     /// [`sbol2:Module`](crate::sbol2_vocab::SBOL2_MODULE) /
     /// [`sbol2:FunctionalComponent`](crate::sbol2_vocab::SBOL2_FUNCTIONAL_COMPONENT)
-    /// carrier — i.e. nothing in the source pointed at it via the
+    /// carrier: nothing in the source pointed at it via the
     /// `sbol2:mapsTo` containment predicate, so the upgrade has no
     /// place to attach the resulting ComponentReference + Constraint
     /// pair.
@@ -312,7 +312,7 @@ pub fn parse_and_upgrade(
 /// encountered during conversion.
 ///
 /// The returned [`Document`] is always produced when the input parses as
-/// valid SBOL 2 RDF — call [`Document::check`] if you want a strict
+/// valid SBOL 2 RDF. Call [`Document::check`] if you want a strict
 /// pipeline that rejects content the upgrade could not coerce into
 /// fully-conformant SBOL 3.
 pub fn upgrade_from_sbol2(
@@ -492,7 +492,7 @@ struct Engine<'a> {
     /// Location rewrite, MapsTo decomposition CRef/Constraint,
     /// synthesized Interface) routes its candidate IRI through
     /// `next_available_*` against this pool. The invariant the pool
-    /// enforces — mirrored from the downgrade — is: **no two distinct
+    /// enforces (mirrored from the downgrade) is: **no two distinct
     /// SBOL 3 entities ever land at the same IRI**, regardless of how
     /// creatively the input names things.
     used_iris: HashSet<String>,
@@ -529,7 +529,7 @@ fn is_top_level_sbol2(sbol2_type: &str) -> bool {
 
 /// PROV classes that act as SBOL 3 top-level objects (they appear at the
 /// document root and need `sbol3:hasNamespace`). PROV `Association` and
-/// `Usage` are intentionally absent — those are children of `Activity`.
+/// `Usage` are intentionally absent; those are children of `Activity`.
 fn is_prov_top_level(type_iri: &str) -> bool {
     matches!(
         type_iri,

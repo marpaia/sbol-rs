@@ -232,7 +232,7 @@ pub(crate) fn xsd_datatype(kind: ValueKind) -> Option<&'static str> {
 
 /// The spec-defined XSD datatype for a recognized literal-valued predicate.
 ///
-/// SBOL 2 files vary in how they type literals — a Turtle file may write
+/// SBOL 2 files vary in how they type literals. A Turtle file may write
 /// `sbol:start 10` (an `xsd:integer`) while an RDF/XML file writes
 /// `<sbol:start>10</sbol:start>` (an `xsd:string`) for the same property. The
 /// serializer emits, and the reader normalizes to, the datatype the SBOL 2

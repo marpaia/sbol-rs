@@ -50,7 +50,7 @@ impl<'a> Engine<'a> {
         // discovery, the MapsTo reconstruction emission) routes its
         // candidate IRIs through `next_available_*` against this pool,
         // so no synthesized SBOL 2 IRI can silently land on an existing
-        // subject — the invariant the pool exists to enforce.
+        // subject, the invariant the pool exists to enforce.
         for triple in self.input.rdf_graph().triples() {
             if let Some(iri) = triple.subject.as_iri() {
                 self.used_iris.insert(iri.as_str().to_owned());
@@ -237,7 +237,7 @@ impl<'a> Engine<'a> {
                 }
             }
             for (sbo, mut group) in by_sbo {
-                // Sort for deterministic round-trips — HashSet's iteration
+                // Sort for deterministic round-trips; HashSet's iteration
                 // order is unstable.
                 group.sort();
                 self.biopax_variant_queue
@@ -345,8 +345,8 @@ impl<'a> Engine<'a> {
     pub(super) fn build_iri_rewrites(&mut self) {
         // For every IRI that appears as a subject in the document,
         // compute its SBOL 2 form. The version segment is only appended
-        // when the source carried a `backport:sbol2version` triple —
-        // synthesizing one for documents that had no version originally
+        // when the source carried a `backport:sbol2version` triple.
+        // Synthesizing one for documents that had no version originally
         // would pollute round-trips. Top-levels without a preserved
         // version still receive an identity rewrite so
         // `emit_backport_metadata` knows to emit `persistentIdentity`.
@@ -414,7 +414,7 @@ impl<'a> Engine<'a> {
         // to live under the SubComponent at `{SubComp}/{lastSegmentOfOrig}`,
         // but the original SBOL 2 IRI was `{SA}/{LocDisplayId}`. Reconstruct
         // the SBOL 2 IRI from `backport:sbol2persistentIdentity` so the
-        // re-upgrade — which sees a real SA wrapper this time — collapses
+        // re-upgrade (which sees a real SA wrapper this time) collapses
         // each Location back to the SAME SubComponent-relative IRI the
         // original SBOL 3 had. Without this override the round-trip would
         // emit Locations at a doubly-versioned IRI like `.../component1/1/1`.
@@ -498,7 +498,7 @@ impl<'a> Engine<'a> {
     }
 
     /// Returns `Some(version)` when this top-level subject was given a
-    /// `backport:sbol2version` in the source — i.e. the SBOL 2 source
+    /// `backport:sbol2version` in the source, i.e. the SBOL 2 source
     /// carried an explicit version. Otherwise `None`, signalling that
     /// the version was not preserved and the caller must decide whether
     /// to synthesize one from [`DowngradeOptions::default_version`].
@@ -519,7 +519,7 @@ impl<'a> Engine<'a> {
             .or_else(|| self.options.default_version.clone())
     }
 
-    /// Returns the version for any subject — top-level or child —
+    /// Returns the version for any subject (top-level or child)
     /// resolved via the owning top-level's classification.
     pub(super) fn effective_version_for_iri(&self, iri: &str) -> Option<String> {
         if self.top_levels.contains(iri) {
@@ -641,7 +641,7 @@ impl<'a> Engine<'a> {
             // *almost* always lands on its canonical
             // `{parent_cd}/{displayId}` IRI on the first try (the
             // upgrade wrote that IRI and the downgrade has now seen
-            // it as an input subject) — but if the original SA shared
+            // it as an input subject). But if the original SA shared
             // a displayId with some other child of the parent CD, the
             // allocator will disambiguate with a `_N` suffix and we
             // honor that here rather than silently overwriting.

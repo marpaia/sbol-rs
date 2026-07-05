@@ -1,4 +1,4 @@
-//! `sbol` — command-line tool for SBOL 3 documents.
+//! `sbol`: command-line tool for SBOL 3 documents.
 //!
 //! See `sbol validate --help` for the full surface.
 

@@ -15,7 +15,7 @@ use crate::parser::{Record, parse_records};
 /// Imports FASTA records and emits SBOL 3 [`Document`]s.
 ///
 /// `FastaImporter::new` takes the namespace IRI that the resulting
-/// SBOL 3 top-level objects will be rooted under — typically the
+/// SBOL 3 top-level objects will be rooted under, typically the
 /// owning lab or repository (e.g. `https://example.org/lab`).
 /// Component identities are derived as `{namespace}/{record-id}`.
 ///
@@ -85,8 +85,8 @@ impl FastaImporter {
         Ok((document, report))
     }
 
-    /// Reads from a file on disk (`.fasta` / `.fa` / `.fna` / `.faa`
-    /// — the importer doesn't actually care about the extension).
+    /// Reads from a file on disk (`.fasta` / `.fa` / `.fna` / `.faa`;
+    /// the importer doesn't actually care about the extension).
     pub fn read_path(
         &self,
         path: impl AsRef<Path>,

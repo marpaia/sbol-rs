@@ -50,7 +50,7 @@ impl<'a> Engine<'a> {
         };
 
         // Drop the parent CD's `sbol2:sequenceAnnotation` triple if it
-        // points at a collapsed SA — the SubComponent is already attached as
+        // points at a collapsed SA. The SubComponent is already attached as
         // a feature via the CD's own `sbol2:component` triple.
         if predicate == v2::SBOL2_SEQUENCE_ANNOTATION_PROP
             && let Some(target_iri) = triple.object.as_iri()
@@ -96,7 +96,7 @@ impl<'a> Engine<'a> {
             return true;
         }
 
-        // `sbol2:component` itself is consumed by the collapse — the
+        // `sbol2:component` itself is consumed by the collapse. The
         // resulting SubComponent is reached through the parent CD's own
         // `sbol2:component` triple, so we don't emit any successor here.
         if predicate == v2::SBOL2_COMPONENT_PROP {
@@ -185,12 +185,12 @@ impl<'a> Engine<'a> {
 
         // Promote `dcterms:title` → `sbol3:name` and
         // `dcterms:description` → `sbol3:description` for any subject
-        // that has them. We don't drop the originals — sbolgraph
+        // that has them. We don't drop the originals; sbolgraph
         // overwrites them, but keeping them preserves Dublin Core
         // metadata that SPARQL clients might query. Scan
         // `output_triples` (not the input) so dcterms attached to
-        // structurally-consumed subjects — e.g. collapsed
-        // SequenceAnnotation shells — aren't reintroduced as orphan
+        // structurally-consumed subjects (e.g. collapsed
+        // SequenceAnnotation shells) aren't reintroduced as orphan
         // properties on subjects that no longer exist.
         let promoted: Vec<Triple> = self
             .output_triples
@@ -356,8 +356,8 @@ impl<'a> Engine<'a> {
             // `verifyIdentical` losslessly per SBOL 3.1.0 §10.2, so the
             // hint is only strictly required for `sbol2:merge` (which
             // the spec collapses to `useRemote`) and for unknown
-            // refinement IRIs. We emit it for every refinement anyway —
-            // it's defense-in-depth against downstream tools that swap
+            // refinement IRIs. We emit it for every refinement anyway.
+            // It's defense-in-depth against downstream tools that swap
             // the Constraint's subject/object, and it lets the downgrade
             // restore the exact source IRI even when position alone
             // would suffice.

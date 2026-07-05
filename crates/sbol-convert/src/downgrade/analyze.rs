@@ -145,7 +145,7 @@ impl<'a> Engine<'a> {
         // SubComponent. The pairing is only considered a MapsTo back-half
         // when the Constraint's restriction is one of the two values the
         // forward map ever emits for this shape (`verifyIdentical` or
-        // `replaces`) — without that filter a native SBOL 3 Constraint
+        // `replaces`). Without that filter a native SBOL 3 Constraint
         // that happened to point at a CRef with `precedes` (or any
         // structural restriction) would be silently folded into a fake
         // MapsTo. A `backport:mapsToRefinement` triple on the CRef is
@@ -199,7 +199,7 @@ impl<'a> Engine<'a> {
             }
             let Some((constraint_iri, cref_position)) = cref_to_constraint.get(&cref_iri).cloned()
             else {
-                // No paired Constraint — the CRef can't fold into a
+                // No paired Constraint; the CRef can't fold into a
                 // MapsTo. Discard its triples so they don't survive as
                 // an orphan SBOL 3 subject in the SBOL 2 output.
                 self.report
@@ -365,7 +365,7 @@ impl<'a> Engine<'a> {
                 v3::SBOL_HAS_CONSTRAINT => {
                     // A Constraint that's actually the back-half of a
                     // decomposed SBOL 2 MapsTo doesn't count as
-                    // structural — it's pure functional plumbing the
+                    // structural; it's pure functional plumbing the
                     // upgrade left in place. Discarded constraints
                     // (failed CRef + Constraint pair) also don't count:
                     // they won't survive into the SBOL 2 output, so
@@ -440,11 +440,11 @@ impl<'a> Engine<'a> {
         }
 
         // Decide each Component's shape, then derive split IRIs.
-        // A `backport:sbol2type` hint is authoritative — SBOL 2 sources
+        // A `backport:sbol2type` hint is authoritative: SBOL 2 sources
         // unambiguously chose one class or the other, so we honor that
         // choice even when the SBOL 3 surface carries triples that
         // could be read as the other shape (e.g. an SBOL 2
-        // ModuleDefinition with a `sbol:role` triple — legal in SBOL 2,
+        // ModuleDefinition with a `sbol:role` triple, legal in SBOL 2,
         // but `role` is also a structural signal for native SBOL 3).
         // DualRole only fires when there's no SBOL 2 ancestor to
         // disambiguate.
@@ -462,7 +462,7 @@ impl<'a> Engine<'a> {
                     } else if has_functional {
                         ComponentShape::MdOnly
                     } else {
-                        // Components with no signals default to CD —
+                        // Components with no signals default to CD.
                         // SBOL 2 ComponentDefinition is the more
                         // permissive class and matches the natural
                         // shape of structural-but-empty designs.
@@ -478,7 +478,7 @@ impl<'a> Engine<'a> {
                     Some(v2::SBOL2_MODULE_DEFINITION) => ("_component", ""),
                     Some(v2::SBOL2_COMPONENT_DEFINITION) => ("", "_module"),
                     _ => {
-                        // No hint — sbolgraph heuristic: anything with
+                        // No hint. sbolgraph heuristic: anything with
                         // interactions keeps the bare IRI on the MD;
                         // otherwise on the CD.
                         if has_functional {
@@ -491,7 +491,7 @@ impl<'a> Engine<'a> {
             };
 
             // The bare half (whichever has an empty suffix) keeps the
-            // Component's original IRI — that IRI is already in
+            // Component's original IRI. That IRI is already in
             // `used_iris` from the input-subject seed and represents
             // the Component's identity. The non-bare half is synthesized
             // by appending `_component` / `_module` directly; we route
@@ -520,8 +520,8 @@ impl<'a> Engine<'a> {
                 // If anything already occupies that IRI (a SubComponent
                 // that shares its parent's displayId is the canonical
                 // case), pick the next available `{displayId}_N` so the
-                // synthesized FC doesn't merge with existing triples —
-                // that would put two contradictory rdf:types on the
+                // synthesized FC doesn't merge with existing triples.
+                // That would put two contradictory rdf:types on the
                 // same IRI.
                 let (display_id, iri) =
                     next_available_child_iri(&md_iri, &original_display_id, &mut self.used_iris);
@@ -561,7 +561,7 @@ impl<'a> Engine<'a> {
         }
 
         // Deterministic order so the disambiguation index lands
-        // consistently across runs — HashMap iteration is unstable.
+        // consistently across runs; HashMap iteration is unstable.
         let mut sc_parents: Vec<(String, String)> =
             self.feature_parent.clone().into_iter().collect();
         sc_parents.sort();
@@ -570,7 +570,7 @@ impl<'a> Engine<'a> {
         // triple-variant IRIs. Non-bare variants (the ones carrying an
         // `_c` / `_fc` / `_m` suffix) go through
         // [`next_available_child_iri`] against the shared `used_iris`
-        // set — without this, a synthesized variant can land on top of
+        // set. Without this, a synthesized variant can land on top of
         // a sibling SubComponent whose displayId happens to match the
         // variant's suffix shape (e.g. siblings named `foo` and
         // `foo_fc` produce two SBOL 2 objects at the same IRI).

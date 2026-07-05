@@ -19,7 +19,7 @@ use crate::feature_map::{GENERIC_FEATURE, feature_key_to_so};
 /// objects.
 ///
 /// `GenbankImporter::new` takes the namespace IRI that the resulting
-/// SBOL 3 top-level objects should be rooted under — typically the
+/// SBOL 3 top-level objects should be rooted under, typically the
 /// owning lab or repository (e.g. `https://example.org/lab`). Component
 /// identities are derived as `{namespace}/{accession or locus name}`.
 #[derive(Clone, Debug)]
@@ -296,7 +296,7 @@ fn lower_locations(
         Location::Range((start, _before), (end, _after)) => {
             // The Range is a direct child of the SequenceFeature
             // (parent IRI ends with the SF's displayId), so the
-            // Range's own displayId stays simple — `range` for the
+            // Range's own displayId stays simple: `range` for the
             // sole location, `range_N` for joined / multi-part
             // locations.
             let _ = feature_display_id;
@@ -583,7 +583,7 @@ pub enum ImportWarning {
     /// resulting SequenceFeature.
     UnknownFeatureKey { kind: String },
     /// A feature's location shape couldn't be lowered to SBOL 3
-    /// (rare — affects Bond, External, Gap, malformed ranges). The
+    /// (rare; affects Bond, External, Gap, malformed ranges). The
     /// SequenceFeature was skipped.
     LossyLocation { feature: String, reason: String },
     /// The record had neither an ACCESSION nor a LOCUS name; the

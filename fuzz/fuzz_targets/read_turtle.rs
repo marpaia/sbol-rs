@@ -4,7 +4,7 @@
 //! of the input selects the format; the remainder is fed to the
 //! parser as UTF-8 text. Any panic from the parser (including from
 //! the underlying `oxrdfio` backend) is a fuzz failure. Errors are
-//! expected and ignored — we're hunting for panics, infinite loops,
+//! expected and ignored. We're hunting for panics, infinite loops,
 //! and OOMs.
 
 use libfuzzer_sys::fuzz_target;

@@ -15,7 +15,7 @@
 //!   - The SBOLTestSuite fixture cache populated (run the
 //!     `sbol3_fixtures` integration test once if not)
 //!
-//! Failure modes are fail-loud — missing Docker, image not built, or
+//! Failure modes are fail-loud: missing Docker, image not built, or
 //! a non-zero exit from the container all surface as an error message
 //! and a non-zero exit.
 

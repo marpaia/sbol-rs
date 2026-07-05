@@ -77,7 +77,7 @@ pub(super) fn next_available_child_iri(
 /// until it finds one that is available.
 ///
 /// Unlike [`next_available_child_iri`], no separator is inserted between
-/// `base` and the disambiguation counter — `base` is taken as the
+/// `base` and the disambiguation counter; `base` is taken as the
 /// complete candidate IRI. Used for sibling-style synthesis where the
 /// candidate IRI is built by appending a suffix (e.g. `_component`,
 /// `_module`) directly to an existing IRI rather than by adding a new
@@ -162,7 +162,7 @@ pub(super) fn map_sbol3_type_to_sbol2(iri: &str) -> Option<&'static str> {
         v3::SBOL_RANGE_CLASS => v2::SBOL2_RANGE,
         v3::SBOL_CUT_CLASS => v2::SBOL2_CUT,
         v3::SBOL_LOCATION_CLASS => v2::SBOL2_GENERIC_LOCATION,
-        // Component subtypes that don't exist in SBOL 2 — skip them
+        // Component subtypes that don't exist in SBOL 2: skip them
         // (caller surfaces an UnsupportedSbol3Type warning).
         _ => return None,
     })
@@ -218,7 +218,7 @@ pub(super) fn map_sbol3_predicate_to_sbol2(iri: &str) -> Option<&'static str> {
         v3::SBOL_MEMBER => v2::SBOL2_MEMBER,
         // `hasFeature` is context-dependent and handled by
         // `Engine::handle_has_feature` ahead of this table.
-        // `hasNamespace` is dropped earlier (no SBOL 2 equivalent —
+        // `hasNamespace` is dropped earlier (no SBOL 2 equivalent;
         // the namespace lives implicitly in the restored
         // persistentIdentity).
         _ => return None,

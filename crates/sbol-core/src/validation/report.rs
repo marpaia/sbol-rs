@@ -111,7 +111,7 @@ pub enum CoverageKind {
 pub enum NotAppliedReason {
     /// Spec ▲ rule: violations are not to be machine-reported.
     MachineUncheckable,
-    /// Catalog status is `Deferred` — no local algorithm exists yet.
+    /// Catalog status is `Deferred`: no local algorithm exists yet.
     Deferred(Blocker),
     /// The rule's validation family was not enabled by the run's
     /// `ValidationConfig`.

@@ -27,7 +27,7 @@ fn implemented_validation_rules_have_regression_cases() {
     for status in statuses {
         // Statuses with no algorithm don't get a regression case.
         // MachineUncheckable rules either have no algorithm or only a
-        // local subset that emits Warnings — those that DO emit are
+        // local subset that emits Warnings. Those that DO emit are
         // covered by case files in `tests/rule_cases/`; the catalog
         // doesn't enforce a 1:1 mapping for ▲ rules.
         if matches!(

@@ -67,7 +67,7 @@ pub(crate) fn parse_records(input: &str) -> Vec<Record> {
                 if let Some(rb) = current.as_mut() {
                     append_sequence(&mut rb.sequence, line);
                 } else {
-                    // Sequence data before any `>` header — most
+                    // Sequence data before any `>` header. The most
                     // tolerant move is to skip it.
                 }
             }

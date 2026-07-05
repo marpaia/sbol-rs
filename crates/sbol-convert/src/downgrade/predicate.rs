@@ -34,13 +34,13 @@ impl<'a> Engine<'a> {
         }
 
         // Drop predicates that have no SBOL 2 equivalent. `hasNamespace`
-        // is the most important one — the namespace is implicit in
+        // is the most important one: the namespace is implicit in
         // the restored persistentIdentity / versioned IRI in SBOL 2.
         if predicate == v3::SBOL_HAS_NAMESPACE {
             return;
         }
 
-        // `hasFeature` is context-dependent in SBOL 2 — it becomes
+        // `hasFeature` is context-dependent in SBOL 2: it becomes
         // `component`, `functionalComponent`, `module`, or
         // `sequenceAnnotation` depending on what the feature is and
         // what its parent is. Resolve here using the type maps built
@@ -51,7 +51,7 @@ impl<'a> Engine<'a> {
         }
 
         // `hasLocation` on a SubComponent that was a collapsed SA's
-        // component — drop here; the reconstructed SA emits
+        // component: drop here; the reconstructed SA emits
         // `sbol2:location` itself in `emit_sa_wrappers`.
         if predicate == v3::SBOL_HAS_LOCATION
             && let Some(subject_iri) = triple.subject.as_iri()
@@ -61,7 +61,7 @@ impl<'a> Engine<'a> {
         }
 
         // `sbol3:type` on an MD-derived Component drops the
-        // synthesized `SBO:functionalEntity` term — SBOL 2 MDs don't
+        // synthesized `SBO:functionalEntity` term; SBOL 2 MDs don't
         // carry it. The original SBOL 2 type triples (if any) are
         // still emitted because they pass through the same predicate.
         if predicate == v3::SBOL_TYPE
@@ -290,7 +290,7 @@ impl<'a> Engine<'a> {
             v3::SBOL_ENCODING => values::map_encoding(iri).map(String::from),
             // Multi-valued `sbol3:type` on a Component can mix BioPAX
             // collapses (SBO:DNA, …) with topology / role types (SO:linear).
-            // Only the BioPAX side benefits from the backport hint —
+            // Only the BioPAX side benefits from the backport hint;
             // leave SO and friends to pass through untouched.
             //
             // For each input `sbol3:type` triple that maps to an SBO
@@ -298,7 +298,7 @@ impl<'a> Engine<'a> {
             // preserved variant for `(subject, sbo_term)`. This handles
             // the otherwise-lossy case where two distinct BioPAX
             // variants share an SBO target (e.g. `biopax:Dna` and
-            // `biopax:DnaRegion` both collapse to `SBO:0000251`) — each
+            // `biopax:DnaRegion` both collapse to `SBO:0000251`): each
             // input triple gets a distinct variant in restoration order.
             // Fall back to the default `*Region`-style mapping when no
             // hint exists or the queue is exhausted.
@@ -333,7 +333,7 @@ impl<'a> Engine<'a> {
             .collect();
         entries.sort();
         for (sbol3_iri, sbol2_iri) in entries {
-            // Skip subjects folded into a structural re-synthesis — the
+            // Skip subjects folded into a structural re-synthesis. The
             // synthesizer emits persistentIdentity / version itself
             // (typically at a different IRI). Without this skip the
             // metadata would land on a leftover IRI as an orphan
@@ -361,8 +361,8 @@ impl<'a> Engine<'a> {
             }
 
             // sbol3namespace: stash the SBOL 3 object's `hasNamespace` on
-            // the SBOL 2 object so sbol-utilities / sbolgraph — and a
-            // future sbol-rs re-upgrade — can reconstruct the SBOL 3
+            // the SBOL 2 object so sbol-utilities / sbolgraph (and a
+            // future sbol-rs re-upgrade) can reconstruct the SBOL 3
             // namespace without re-deriving it from the identity IRI.
             if let Some(namespace) = self.sbol3_namespaces.get(&sbol3_iri) {
                 self.output_triples.push(Triple {

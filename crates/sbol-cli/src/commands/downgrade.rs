@@ -102,7 +102,7 @@ pub(crate) fn downgrade(args: DowngradeArgs, styles: Styles) -> ExitCode {
         return ExitCode::from(2);
     }
 
-    // Print the conversion summary to stderr — same style as upgrade.
+    // Print the conversion summary to stderr, same style as upgrade.
     let counts = report.counts();
     eprintln!(
         "downgraded: {} CD, {} MD, {} split-into-both, {} SubComponent, \

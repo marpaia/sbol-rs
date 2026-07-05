@@ -21,7 +21,7 @@ pub enum Blocker {
     /// taken (e.g. conflict resolution strategy for derived
     /// implementations).
     Policy,
-    /// Verification requires information outside the document — typically
+    /// Verification requires information outside the document, typically
     /// global URI uniqueness or registry semantics that are beyond the
     /// scope of a per-document validator.
     External,
