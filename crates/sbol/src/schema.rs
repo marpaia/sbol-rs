@@ -18,17 +18,9 @@
 
 use crate::SbolClass;
 
-pub use sbol_core::schema::{Cardinality, FieldDescriptor, ReferenceSpec, TargetClass, ValueKind};
-
-/// Describes one SBOL class.
-#[derive(Clone, Copy, Debug)]
-#[non_exhaustive]
-pub struct ClassDescriptor {
-    /// IRIs of direct parent classes in the SBOL hierarchy.
-    pub parents: &'static [&'static str],
-    /// Fields declared on this class.
-    pub fields: &'static [FieldDescriptor],
-}
+pub use sbol_core::schema::{
+    Cardinality, ClassDescriptor, FieldDescriptor, ReferenceSpec, TargetClass, ValueKind,
+};
 
 /// Looks up the [`ClassDescriptor`] for an SBOL class by its RDF type
 /// IRI. Returns `None` if the IRI is not a known SBOL, PROV, or OM class.

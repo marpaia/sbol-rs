@@ -133,3 +133,13 @@ impl FieldDescriptor {
         }
     }
 }
+
+/// Describes one SBOL class: the parent classes it inherits from and the
+/// field descriptors declared directly on it.
+#[derive(Clone, Copy, Debug)]
+pub struct ClassDescriptor {
+    /// IRIs of direct parent classes in the SBOL hierarchy.
+    pub parents: &'static [&'static str],
+    /// Fields declared on this class.
+    pub fields: &'static [FieldDescriptor],
+}
