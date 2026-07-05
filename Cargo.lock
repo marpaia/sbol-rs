@@ -1136,6 +1136,8 @@ name = "sbol"
 version = "0.2.1"
 dependencies = [
  "sbol-convert",
+ "sbol-core",
+ "sbol-rdf",
  "sbol3",
 ]
 
