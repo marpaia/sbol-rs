@@ -254,6 +254,5 @@ fn blocker_label(blocker: Blocker) -> &'static str {
         Blocker::StrictDatatype => "StrictDatatype",
         Blocker::Policy => "Policy",
         Blocker::External => "External",
-        _ => "Unknown",
     }
 }

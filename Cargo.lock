@@ -1137,6 +1137,7 @@ version = "0.2.1"
 dependencies = [
  "criterion",
  "proptest",
+ "sbol-core",
  "sbol-ontology",
  "sbol-rdf",
  "serde",
@@ -1173,6 +1174,14 @@ dependencies = [
  "serde_json",
  "tempfile",
  "terminal_size",
+]
+
+[[package]]
+name = "sbol-core"
+version = "0.2.1"
+dependencies = [
+ "sbol-rdf",
+ "thiserror",
 ]
 
 [[package]]
