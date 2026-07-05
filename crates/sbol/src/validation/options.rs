@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use sbol_ontology::Ontology;
 
 use crate::validation::report::Severity;
@@ -8,6 +6,7 @@ use crate::validation::spec::validation_rule_statuses;
 pub use sbol_core::validation::options::{
     HashAlgorithmRegistry, PolicyOptions, RuleOverride, TopologyCompleteness, UnknownRule,
 };
+use sbol_core::validation::options::RuleOverrides;
 
 /// Options for local SBOL validation.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -15,9 +14,7 @@ pub use sbol_core::validation::options::{
 pub struct ValidationOptions {
     pub topology_completeness: TopologyCompleteness,
     pub policy: PolicyOptions,
-    pub(crate) overrides: BTreeMap<&'static str, RuleOverride>,
-    pub(crate) severity_floor: Option<Severity>,
-    pub(crate) severity_ceiling: Option<Severity>,
+    pub(crate) rules: RuleOverrides,
     pub(crate) ontology_extensions: Vec<Ontology>,
 }
 
@@ -43,14 +40,14 @@ impl ValidationOptions {
     /// Floor on the severity of any emitted issue (warnings can be
     /// promoted to errors but not below).
     pub fn with_severity_floor(mut self, floor: Severity) -> Self {
-        self.severity_floor = Some(floor);
+        self.rules = self.rules.with_severity_floor(floor);
         self
     }
 
     /// Ceiling on the severity of any emitted issue (errors can be
     /// demoted to warnings but not above).
     pub fn with_severity_ceiling(mut self, ceiling: Severity) -> Self {
-        self.severity_ceiling = Some(ceiling);
+        self.rules = self.rules.with_severity_ceiling(ceiling);
         self
     }
 
@@ -72,20 +69,19 @@ impl ValidationOptions {
 
     /// Iterate the rule-id → override map. Stable iteration order.
     pub fn overrides(&self) -> impl Iterator<Item = (&'static str, RuleOverride)> + '_ {
-        self.overrides.iter().map(|(rule, ovr)| (*rule, *ovr))
+        self.rules.iter()
     }
 
     pub fn severity_floor(&self) -> Option<Severity> {
-        self.severity_floor
+        self.rules.severity_floor()
     }
 
     pub fn severity_ceiling(&self) -> Option<Severity> {
-        self.severity_ceiling
+        self.rules.severity_ceiling()
     }
 
     fn override_rule(mut self, rule: &str, ovr: RuleOverride) -> Result<Self, UnknownRule> {
-        let canonical = canonical_rule_id(rule)?;
-        self.overrides.insert(canonical, ovr);
+        self.rules = self.rules.set(rule, ovr, validation_rule_statuses())?;
         Ok(self)
     }
 
@@ -96,30 +92,6 @@ impl ValidationOptions {
         rule: &'static str,
         catalog_default: Severity,
     ) -> Option<Severity> {
-        let base = match self.overrides.get(rule).copied() {
-            Some(RuleOverride::Suppress) => return None,
-            Some(RuleOverride::Severity(severity)) => severity,
-            Some(_) => catalog_default,
-            None => catalog_default,
-        };
-        let with_floor = match self.severity_floor {
-            Some(floor) if floor > base => floor,
-            _ => base,
-        };
-        let with_ceiling = match self.severity_ceiling {
-            Some(ceiling) if ceiling < with_floor => ceiling,
-            _ => with_floor,
-        };
-        Some(with_ceiling)
+        self.rules.resolved_severity(rule, catalog_default)
     }
-}
-
-fn canonical_rule_id(rule: &str) -> Result<&'static str, UnknownRule> {
-    validation_rule_statuses()
-        .iter()
-        .find(|status| status.rule == rule)
-        .map(|status| status.rule)
-        .ok_or_else(|| UnknownRule {
-            rule: rule.to_owned(),
-        })
 }

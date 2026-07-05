@@ -13,7 +13,7 @@ pub mod rule_status;
 pub use blocker::Blocker;
 pub use coverage::{compute_coverage, coverage_kind_for};
 pub use options::{
-    ExternalValidationMode, HashAlgorithmRegistry, PolicyOptions, RuleOverride,
+    ExternalValidationMode, HashAlgorithmRegistry, PolicyOptions, RuleOverride, RuleOverrides,
     TopologyCompleteness, UnknownRule,
 };
 pub use output::{VALIDATION_OUTPUT_SCHEMA_VERSION, to_json};
