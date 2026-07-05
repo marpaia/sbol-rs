@@ -1,0 +1,4 @@
+# Known-compliant divergences between sbol-rs and libSBOLj SBOL 2
+# output. One reference filename per line; precede each with a `#`
+# rationale block citing the spec section or upstream issue that makes
+# the divergence acceptable. Empty today.

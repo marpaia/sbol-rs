@@ -15,7 +15,7 @@ corpora are produced.
 | Schema consistency                 | `crates/sbol/tests/schema_consistency.rs`               | `to_rdf` ↔ `from_rdf` ↔ `FieldDescriptor` predicate-set parity across every class.  |
 | Property tests                     | `crates/sbol/tests/properties.rs`                       | Five spec-derived invariants under `proptest`-generated input.                      |
 | SBOLTestSuite fixtures             | `crates/sbol/tests/sbol3_fixtures.rs`                   | All 33 valid SBOL 3 fixtures parse, validate, and round-trip in every RDF format.   |
-| Cross-implementation conformance   | `crates/sbol/tests/cross_impl.rs`, `crates/sbol/tests/cross_impl_pysbol3.rs` | Triple-set equivalence against libSBOLj3 v1.0.5.2 and pySBOL3 1.2 across 132 fixture × format combos per reference implementation. |
+| Cross-implementation conformance   | `crates/sbol3/tests/cross_impl.rs`, `crates/sbol3/tests/cross_impl_pysbol3.rs`, `crates/sbol2/tests/cross_impl.rs` | Triple-set equivalence against libSBOLj3 v1.0.5.2 and pySBOL3 1.2 across 132 SBOL 3 fixture × format combos per reference implementation, plus SBOL 2 RDF/XML equivalence against libSBOLj. |
 | Catalog freshness gates            | `crates/sbol/tests/validation_rules.rs`                 | `rules.toml` invariants and `docs/conformance.md` freshness.                        |
 | RDF backend                        | `crates/sbol-rdf/tests/basic.rs`                        | Per-format round-trip, cross-format equivalence, extension parsing.                 |
 | Fuzz tests                         | `fuzz/fuzz_targets/{read_turtle, round_trip}.rs`        | No panics on arbitrary bytes in any of the four RDF formats.                        |
@@ -156,6 +156,27 @@ cargo run -p sbol3 --bin regenerate-cross-impl-pysbol3-expectations
 Commit the regenerated `*.pySBOL3.expected.*` files alongside any
 allowlist entries needed for known-compliant divergences and bump the
 `PYSBOL3_VERSION` arg in the Dockerfile in the same commit.
+
+### SBOL 2 harness (libSBOLj)
+
+`crates/sbol2/tests/cross_impl.rs` gates sbol-rs's SBOL 2 serialization
+against libSBOLj, the SBOL 2 Java implementation. SBOL 2 is exchanged
+as RDF/XML, so the harness compares RDF/XML output only; the reference
+files live in `tests/fixtures/cross-impl-sbol2/` with suffix
+`.libSBOLj.expected.rdf` and are generated from the vendored SBOL 2
+fixtures the round-trip test already exercises. Building references on
+a contributor machine:
+
+```sh
+docker build -t libsbolj-pinned benches/cross-impl/libsbolj/
+cargo run -p sbol2 --bin regenerate-cross-impl-sbol2-expectations
+```
+
+The `benches/cross-impl/libsbolj/RoundTrip.java` wrapper reads a
+fixture and writes RDF/XML to stdout; the regenerate binary captures
+that as the reference. When no references are committed, `cross_impl`
+runs as a zero-comparison passing test. Bump the `LIBSBOLJ_VERSION` arg
+in the Dockerfile when a new release ships, then regenerate and commit.
 
 See [`rdf-io.md`](rdf-io.md) for the user-facing I/O subsystem reference.
 
