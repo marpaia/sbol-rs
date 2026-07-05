@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:sbol="http://sbols.org/v3#"
+>
+  <rdf:Description rdf:about="https://example.org/sbol-rs/fixtures/sample_measurements_csv">
+    <sbol:displayId>sample_measurements_csv</sbol:displayId>
+    <rdf:type rdf:resource="http://sbols.org/v3#Attachment"/>
+    <sbol:hasNamespace rdf:resource="https://example.org/sbol-rs/fixtures"/>
+    <sbol:source rdf:resource="https://example.org/sbol-rs/fixtures/sample_measurements.csv"/>
+    <sbol:format rdf:resource="https://identifiers.org/edam:format_3752"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://example.org/sbol-rs/fixtures/sample_measurements">
+    <sbol:displayId>sample_measurements</sbol:displayId>
+    <rdf:type rdf:resource="http://sbols.org/v3#ExperimentalData"/>
+    <sbol:hasNamespace rdf:resource="https://example.org/sbol-rs/fixtures"/>
+    <sbol:hasAttachment rdf:resource="https://example.org/sbol-rs/fixtures/sample_measurements_csv"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://example.org/sbol-rs/fixtures/characterization">
+    <sbol:displayId>characterization</sbol:displayId>
+    <rdf:type rdf:resource="http://sbols.org/v3#Experiment"/>
+    <sbol:hasNamespace rdf:resource="https://example.org/sbol-rs/fixtures"/>
+    <sbol:member rdf:resource="https://example.org/sbol-rs/fixtures/sample_measurements"/>
+  </rdf:Description>
+</rdf:RDF>

@@ -1,0 +1,19 @@
+@prefix : <https://sbolstandard.org/examples/> .
+@prefix sbol: <http://sbols.org/v3#> .
+
+:exp1 a sbol:Experiment ;
+    sbol:displayId "exp1" ;
+    sbol:hasNamespace <https://sbolstandard.org/examples> ;
+    sbol:member :attachment1,
+        :attachment2 .
+
+:attachment1 a sbol:Attachment ;
+    sbol:displayId "attachment1" ;
+    sbol:hasNamespace <https://sbolstandard.org/examples> ;
+    sbol:source <https://sbolstandard.org/attachment1> .
+
+:attachment2 a sbol:Attachment ;
+    sbol:displayId "attachment2" ;
+    sbol:hasNamespace <https://sbolstandard.org/examples> ;
+    sbol:source <https://sbolstandard.org/attachment2> .
+

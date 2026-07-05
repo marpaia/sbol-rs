@@ -1,0 +1,17 @@
+@prefix : <https://sbolstandard.org/examples/> .
+@prefix SBO: <https://identifiers.org/SBO:> .
+@prefix SO: <https://identifiers.org/SO:> .
+@prefix sbol: <http://sbols.org/v3#> .
+
+:i13504_system a sbol:Component ;
+    sbol:displayId "i13504_system" ;
+    sbol:hasInteraction <https://sbolstandard.org/examples/i13504_system/Interaction1> ;
+    sbol:hasNamespace <https://sbolstandard.org/examples> ;
+    sbol:name "i13504 system" ;
+    sbol:role SO:0000704 ;
+    sbol:type SBO:0000251 .
+
+<https://sbolstandard.org/examples/i13504_system/Interaction1> a sbol:Interaction ;
+    sbol:displayId "Interaction1" ;
+    sbol:type SBO:0000589 .
+

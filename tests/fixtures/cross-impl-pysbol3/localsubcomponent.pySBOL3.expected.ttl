@@ -1,0 +1,18 @@
+@prefix : <https://sbolstandard.org/examples/> .
+@prefix SBO: <https://identifiers.org/SBO:> .
+@prefix SO: <https://identifiers.org/SO:> .
+@prefix sbol: <http://sbols.org/v3#> .
+
+:i13504_system a sbol:Component ;
+    sbol:displayId "i13504_system" ;
+    sbol:hasFeature <https://sbolstandard.org/examples/i13504_system/LocalSubComponent1> ;
+    sbol:hasNamespace <https://sbolstandard.org/examples> ;
+    sbol:name "i13504 system" ;
+    sbol:role SO:0000804 ;
+    sbol:type SBO:0000251 .
+
+<https://sbolstandard.org/examples/i13504_system/LocalSubComponent1> a sbol:LocalSubComponent ;
+    sbol:displayId "LocalSubComponent1" ;
+    sbol:role SO:0000316 ;
+    sbol:type SBO:0000251 .
+

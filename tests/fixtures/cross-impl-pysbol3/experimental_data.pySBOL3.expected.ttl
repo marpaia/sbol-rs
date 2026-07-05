@@ -1,0 +1,20 @@
+@prefix : <https://example.org/sbol-rs/fixtures/> .
+@prefix EDAM: <https://identifiers.org/edam:> .
+@prefix sbol: <http://sbols.org/v3#> .
+
+:characterization a sbol:Experiment ;
+    sbol:displayId "characterization" ;
+    sbol:hasNamespace <https://example.org/sbol-rs/fixtures> ;
+    sbol:member :sample_measurements .
+
+:sample_measurements a sbol:ExperimentalData ;
+    sbol:displayId "sample_measurements" ;
+    sbol:hasAttachment :sample_measurements_csv ;
+    sbol:hasNamespace <https://example.org/sbol-rs/fixtures> .
+
+:sample_measurements_csv a sbol:Attachment ;
+    sbol:displayId "sample_measurements_csv" ;
+    sbol:format EDAM:format_3752 ;
+    sbol:hasNamespace <https://example.org/sbol-rs/fixtures> ;
+    sbol:source :sample_measurements.csv .
+

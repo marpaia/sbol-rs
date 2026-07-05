@@ -1,0 +1,96 @@
+{
+  "@context": {
+    "@": "https://synbiohub.org/public/igem/",
+    "@CHEBI": "https://identifiers.org/CHEBI:",
+    "@EDAM": "https://identifiers.org/edam:",
+    "@GO": "https://identifiers.org/GO:",
+    "@SBO": "https://identifiers.org/SBO:",
+    "@SO": "https://identifiers.org/SO:",
+    "@brick": "https://brickschema.org/schema/Brick#",
+    "@csvw": "http://www.w3.org/ns/csvw#",
+    "@dc": "http://purl.org/dc/elements/1.1/",
+    "@dcam": "http://purl.org/dc/dcam/",
+    "@dcat": "http://www.w3.org/ns/dcat#",
+    "@dcmitype": "http://purl.org/dc/dcmitype/",
+    "@dcterms": "http://purl.org/dc/terms/",
+    "@doap": "http://usefulinc.com/ns/doap#",
+    "@foaf": "http://xmlns.com/foaf/0.1/",
+    "@geo": "http://www.opengis.net/ont/geosparql#",
+    "@odrl": "http://www.w3.org/ns/odrl/2/",
+    "@om": "http://www.ontology-of-units-of-measure.org/resource/om-2/",
+    "@org": "http://www.w3.org/ns/org#",
+    "@owl": "http://www.w3.org/2002/07/owl#",
+    "@prof": "http://www.w3.org/ns/dx/prof/",
+    "@prov": "http://www.w3.org/ns/prov#",
+    "@qb": "http://purl.org/linked-data/cube#",
+    "@rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "@rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "@sbol": "http://sbols.org/v3#",
+    "@schema": "https://schema.org/",
+    "@sh": "http://www.w3.org/ns/shacl#",
+    "@skos": "http://www.w3.org/2004/02/skos/core#",
+    "@sosa": "http://www.w3.org/ns/sosa/",
+    "@ssn": "http://www.w3.org/ns/ssn/",
+    "@time": "http://www.w3.org/2006/time#",
+    "@vann": "http://purl.org/vocab/vann/",
+    "@void": "http://rdfs.org/ns/void#",
+    "@wgs": "https://www.w3.org/2003/01/geo/wgs84_pos#",
+    "@xml": "http://www.w3.org/XML/1998/namespace",
+    "@xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@graph": [
+    {
+      "@id": "https://synbiohub.org/public/igem/BBa_R0040/SequenceFeature1",
+      "@type": "http://sbols.org/v3#SequenceFeature",
+      "http://sbols.org/v3#displayId": "SequenceFeature1",
+      "http://sbols.org/v3#hasLocation": {
+        "@id": "https://synbiohub.org/public/igem/BBa_R0040/SequenceFeature1/Cut1"
+      }
+    },
+    {
+      "@id": "https://synbiohub.org/public/igem/BBa_R0040",
+      "@type": "http://sbols.org/v3#Component",
+      "http://sbols.org/v3#description": "TetR repressible promoter",
+      "http://sbols.org/v3#displayId": "BBa_R0040",
+      "http://sbols.org/v3#hasFeature": {
+        "@id": "https://synbiohub.org/public/igem/BBa_R0040/SequenceFeature1"
+      },
+      "http://sbols.org/v3#hasNamespace": {
+        "@id": "https://synbiohub.org/public/igem"
+      },
+      "http://sbols.org/v3#hasSequence": {
+        "@id": "https://synbiohub.org/public/igem/BBa_R0040_Sequence1"
+      },
+      "http://sbols.org/v3#name": "pTetR",
+      "http://sbols.org/v3#role": {
+        "@id": "https://identifiers.org/SO:0000167"
+      },
+      "http://sbols.org/v3#type": {
+        "@id": "https://identifiers.org/SBO:0000251"
+      }
+    },
+    {
+      "@id": "https://synbiohub.org/public/igem/BBa_R0040_Sequence1",
+      "@type": "http://sbols.org/v3#Sequence",
+      "http://sbols.org/v3#description": "BBa_R0040 sequence",
+      "http://sbols.org/v3#displayId": "BBa_R0040_Sequence1",
+      "http://sbols.org/v3#elements": "tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac",
+      "http://sbols.org/v3#encoding": {
+        "@id": "https://identifiers.org/edam:format_1207"
+      },
+      "http://sbols.org/v3#hasNamespace": {
+        "@id": "https://synbiohub.org/public/igem"
+      },
+      "http://sbols.org/v3#name": "Sequence1"
+    },
+    {
+      "@id": "https://synbiohub.org/public/igem/BBa_R0040/SequenceFeature1/Cut1",
+      "@type": "http://sbols.org/v3#Cut",
+      "http://sbols.org/v3#at": "5",
+      "http://sbols.org/v3#displayId": "Cut1",
+      "http://sbols.org/v3#hasSequence": {
+        "@id": "https://synbiohub.org/public/igem/BBa_R0040_Sequence1"
+      }
+    }
+  ]
+}

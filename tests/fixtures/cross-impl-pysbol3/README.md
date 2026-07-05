@@ -3,7 +3,7 @@
 This directory holds the Docker image definition and Python round-trip
 script that generate `*.pySBOL3.expected.{ttl,rdf,jsonld,nt}` reference
 outputs. The committed expected files are diffed against sbol-rs's
-own serialization by `crates/sbol/tests/cross_impl_pysbol3.rs`.
+own serialization by `crates/sbol3/tests/cross_impl_pysbol3.rs`.
 
 ## Regenerating the reference outputs
 
@@ -17,7 +17,7 @@ docker build -t pysbol3-pinned tests/fixtures/cross-impl-pysbol3/
 Then regenerate every `*.pySBOL3.expected.*` reference:
 
 ```sh
-cargo run -p sbol --bin regenerate-cross-impl-pysbol3-expectations
+cargo run -p sbol3 --bin regenerate-cross-impl-pysbol3-expectations
 ```
 
 The binary fails loudly if Docker is unreachable or the image is not
