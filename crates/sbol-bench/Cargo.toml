@@ -8,7 +8,7 @@ homepage.workspace = true
 license.workspace = true
 publish = false
 default-run = "sbol-bench"
-description = "Cross-implementation performance benchmarks for sbol-rs against pySBOL3, libSBOLj3, and sboljs."
+description = "Dual-version (SBOL 2 + SBOL 3) cross-implementation performance benchmarks for sbol-rs against libSBOLj, pySBOL3, libSBOLj3, and sboljs."
 
 [dependencies]
 clap = { workspace = true, features = ["env"] }

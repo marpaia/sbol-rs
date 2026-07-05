@@ -221,22 +221,17 @@ pub(crate) const BENCH_CASES: &[BenchCase] = &[
         serialize_format: RdfFormat::JsonLd,
         validate: false,
     },
-    // libSBOLj (SBOL 2 Java) reads and writes RDF/XML and Turtle; it has
-    // no N-Triples or JSON-LD serializer, so those cells stay dashed.
-    // The RDF/XML input is the source test-suite file, which libSBOLj
-    // parses natively.
+    // libSBOLj (SBOL 2 Java) parses the source RDF/XML natively. Its
+    // Turtle reader does not accept sbol-rs's Turtle layout (it yields
+    // an empty document), so the only Turtle row it appears in is the
+    // rdfxml -> turtle conversion, where the input is the source
+    // RDF/XML and libSBOLj does the Turtle writing. It ships no
+    // N-Triples or JSON-LD serializer, so those cells stay dashed.
     BenchCase {
         version: Version::Sbol2,
         implementation: Implementation::Libsbolj,
         parse_format: RdfFormat::RdfXml,
         serialize_format: RdfFormat::RdfXml,
-        validate: false,
-    },
-    BenchCase {
-        version: Version::Sbol2,
-        implementation: Implementation::Libsbolj,
-        parse_format: RdfFormat::Turtle,
-        serialize_format: RdfFormat::Turtle,
         validate: false,
     },
     BenchCase {

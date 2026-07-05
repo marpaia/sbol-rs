@@ -10,12 +10,13 @@ use clap::Parser;
 
 use crate::matrix::{DEFAULT_ITERS, DEFAULT_WARMUP, FIXTURES, Fixture};
 
-/// Cross-implementation `(parse, serialize)` performance bench for sbol-rs
-/// against pySBOL3, libSBOLj3, and sboljs.
+/// Dual-version cross-implementation `(parse, serialize)` performance
+/// bench for sbol-rs against libSBOLj (SBOL 2) and pySBOL3, libSBOLj3,
+/// and sboljs (SBOL 3).
 #[derive(Parser, Debug)]
 #[command(
     name = "sbol-bench",
-    about = "Cross-implementation (parse, serialize) benchmarks for sbol-rs vs pySBOL3, libSBOLj3, and sboljs"
+    about = "Dual-version (SBOL 2 + SBOL 3) cross-implementation benchmarks for sbol-rs vs libSBOLj, pySBOL3, libSBOLj3, and sboljs"
 )]
 pub(crate) struct Cli {
     /// Warmup iterations run (and discarded) before timing, so the JVM and
