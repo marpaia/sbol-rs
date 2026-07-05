@@ -3,11 +3,11 @@ use std::fs;
 use std::io::{self, Write};
 use std::process::ExitCode;
 
-use sbol::{FileResolver, Severity, ValidationContext, ValidationOptions, ValidationReport};
+use sbol::v3::{FileResolver, Severity, ValidationContext, ValidationOptions, ValidationReport};
 use sbol_ontology::OntologyCache;
 
 #[cfg(feature = "http-resolver")]
-use sbol::CachingHttpResolver;
+use sbol::v3::CachingHttpResolver;
 
 use crate::cli::{ExternalModeArg, OutputFormat, ValidateArgs};
 use crate::commands::ontology::known_ontology_by_name;
@@ -63,8 +63,8 @@ pub(crate) fn validate(args: ValidateArgs, styles: Styles) -> ExitCode {
     }
     #[cfg(feature = "http-resolver")]
     if let Some(resolver) = &caching_http {
-        let doc_ref: &dyn sbol::DocumentResolver = resolver;
-        let content_ref: &dyn sbol::ContentResolver = resolver;
+        let doc_ref: &dyn sbol::v3::DocumentResolver = resolver;
+        let content_ref: &dyn sbol::v3::ContentResolver = resolver;
         context = context
             .with_content_resolver(content_ref)
             .with_document_resolver(doc_ref);
@@ -176,7 +176,7 @@ fn render_output(args: &ValidateArgs, report: &ValidationReport, styles: Styles)
             let color = styles.stdout && writing_to_stdout;
             format_text(args, report, color)
         }
-        OutputFormat::Json => sbol::to_json(report),
+        OutputFormat::Json => sbol::v3::to_json(report),
         #[cfg(feature = "sarif")]
         OutputFormat::Sarif => crate::sarif::to_sarif(report, &args.path),
     };

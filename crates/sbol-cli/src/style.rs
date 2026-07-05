@@ -1,7 +1,7 @@
 use std::env;
 use std::io::{self, IsTerminal};
 
-use sbol::{RuleStatus, Severity};
+use sbol::v3::{RuleStatus, Severity};
 
 use crate::cli::ColorMode;
 

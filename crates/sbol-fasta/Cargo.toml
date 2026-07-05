@@ -18,7 +18,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-sbol.workspace = true
+sbol3.workspace = true
 sbol-rdf.workspace = true
 thiserror.workspace = true
 

@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
-use sbol::{ExternalValidationMode, RdfFormat, Severity};
+use sbol::v3::{ExternalValidationMode, RdfFormat, Severity};
 
 #[derive(Parser)]
 #[command(
@@ -321,7 +321,7 @@ pub(crate) struct DowngradeArgs {
     pub(crate) default_version: Option<String>,
 
     /// Validate the downgrade by round-tripping the produced SBOL 2
-    /// back up through `sbol::upgrade` and running SBOL 3 validation
+    /// back up through `sbol::v3::upgrade` and running SBOL 3 validation
     /// on the result. There is no native SBOL 2 validator in this
     /// workspace, so this round-trip is the proxy for structural
     /// correctness. Exit code 1 on validation errors.

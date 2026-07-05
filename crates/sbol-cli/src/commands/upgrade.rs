@@ -3,10 +3,10 @@ use std::io::{self, Write};
 use std::path::Path;
 use std::process::ExitCode;
 
-use sbol::{
-    MapsToSide, NamespaceSource, RdfFormat, UpgradeCounts, UpgradeOptions, UpgradeReport,
-    UpgradeWarning,
+use sbol::convert::{
+    MapsToSide, NamespaceSource, UpgradeCounts, UpgradeOptions, UpgradeReport, UpgradeWarning,
 };
+use sbol::v3::RdfFormat;
 use serde_json::{Value, json};
 
 use crate::cli::{UpgradeArgs, UpgradeReportFormat};
@@ -43,7 +43,7 @@ pub(crate) fn upgrade(args: UpgradeArgs, styles: Styles) -> ExitCode {
 
     let mut options = UpgradeOptions::default();
     if let Some(ns) = args.namespace.as_deref() {
-        match sbol::Iri::new(ns) {
+        match sbol::v3::Iri::new(ns) {
             Ok(iri) => options.default_namespace = Some(iri),
             Err(err) => {
                 eprintln!("{}: invalid --namespace `{ns}`: {err}", styles.err_label());
@@ -84,7 +84,7 @@ pub(crate) fn upgrade(args: UpgradeArgs, styles: Styles) -> ExitCode {
         }
     };
 
-    let (document, report) = match sbol::upgrade::upgrade_from_sbol2_with(&input, format, options) {
+    let (document, report) = match sbol::convert::upgrade_from_sbol2_with(&input, format, options) {
         Ok(pair) => pair,
         Err(err) => {
             eprintln!(

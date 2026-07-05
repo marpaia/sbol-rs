@@ -9,7 +9,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-sbol = { path = "../crates/sbol" }
+sbol3 = { path = "../crates/sbol3" }
 
 [[bin]]
 name = "read_turtle"

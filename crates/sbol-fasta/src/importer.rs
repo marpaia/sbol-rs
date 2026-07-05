@@ -5,9 +5,9 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
 
-use sbol::SbolObject;
-use sbol::constants::{EDAM_IUPAC_DNA, EDAM_IUPAC_PROTEIN, SBO_DNA, SBO_PROTEIN, SBO_RNA};
-use sbol::{BuildError, Component, Document, Iri, Sequence as SbolSequence};
+use sbol3::SbolObject;
+use sbol3::constants::{EDAM_IUPAC_DNA, EDAM_IUPAC_PROTEIN, SBO_DNA, SBO_PROTEIN, SBO_RNA};
+use sbol3::{BuildError, Component, Document, Iri, Sequence as SbolSequence};
 
 use crate::alphabet::Alphabet;
 use crate::parser::{Record, parse_records};

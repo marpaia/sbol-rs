@@ -15,7 +15,7 @@
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use sbol::{Resource, Term, Triple};
+use sbol3::{Resource, Term, Triple};
 use sbol_genbank::GenbankImporter;
 
 fn workspace_root() -> PathBuf {

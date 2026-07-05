@@ -13,7 +13,7 @@ fuzz_target!(|data: &[u8]| {
     let Ok(text) = std::str::from_utf8(data) else {
         return;
     };
-    let Ok(document) = sbol::Document::read_turtle(text) else {
+    let Ok(document) = sbol3::Document::read_turtle(text) else {
         return;
     };
 
@@ -23,7 +23,7 @@ fuzz_target!(|data: &[u8]| {
     let Ok(serialized) = document.write_turtle() else {
         return;
     };
-    let Ok(document_b) = sbol::Document::read_turtle(&serialized) else {
+    let Ok(document_b) = sbol3::Document::read_turtle(&serialized) else {
         return;
     };
     let report_b = document_b.validate();

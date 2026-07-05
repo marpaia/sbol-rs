@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Instant;
 
-use sbol::{Document, RdfFormat};
+use sbol::v3::{Document, RdfFormat};
 use serde::Deserialize;
 
 use crate::cli::Config;

@@ -6,12 +6,12 @@ use std::path::{Path, PathBuf};
 
 use gb_io::reader::SeqReader;
 use gb_io::seq::{Feature, Location, Seq, Topology};
-use sbol::constants::{
+use sbol3::constants::{
     EDAM_IUPAC_DNA, EDAM_IUPAC_PROTEIN, ORIENTATION_INLINE, ORIENTATION_REVERSE_COMPLEMENT,
     SBO_DNA, SBO_PROTEIN, SBO_RNA, SBO_SIMPLE_CHEMICAL, SO_CIRCULAR, SO_LINEAR,
 };
-use sbol::{BuildError, Component, Document, Iri, Range as SbolRange, Resource, SbolObject};
-use sbol::{Sequence as SbolSequence, SequenceFeature};
+use sbol3::{BuildError, Component, Document, Iri, Range as SbolRange, Resource, SbolObject};
+use sbol3::{Sequence as SbolSequence, SequenceFeature};
 
 use crate::feature_map::{GENERIC_FEATURE, feature_key_to_so};
 

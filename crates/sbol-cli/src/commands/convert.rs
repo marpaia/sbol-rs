@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use std::path::Path;
 use std::process::ExitCode;
 
-use sbol::{RdfFormat, WriteError};
+use sbol::v3::{RdfFormat, WriteError};
 
 use crate::cli::ConvertArgs;
 use crate::output::read_document;

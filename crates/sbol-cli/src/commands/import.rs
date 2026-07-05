@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use std::path::Path;
 use std::process::ExitCode;
 
-use sbol::RdfFormat;
+use sbol::v3::RdfFormat;
 
 use crate::cli::{ImportFastaArgs, ImportGenbankArgs};
 use crate::output::format_issue;

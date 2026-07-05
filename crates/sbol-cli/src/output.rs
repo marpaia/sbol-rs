@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::process::ExitCode;
 
-use sbol::{Document, RdfFormat, ReadError, Severity, ValidationIssue};
+use sbol::v3::{Document, RdfFormat, ReadError, Severity, ValidationIssue};
 
 use crate::style::{Styles, paint, severity_code};
 

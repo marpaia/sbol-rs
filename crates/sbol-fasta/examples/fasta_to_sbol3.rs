@@ -21,7 +21,7 @@
 //!   FASTA (.fasta / .fa / .fna / .faa)
 //!         │   sbol_fasta::FastaImporter (hand-rolled parser + alphabet detection)
 //!         ▼
-//!   sbol::Document  ←─────────── native SBOL 3 graph
+//!   sbol3::Document  ←─────────── native SBOL 3 graph
 //!     │     │
 //!     │     │   document.validate()  (sbol3-* spec rules)
 //!     │     ▼
@@ -37,7 +37,7 @@
 use std::env;
 use std::path::{Path, PathBuf};
 
-use sbol::{Document, RdfFormat, SbolIdentified, Severity};
+use sbol3::{Document, RdfFormat, SbolIdentified, Severity};
 use sbol_fasta::{FastaImporter, ImportReport, ImportWarning};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

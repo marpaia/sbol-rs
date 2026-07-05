@@ -5,8 +5,8 @@
 //! bioinformatics tools either emit or accept it. This crate lets
 //! `sbol-rs` ingest that data with no external dependencies.
 //!
-//! Each `>header` record becomes one [`sbol::Component`] paired with
-//! one [`sbol::Sequence`]. The component's biological type
+//! Each `>header` record becomes one [`sbol3::Component`] paired with
+//! one [`sbol3::Sequence`]. The component's biological type
 //! (`SBO_DNA` / `SBO_RNA` / `SBO_PROTEIN`) and the sequence's EDAM
 //! encoding are auto-detected from the alphabet of the sequence
 //! itself — the caller can override the detection with

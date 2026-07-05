@@ -7,8 +7,8 @@
 //!   tests/fixtures/genbank/{name}.gb
 //!         │   sbol_genbank::GenbankImporter
 //!         ▼
-//!   sbol::Document  (SBOL 3)
-//!         │   sbol::downgrade::downgrade(&document)
+//!   sbol3::Document  (SBOL 3)
+//!         │   sbol_convert::downgrade(&document)
 //!         ▼
 //!   sbol_rdf::Graph  (SBOL 2)
 //!         │   graph.write(RdfFormat::RdfXml)
@@ -28,7 +28,7 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-use sbol::RdfFormat;
+use sbol3::RdfFormat;
 use sbol_genbank::GenbankImporter;
 
 const FIXTURES: &[&str] = &["BBa_B0034", "BBa_E0040", "BBa_F2620", "BBa_R0010"];
@@ -75,7 +75,7 @@ fn main() -> ExitCode {
                 continue;
             }
         };
-        let (sbol2_graph, _dreport) = match sbol::downgrade::downgrade(&document) {
+        let (sbol2_graph, _dreport) = match sbol_convert::downgrade(&document) {
             Ok(pair) => pair,
             Err(err) => {
                 eprintln!("[FAIL] {name}: downgrade: {err}");

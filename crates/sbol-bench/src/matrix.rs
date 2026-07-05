@@ -1,7 +1,7 @@
 //! The benchmark matrix: which implementations, fixtures, and parse/serialize
 //! format pairs make up a run, plus the default iteration counts.
 
-use sbol::RdfFormat;
+use sbol::v3::RdfFormat;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum Implementation {

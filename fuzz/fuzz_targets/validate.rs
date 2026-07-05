@@ -11,7 +11,7 @@ fuzz_target!(|data: &[u8]| {
     let Ok(text) = std::str::from_utf8(data) else {
         return;
     };
-    let Ok(document) = sbol::Document::read_turtle(text) else {
+    let Ok(document) = sbol3::Document::read_turtle(text) else {
         return;
     };
     let _ = document.check();

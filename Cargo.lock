@@ -1188,8 +1188,8 @@ dependencies = [
 name = "sbol-fasta"
 version = "0.2.1"
 dependencies = [
- "sbol",
  "sbol-rdf",
+ "sbol3",
  "tempfile",
  "thiserror",
 ]
@@ -1199,8 +1199,9 @@ name = "sbol-genbank"
 version = "0.2.1"
 dependencies = [
  "gb-io",
- "sbol",
+ "sbol-convert",
  "sbol-rdf",
+ "sbol3",
  "tempfile",
  "thiserror",
 ]

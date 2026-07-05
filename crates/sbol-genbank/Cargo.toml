@@ -19,7 +19,8 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 gb-io.workspace = true
-sbol.workspace = true
+sbol3.workspace = true
+sbol-convert.workspace = true
 sbol-rdf.workspace = true
 thiserror.workspace = true
 

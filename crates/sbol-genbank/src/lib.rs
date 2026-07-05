@@ -27,10 +27,10 @@
 //! # }
 //! ```
 //!
-//! [`Component`]: sbol::Component
-//! [`Sequence`]: sbol::Sequence
-//! [`SequenceFeature`]: sbol::SequenceFeature
-//! [`Range`]: sbol::Range
+//! [`Component`]: sbol3::Component
+//! [`Sequence`]: sbol3::Sequence
+//! [`SequenceFeature`]: sbol3::SequenceFeature
+//! [`Range`]: sbol3::Range
 
 #![forbid(unsafe_code)]
 

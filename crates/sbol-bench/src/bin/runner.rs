@@ -19,7 +19,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::Instant;
 
-use sbol::{Document, RdfFormat};
+use sbol::v3::{Document, RdfFormat};
 use serde::Serialize;
 
 #[derive(Serialize)]

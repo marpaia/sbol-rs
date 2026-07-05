@@ -9,7 +9,7 @@
 
 use libfuzzer_sys::fuzz_target;
 
-use sbol::RdfFormat;
+use sbol3::RdfFormat;
 
 fuzz_target!(|data: &[u8]| {
     let Some((selector, rest)) = data.split_first() else {
@@ -24,11 +24,11 @@ fuzz_target!(|data: &[u8]| {
     let Ok(text) = std::str::from_utf8(rest) else {
         return;
     };
-    let Ok(document) = sbol::Document::read(text, format) else {
+    let Ok(document) = sbol3::Document::read(text, format) else {
         return;
     };
     let Ok(serialized) = document.write(format) else {
         return;
     };
-    let _ = sbol::Document::read(&serialized, format);
+    let _ = sbol3::Document::read(&serialized, format);
 });

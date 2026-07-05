@@ -1,7 +1,7 @@
 use std::env;
 use std::process::ExitCode;
 
-use sbol::{
+use sbol::v3::{
     Blocker, NormativeSeverity, RuleStatus, ValidationRuleStatus, validation_rule_statuses,
 };
 use serde_json::{Value, json};
