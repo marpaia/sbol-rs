@@ -14,6 +14,8 @@ use crate::client::{
 };
 use crate::error::{ReadError, WriteError};
 use crate::object::{canonicalize_literals, collect_objects};
+use crate::validation::Validator;
+use crate::validation::{ValidationConfig, ValidationOptions, ValidationReport};
 use crate::{Iri, Object, RdfFormat, RdfGraph, Resource};
 
 /// An SBOL 2 document parsed from RDF.
@@ -162,7 +164,11 @@ impl Document {
     }
 
     typed_doc_iter!(sequences, Sequence, Sequence);
-    typed_doc_iter!(component_definitions, ComponentDefinition, ComponentDefinition);
+    typed_doc_iter!(
+        component_definitions,
+        ComponentDefinition,
+        ComponentDefinition
+    );
     typed_doc_iter!(module_definitions, ModuleDefinition, ModuleDefinition);
     typed_doc_iter!(models, Model, Model);
     typed_doc_iter!(collections, Collection, Collection);
@@ -177,7 +183,11 @@ impl Document {
     typed_doc_iter!(experiments, Experiment, Experiment);
     typed_doc_iter!(generic_top_levels, GenericTopLevel, GenericTopLevel);
     typed_doc_iter!(components, Component, Component);
-    typed_doc_iter!(functional_components, FunctionalComponent, FunctionalComponent);
+    typed_doc_iter!(
+        functional_components,
+        FunctionalComponent,
+        FunctionalComponent
+    );
     typed_doc_iter!(modules, Module, Module);
     typed_doc_iter!(maps_tos, MapsTo, MapsTo);
     typed_doc_iter!(sequence_annotations, SequenceAnnotation, SequenceAnnotation);
@@ -204,11 +214,52 @@ impl Document {
     typed_doc_iter!(prefixes, Prefix, Prefix);
     typed_doc_iter!(si_prefixes, SIPrefix, SIPrefix);
     typed_doc_iter!(binary_prefixes, BinaryPrefix, BinaryPrefix);
-    typed_doc_iter!(identified_extensions, IdentifiedExtension, IdentifiedExtension);
+    typed_doc_iter!(
+        identified_extensions,
+        IdentifiedExtension,
+        IdentifiedExtension
+    );
 
     /// Iterates over the TopLevel typed objects in the document.
     pub fn top_levels(&self) -> impl Iterator<Item = &Sbol2Object> {
         self.typed.iter().filter(|o| o.is_top_level_object())
+    }
+
+    /// Validates the document with default options (libSBOLj parity:
+    /// completeness and compliant-URI checking on, best-practice off).
+    pub fn validate(&self) -> ValidationReport {
+        self.validate_with(ValidationOptions::default())
+    }
+
+    /// Validates the document with explicit options.
+    pub fn validate_with(&self, options: ValidationOptions) -> ValidationReport {
+        let mut validator = Validator::new(self, options);
+        validator.validate();
+        validator.finish()
+    }
+
+    /// Validates the document with an explicit validation-family config.
+    pub fn validate_with_config(&self, config: &ValidationConfig) -> ValidationReport {
+        self.validate_with(ValidationOptions::default().with_config(*config))
+    }
+
+    /// Runs validation and returns `Ok` when no error-severity issue was
+    /// reported, or `Err` carrying the report when any error was.
+    pub fn check(&self) -> Result<ValidationReport, ValidationReport> {
+        self.check_with(ValidationOptions::default())
+    }
+
+    /// `check` with explicit options.
+    pub fn check_with(
+        &self,
+        options: ValidationOptions,
+    ) -> Result<ValidationReport, ValidationReport> {
+        let report = self.validate_with(options);
+        if report.has_errors() {
+            Err(report)
+        } else {
+            Ok(report)
+        }
     }
 
     /// Iterates over the distinct namespaces declared by TopLevel objects.
@@ -216,11 +267,10 @@ impl Document {
         let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
         let mut out = Vec::new();
         for object in &self.typed {
-            if let Some(ns) = object.top_level_namespace() {
-                if seen.insert(ns.as_str().to_owned()) {
+            if let Some(ns) = object.top_level_namespace()
+                && seen.insert(ns.as_str().to_owned()) {
                     out.push(ns);
                 }
-            }
         }
         out
     }

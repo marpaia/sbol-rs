@@ -17,6 +17,7 @@ mod model;
 mod object;
 pub mod prelude;
 pub mod schema;
+pub mod validation;
 #[doc(hidden)]
 pub mod vocab;
 

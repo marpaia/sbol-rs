@@ -22,3 +22,6 @@ sbol-core.workspace = true
 sbol-ontology.workspace = true
 sbol-rdf.workspace = true
 thiserror.workspace = true
+
+[build-dependencies]
+sbol-rulegen.workspace = true

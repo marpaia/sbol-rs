@@ -1244,6 +1244,7 @@ dependencies = [
  "sbol-core",
  "sbol-ontology",
  "sbol-rdf",
+ "sbol-rulegen",
  "thiserror",
 ]
 
