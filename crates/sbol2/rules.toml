@@ -13,18 +13,18 @@ note = "An SBOL document MUST declare the use of the following XML namespace: \"
 
 [[rule]]
 id = "sbol2-10105"
-status = "Error"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "10"
-note = "An SBOL document MUST be serialized as a well-formed RDF/XML file that adheres to the grammar defined by: \"https://www.w3.org/TR/rdf-syntax-grammar/\""
-
+note = "An SBOL document MUST be serialized as a well-formed RDF/XML file that adheres to the grammar defined by: \"https://www.w3.org/TR/rdf-syntax-grammar/\" This is a serialization well-formedness constraint enforced by the RDF/XML reader: a malformed document fails to parse and never reaches validation, so no single-document validation report can carry it."
+blocker = "External"
 [[rule]]
 id = "sbol2-10106"
-status = "Error"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "10"
-note = "All namespaces specified in an SBOL document MUST end with a valid delimiter ('/', '#', or ':')."
-
+note = "All namespaces specified in an SBOL document MUST end with a valid delimiter ('/', '#', or ':'). The reader discards the document's prefix-to-namespace bindings once the triple graph is built, so this namespace-delimiter constraint has no representation the validator can inspect after parsing."
+blocker = "External"
 [[rule]]
 id = "sbol2-10201"
 status = "Error"
@@ -34,13 +34,11 @@ note = "The identity property of an Identified object is REQUIRED and MUST conta
 
 [[rule]]
 id = "sbol2-10202"
-status = "Configurable"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.4"
-note = "The identity property of an Identified object MUST be globally unique."
+note = "The identity property of an Identified object MUST be globally unique. Global uniqueness spans documents and a global registry; within a single RDF graph a subject IRI denotes one node, so a duplicate-identity violation is not representable and cannot be isolated by a single-document negative."
 blocker = "External"
-coverage_kind = "LocalReferencesOnly"
-
 [[rule]]
 id = "sbol2-10203"
 status = "Error"
@@ -209,7 +207,7 @@ status = "Warning"
 normative_severity = "SHOULD"
 spec_section = "7.4"
 note = "If the wasDerivedFroms property of one TopLevel object refers to another TopLevel object with the same persistentIdentity property, then the version property of the second TopLevel object SHOULD precede that of the first if both objects have a version and it is assumed that these versions follow the conventions of semantic versioning."
-
+gate = "BestPractice"
 [[rule]]
 id = "sbol2-10303"
 status = "Error"
@@ -614,11 +612,11 @@ blocker = "External"
 
 [[rule]]
 id = "sbol2-10705"
-status = "Error"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.7.2"
-note = "The roles property of a Component MUST contain a URI from Table 4 if it is well-described by this URI."
-
+note = "The roles property of a Component MUST contain a URI from Table 4 if it is well-described by this URI. The \"if it is well-described by this URI\" clause is a human-judgement condition: no tool can decide whether a Component is well-described by a Table 4 role, so a mechanical single-document violation cannot be constructed."
+blocker = "Ontology"
 [[rule]]
 id = "sbol2-10706"
 status = "Configurable"
@@ -723,24 +721,18 @@ gate = "Complete"
 
 [[rule]]
 id = "sbol2-10808"
-status = "Configurable"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.7.3"
-note = "If a MapsTo is contained by a ComponentInstance, then the remote property of the MapsTo MUST refer to a Component in the ComponentDefinition that is referenced by the definition property of the ComponentInstance."
+note = "If a MapsTo is contained by a ComponentInstance, then the remote property of the MapsTo MUST refer to a Component in the ComponentDefinition that is referenced by the definition property of the ComponentInstance. The remote must resolve to a Component of the ComponentDefinition named by the ComponentInstance's definition, which the spec permits to live in another document; isolating this violation requires cross-document resolution of that referenced definition."
 blocker = "Resolver"
-coverage_kind = "LocalReferencesOnly"
-gate = "Complete"
-
 [[rule]]
 id = "sbol2-10809"
-status = "Configurable"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.7.3"
-note = "If a MapsTo is contained by a Module, then the remote property of the MapsTo MUST refer to a FunctionalComponent in the ModuleDefinition that is referenced by the definition property of the Module."
+note = "If a MapsTo is contained by a Module, then the remote property of the MapsTo MUST refer to a FunctionalComponent in the ModuleDefinition that is referenced by the definition property of the Module. The remote must resolve to a FunctionalComponent of the ModuleDefinition named by the Module's definition, which the spec permits to live in another document; isolating this violation requires cross-document resolution of that referenced definition."
 blocker = "Resolver"
-coverage_kind = "LocalReferencesOnly"
-gate = "Complete"
-
 [[rule]]
 id = "sbol2-10810"
 status = "Error"
@@ -750,14 +742,11 @@ note = "The refinement property of a MapsTo is REQUIRED and MUST contain a URI f
 
 [[rule]]
 id = "sbol2-10811"
-status = "Configurable"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.7.3"
-note = "If the refinement property of a MapsTo contains the URI http://sbols.org/v2#verifyIdentical, then the ComponentInstance objects referred to by local and remote properties of the MapsTo MUST refer to the same ComponentDefinition via their definition properties."
+note = "If the refinement property of a MapsTo contains the URI http://sbols.org/v2#verifyIdentical, then the ComponentInstance objects referred to by local and remote properties of the MapsTo MUST refer to the same ComponentDefinition via their definition properties. verifyIdentical compares the definitions of the local and remote ComponentInstances, which the spec permits to live in another document; isolating this violation requires cross-document resolution of those referenced definitions."
 blocker = "Resolver"
-coverage_kind = "LocalReferencesOnly"
-gate = "Complete"
-
 [[rule]]
 id = "sbol2-10901"
 status = "Error"
@@ -1361,39 +1350,39 @@ gate = "Complete"
 
 [[rule]]
 id = "sbol2-12201"
-status = "Error"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.14"
-note = "The name property of an Annotation is REQUIRED and MUST contain a QName."
-
+note = "The name property of an Annotation is REQUIRED and MUST contain a QName. SBOL 2 Annotations are unreified extension triples; the reader stores them as generic properties with IRI predicates and literal/IRI/nested values, so a document the reader accepts already satisfies this constraint and no violation is representable."
+blocker = "External"
 [[rule]]
 id = "sbol2-12203"
-status = "Error"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.14"
-note = "An AnnotationValue MUST be a literal (a String, Integer, Double, or Boolean), URI, or a NestedAnnotations object."
-
+note = "An AnnotationValue MUST be a literal (a String, Integer, Double, or Boolean), URI, or a NestedAnnotations object. SBOL 2 Annotations are unreified extension triples; every value the reader accepts is already a literal, URI, or nested-annotation resource, so no single-document violation is representable."
+blocker = "External"
 [[rule]]
 id = "sbol2-12204"
-status = "Error"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.14"
-note = "The nestedQName property of a NestedAnnotations object is REQUIRED and MUST contain a QName."
-
+note = "The nestedQName property of a NestedAnnotations object is REQUIRED and MUST contain a QName. NestedAnnotations are unreified extension triples; the reader represents the nestedQName as the RDF predicate, which is always a QName, so no single-document violation is representable."
+blocker = "External"
 [[rule]]
 id = "sbol2-12205"
-status = "Error"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.14"
-note = "The nestedURI property of a NestedAnnotations object is REQUIRED and MUST contain a URI."
-
+note = "The nestedURI property of a NestedAnnotations object is REQUIRED and MUST contain a URI. NestedAnnotations are unreified extension triples; the reader represents the nestedURI as an RDF resource, so no single-document violation is representable."
+blocker = "External"
 [[rule]]
 id = "sbol2-12206"
-status = "Error"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.14"
-note = "The annotations property of a NestedAnnotations object is OPTIONAL and MAY contain a set of Annotation objects."
-
+note = "The annotations property of a NestedAnnotations object is OPTIONAL and MAY contain a set of Annotation objects. NestedAnnotations are unreified extension triples; the annotations they carry are generic properties, so no single-document violation is representable."
+blocker = "External"
 [[rule]]
 id = "sbol2-12301"
 status = "Error"
@@ -1675,14 +1664,11 @@ note = "The variableComponents property of a CombinatorialDerivation MUST NOT co
 
 [[rule]]
 id = "sbol2-12908"
-status = "Configurable"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.11"
-note = "If the wasDerivedFroms property of a ComponentDefinition refers to a CombinatorialDerivation and the template ComponentDefinition of the CombinatorialDerivation contains SequenceConstraint objects, then any Component contained by the first ComponentDefinition that has a wasDerivedFroms property that refers to the subject or object Component of any of the SequenceConstraint objects MUST adhere to the restriction properties of these SequenceConstraint objects."
+note = "If the wasDerivedFroms property of a ComponentDefinition refers to a CombinatorialDerivation and the template ComponentDefinition of the CombinatorialDerivation contains SequenceConstraint objects, then any Component contained by the first ComponentDefinition that has a wasDerivedFroms property that refers to the subject or object Component of any of the SequenceConstraint objects MUST adhere to the restriction properties of these SequenceConstraint objects. The constraint spans the template ComponentDefinition of a referenced CombinatorialDerivation and its SequenceConstraint objects, which the spec permits to live in another document; isolating this violation requires cross-document resolution."
 blocker = "Resolver"
-coverage_kind = "LocalReferencesOnly"
-gate = "Complete"
-
 [[rule]]
 id = "sbol2-12909"
 status = "Warning"
@@ -1760,14 +1746,11 @@ note = "The variable property of a VariableComponent is REQUIRED and MUST contai
 
 [[rule]]
 id = "sbol2-13005"
-status = "Configurable"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.11.1"
-note = "The URI contained by the variable property of a VariableComponent MUST refer to a Component contained by the components property of the template ComponentDefinition of the CombinatorialDerivation that contains the VariableComponent."
+note = "The URI contained by the variable property of a VariableComponent MUST refer to a Component contained by the components property of the template ComponentDefinition of the CombinatorialDerivation that contains the VariableComponent. The variable must resolve to a Component of the template ComponentDefinition of the containing CombinatorialDerivation, which the spec permits to live in another document; isolating this violation requires cross-document resolution."
 blocker = "Resolver"
-coverage_kind = "LocalReferencesOnly"
-gate = "Complete"
-
 [[rule]]
 id = "sbol2-13006"
 status = "Warning"
@@ -1812,14 +1795,11 @@ gate = "Complete"
 
 [[rule]]
 id = "sbol2-13011"
-status = "Configurable"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.11.1"
-note = "The members property of a Collection that is referred to by the variantCollections property of a VariableComponent MUST NOT be empty."
+note = "The members property of a Collection that is referred to by the variantCollections property of a VariableComponent MUST NOT be empty. The constraint is defined over the members of a Collection named by variantCollections, which the spec permits to live in another document; isolating this violation requires cross-document resolution of that referenced Collection."
 blocker = "Resolver"
-coverage_kind = "LocalReferencesOnly"
-gate = "Complete"
-
 [[rule]]
 id = "sbol2-13012"
 status = "Configurable"
@@ -1856,24 +1836,18 @@ note = "VariableComponent objects MUST NOT form circular reference chains via th
 
 [[rule]]
 id = "sbol2-13016"
-status = "Configurable"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.11.1"
-note = "If the wasDerivedFroms property of a Component refers to a Component in the template ComponentDefinition of a CombinatorialDerivation, and the second Component is referred to by the variable property of any VariableComponent in the CombinatorialDerivation, then the definition property of the first Component MUST refer to a ComponentDefinition specified by the variants property, a ComponentDefinition that is one of the members of a Collection specified by the variantCollections property, or a ComponentDefinition with a wasDerivedFroms property that refers to a CombinatorialDerivation specified by the variantDerivations property of the VariableComponent."
+note = "If the wasDerivedFroms property of a Component refers to a Component in the template ComponentDefinition of a CombinatorialDerivation, and the second Component is referred to by the variable property of any VariableComponent in the CombinatorialDerivation, then the definition property of the first Component MUST refer to a ComponentDefinition specified by the variants property, a ComponentDefinition that is one of the members of a Collection specified by the variantCollections property, or a ComponentDefinition with a wasDerivedFroms property that refers to a CombinatorialDerivation specified by the variantDerivations property of the VariableComponent. The constraint relates a derived Component to a Component of a referenced template ComponentDefinition and the variant sources of a VariableComponent, which the spec permits to live in another document; isolating this violation requires cross-document resolution."
 blocker = "Resolver"
-coverage_kind = "LocalReferencesOnly"
-gate = "Complete"
-
 [[rule]]
 id = "sbol2-13017"
-status = "Configurable"
+status = "MachineUncheckable"
 normative_severity = "MUST"
 spec_section = "7.11.1"
-note = "If the wasDerivedFroms property of a Component refers to a Component in the template ComponentDefinition of a CombinatorialDerivation, and the second Component is not referred to by the variable property of any VariableComponent in the CombinatorialDerivation, then the definition property of the first Component MUST refer to the same ComponentDefinition as the definition property of the second Component."
+note = "If the wasDerivedFroms property of a Component refers to a Component in the template ComponentDefinition of a CombinatorialDerivation, and the second Component is not referred to by the variable property of any VariableComponent in the CombinatorialDerivation, then the definition property of the first Component MUST refer to the same ComponentDefinition as the definition property of the second Component. The constraint relates a derived Component to a Component of a referenced template ComponentDefinition, which the spec permits to live in another document; isolating this violation requires cross-document resolution."
 blocker = "Resolver"
-coverage_kind = "LocalReferencesOnly"
-gate = "Complete"
-
 [[rule]]
 id = "sbol2-13018"
 status = "Warning"

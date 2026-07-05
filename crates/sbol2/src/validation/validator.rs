@@ -61,6 +61,7 @@ impl<'a> Validator<'a> {
         self.validate_persistent_identity_uniqueness();
         self.validate_document_namespace();
         self.validate_instance_graph_cycles();
+        self.validate_generation_cycles();
         self.validate_maps_to_use_remote_uniqueness();
 
         // Gated families, dispatched exactly as SBOLValidate does.
@@ -230,6 +231,26 @@ impl<'a> Validator<'a> {
                     format!("version `{version}` is not a valid SBOL 2 version string"),
                 );
             }
+        // 10228: at most one rdfType in each of the SBOL 2 and PROV namespaces.
+        let sbol_types = object
+            .rdf_types()
+            .iter()
+            .filter(|t| t.as_str().starts_with(SBOL2_NS))
+            .count();
+        let prov_types = object
+            .rdf_types()
+            .iter()
+            .filter(|t| t.as_str().starts_with(PROV_NS))
+            .count();
+        if sbol_types > 1 || prov_types > 1 {
+            self.error(
+                "sbol2-10228",
+                object,
+                None,
+                "an Identified object must have no more than one rdfType in each of the \
+                 SBOL 2 and PROV namespaces",
+            );
+        }
     }
 
     /// A property in the SBOL 2 namespace that is not a declared field of the
@@ -519,6 +540,9 @@ impl<'a> Validator<'a> {
             Some("sbol2-10608")
         } else if object.has_class(Sbol2Class::Participation) {
             Some("sbol2-12008")
+        } else if object.has_class(Sbol2Class::Interaction) {
+            // 11908: every measure of an Interaction must resolve to an om:Measure.
+            Some("sbol2-11908")
         } else {
             None
         };
@@ -571,6 +595,32 @@ impl<'a> Validator<'a> {
             }
         }
 
+        // 12907: no two VariableComponents of a CombinatorialDerivation may
+        // carry the same variable.
+        if object.has_class(Sbol2Class::CombinatorialDerivation) {
+            let mut variables = std::collections::BTreeSet::new();
+            let mut duplicate = false;
+            for vc_ref in object.resources(SBOL2_VARIABLE_COMPONENT) {
+                let Some(vc) = self.document.get(vc_ref) else {
+                    continue;
+                };
+                if let Some(variable) =
+                    vc.first_resource(SBOL2_VARIABLE).and_then(Resource::as_iri)
+                    && !variables.insert(variable.as_str().to_owned())
+                {
+                    duplicate = true;
+                }
+            }
+            if duplicate {
+                self.error(
+                    "sbol2-12907",
+                    object,
+                    Some(SBOL2_VARIABLE_COMPONENT),
+                    "two VariableComponents of a CombinatorialDerivation must not share a variable",
+                );
+            }
+        }
+
         // 10522: no two SequenceAnnotations of a ComponentDefinition may refer
         // to the same Component.
         if object.has_class(Sbol2Class::ComponentDefinition) {
@@ -613,6 +663,17 @@ impl<'a> Validator<'a> {
             self.validate_sequence_constraint(object);
         }
         if object.has_class(Sbol2Class::SequenceAnnotation) {
+            // 10909: a SequenceAnnotation must not carry both a component and roles.
+            if !object.values(SBOL2_COMPONENT).is_empty()
+                && !object.values(SBOL2_ROLE).is_empty()
+            {
+                self.error(
+                    "sbol2-10909",
+                    object,
+                    Some(SBOL2_ROLE),
+                    "a SequenceAnnotation must not include both a component and a roles property",
+                );
+            }
             // 10905: the referenced Component must belong to the containing CD.
             let missing = match object.first_resource(SBOL2_COMPONENT).and_then(Resource::as_iri) {
                 Some(component) => match self.container_by(object, SBOL2_SEQUENCE_ANNOTATION) {
@@ -1198,6 +1259,11 @@ impl<'a> Validator<'a> {
                 &[Sbol2Class::CombinatorialDerivation],
                 "sbol2-13014",
             ),
+            (
+                SBOL2_EXPERIMENTAL_DATA,
+                &[Sbol2Class::ExperimentalData],
+                "sbol2-13404",
+            ),
         ];
         for (predicate, classes, rule) in checks {
             let bad = wrong_class(self, predicate, classes);
@@ -1207,6 +1273,38 @@ impl<'a> Validator<'a> {
                     object,
                     Some(predicate),
                     format!("`{predicate}` refers to `{iri}`, which is not the required class"),
+                );
+            }
+        }
+
+        // 13506: the hasUnit of a Measure must refer to an om:Unit (any unit
+        // subclass). A missing target is left to the completeness family; a
+        // resolved target of a non-unit class fails here.
+        if object.has_class(Sbol2Class::OmMeasure) {
+            const UNIT_CLASSES: &[Sbol2Class] = &[
+                Sbol2Class::OmUnit,
+                Sbol2Class::OmSingularUnit,
+                Sbol2Class::OmCompoundUnit,
+                Sbol2Class::OmUnitMultiplication,
+                Sbol2Class::OmUnitDivision,
+                Sbol2Class::OmUnitExponentiation,
+                Sbol2Class::OmPrefixedUnit,
+            ];
+            let mut bad = Vec::new();
+            for value in object.resources(OM_HAS_UNIT) {
+                let Some(iri) = value.as_iri() else { continue };
+                if let Some(target) = self.resolve(iri.as_str())
+                    && !UNIT_CLASSES.iter().any(|c| target.has_class(*c))
+                {
+                    bad.push(iri.as_str().to_owned());
+                }
+            }
+            for iri in bad {
+                self.error(
+                    "sbol2-13506",
+                    object,
+                    Some(OM_HAS_UNIT),
+                    format!("the hasUnit of a Measure `{iri}` must refer to a Unit"),
                 );
             }
         }
@@ -1278,6 +1376,9 @@ impl<'a> Validator<'a> {
         // carries a design/build/test/learn role SHOULD have the matching
         // TopLevel type.
         self.validate_activity_role_usage(object);
+        self.validate_activity_usage_role_conflicts(object);
+        self.validate_usage_entity_roles(object);
+        self.validate_derivation_version_order(object);
         self.validate_ontology_usage(object);
         self.validate_cd_sequences(object);
         self.validate_sequence_annotation_overlaps(object);
@@ -1373,6 +1474,52 @@ impl<'a> Validator<'a> {
             }
         }
 
+        // 10520: within a ComponentDefinition-Component hierarchy, a child
+        // ComponentDefinition's nucleic Sequence should map into the region its
+        // SequenceAnnotation Range spans in the parent. A child sequence whose
+        // length differs from its annotated span admits no well-defined mapping.
+        let mut hierarchy_inconsistent = false;
+        if nucleic_length.is_some() {
+            for sa_ref in object.resources(SBOL2_SEQUENCE_ANNOTATION) {
+                let Some(sa) = self.document.get(sa_ref) else {
+                    continue;
+                };
+                let Some(component_iri) =
+                    sa.first_resource(SBOL2_COMPONENT).and_then(Resource::as_iri)
+                else {
+                    continue;
+                };
+                let Some(span) = self
+                    .location_extents(sa)
+                    .iter()
+                    .find_map(|region| match region {
+                        Region::Range(start, end) => Some(end - start + 1),
+                        Region::Cut(_) => None,
+                    })
+                else {
+                    continue;
+                };
+                let Some(definition_iri) = self
+                    .resolve(component_iri.as_str())
+                    .and_then(|component| {
+                        component.first_resource(SBOL2_DEFINITION).and_then(Resource::as_iri)
+                    })
+                    .map(|iri| iri.as_str().to_owned())
+                else {
+                    continue;
+                };
+                let Some(child_length) = self
+                    .resolve(&definition_iri)
+                    .and_then(|definition| self.definition_nucleic_length(definition))
+                else {
+                    continue;
+                };
+                if child_length != span {
+                    hierarchy_inconsistent = true;
+                }
+            }
+        }
+
         if missing_category {
             self.error(
                 "sbol2-10516",
@@ -1397,6 +1544,37 @@ impl<'a> Validator<'a> {
                 "a SequenceAnnotation position should lie within the ComponentDefinition's sequence",
             );
         }
+        if hierarchy_inconsistent {
+            self.warning(
+                "sbol2-10520",
+                object,
+                Some(SBOL2_SEQUENCE),
+                "Sequences across a ComponentDefinition-Component hierarchy should be consistent",
+            );
+        }
+    }
+
+    /// The length of the IUPAC-nucleic Sequence a ComponentDefinition directly
+    /// references, if any.
+    fn definition_nucleic_length(&self, definition: &Object) -> Option<i64> {
+        for sequence_ref in definition.resources(SBOL2_SEQUENCE) {
+            let Some(iri) = sequence_ref.as_iri() else {
+                continue;
+            };
+            let Some(sequence) = self.resolve(iri.as_str()) else {
+                continue;
+            };
+            let is_nucleic = sequence
+                .first_resource(SBOL2_ENCODING)
+                .and_then(Resource::as_iri)
+                .is_some_and(|iri| iri.as_str() == IUPAC_NUCLEIC_ENCODING);
+            if is_nucleic
+                && let Some(elements) = self.literal(sequence, SBOL2_ELEMENTS)
+            {
+                return Some(elements.chars().count() as i64);
+            }
+        }
+        None
     }
 
     /// 10903: two Locations of one SequenceAnnotation should not overlap.
@@ -1897,6 +2075,73 @@ impl<'a> Validator<'a> {
             }
         }
 
+        if object.has_class(Sbol2Class::Sequence) {
+            // 10407: the encoding of a Sequence should be a Table 1 URI.
+            for encoding in object.iris(SBOL2_ENCODING) {
+                if !TABLE_1_ENCODINGS.contains(&encoding.as_str()) {
+                    self.warning(
+                        "sbol2-10407",
+                        object,
+                        Some(SBOL2_ENCODING),
+                        "the encoding of a Sequence should be a URI from Table 1",
+                    );
+                }
+            }
+        }
+
+        if object.has_class(Sbol2Class::SequenceConstraint) {
+            // 11412: the restriction of a SequenceConstraint should be a Table 7 URI.
+            for restriction in object.iris(SBOL2_RESTRICTION) {
+                if !TABLE_7_RESTRICTIONS.contains(&restriction.as_str()) {
+                    self.warning(
+                        "sbol2-11412",
+                        object,
+                        Some(SBOL2_RESTRICTION),
+                        "the restriction of a SequenceConstraint should be a URI from Table 7",
+                    );
+                }
+            }
+        }
+
+        if object.has_class(Sbol2Class::Model) {
+            // 11507: a Model's language should be an EDAM ontology term.
+            for language in object.iris(SBOL2_LANGUAGE) {
+                if !is_edam_iri(language.as_str()) {
+                    self.warning(
+                        "sbol2-11507",
+                        object,
+                        Some(SBOL2_LANGUAGE),
+                        "the language of a Model should refer to a term from the EDAM ontology",
+                    );
+                }
+            }
+            // 11511: a Model's framework should be in the SBO modeling-framework branch.
+            for framework in object.iris(SBOL2_FRAMEWORK) {
+                if !ontology.is_in_branch(ontology_curie(framework.as_str()), SBO_MODELING_FRAMEWORK) {
+                    self.warning(
+                        "sbol2-11511",
+                        object,
+                        Some(SBOL2_FRAMEWORK),
+                        "the framework of a Model should refer to a term from the SBO modeling-framework branch",
+                    );
+                }
+            }
+        }
+
+        if object.has_class(Sbol2Class::Attachment) {
+            // 13206: an Attachment's format should be an EDAM ontology term.
+            for format in object.iris(SBOL2_FORMAT) {
+                if !is_edam_iri(format.as_str()) {
+                    self.warning(
+                        "sbol2-13206",
+                        object,
+                        Some(SBOL2_FORMAT),
+                        "the format of an Attachment should refer to a term from the EDAM ontology",
+                    );
+                }
+            }
+        }
+
         if object.has_class(Sbol2Class::OmMeasure) {
             // 13505: a Measure with types should carry exactly one
             // systems-description-parameter SBO type.
@@ -1977,6 +2222,129 @@ impl<'a> Validator<'a> {
                         _ => {}
                     }
                 }
+            }
+        }
+    }
+
+    /// 12408-12411: an Activity whose Association carries a design/build/test/
+    /// learn role should not carry Usage objects with the conflicting roles the
+    /// design-build-test-learn cycle forbids.
+    fn validate_activity_usage_role_conflicts(&mut self, object: &Object) {
+        if !object.has_class(Sbol2Class::ProvActivity) {
+            return;
+        }
+        let association_roles: std::collections::BTreeSet<String> = object
+            .resources(PROV_QUALIFIED_ASSOCIATION)
+            .filter_map(|assoc_ref| self.document.get(assoc_ref))
+            .flat_map(|assoc| assoc.iris(PROV_HAD_ROLE).map(|iri| iri.as_str().to_owned()))
+            .collect();
+        let usage_roles: std::collections::BTreeSet<String> = object
+            .resources(PROV_QUALIFIED_USAGE)
+            .filter_map(|usage_ref| self.document.get(usage_ref))
+            .flat_map(|usage| usage.iris(PROV_HAD_ROLE).map(|iri| iri.as_str().to_owned()))
+            .collect();
+        // (association role, rule, forbidden usage roles).
+        let table: &[(&str, &str, &[&str])] = &[
+            (SBOL2_ROLE_DESIGN, "sbol2-12408", &[SBOL2_ROLE_BUILD, SBOL2_ROLE_TEST]),
+            (SBOL2_ROLE_BUILD, "sbol2-12409", &[SBOL2_ROLE_TEST, SBOL2_ROLE_LEARN]),
+            (SBOL2_ROLE_TEST, "sbol2-12410", &[SBOL2_ROLE_DESIGN, SBOL2_ROLE_LEARN]),
+            (SBOL2_ROLE_LEARN, "sbol2-12411", &[SBOL2_ROLE_DESIGN, SBOL2_ROLE_BUILD]),
+        ];
+        for (association_role, rule, forbidden) in table {
+            if association_roles.contains(*association_role)
+                && forbidden.iter().any(|r| usage_roles.contains(*r))
+            {
+                self.warning(
+                    rule,
+                    object,
+                    Some(PROV_QUALIFIED_USAGE),
+                    "an Activity's Usage roles should not conflict with its Association role",
+                );
+            }
+        }
+    }
+
+    /// 12504-12507: a Usage carrying a design/build/test/learn role should refer
+    /// to an entity of the TopLevel kind the design-build-test-learn cycle
+    /// expects. Only decided when the entity resolves in-document.
+    fn validate_usage_entity_roles(&mut self, object: &Object) {
+        if !object.has_class(Sbol2Class::ProvUsage) {
+            return;
+        }
+        let Some(entity) = object
+            .first_resource(PROV_ENTITY)
+            .and_then(Resource::as_iri)
+            .and_then(|iri| self.resolve(iri.as_str()))
+        else {
+            return;
+        };
+        let is_implementation = entity.has_class(Sbol2Class::Implementation);
+        let is_attachment_or_collection =
+            entity.has_class(Sbol2Class::Attachment) || entity.has_class(Sbol2Class::Collection);
+        for role in object.iris(PROV_HAD_ROLE) {
+            let (rule, offends): (&str, bool) = match role.as_str() {
+                // 12504: design should refer to a TopLevel other than Implementation.
+                SBOL2_ROLE_DESIGN => ("sbol2-12504", is_implementation),
+                // 12505: build should refer to an Implementation.
+                SBOL2_ROLE_BUILD => ("sbol2-12505", !is_implementation),
+                // 12506: test should refer to an Attachment or Collection.
+                SBOL2_ROLE_TEST => ("sbol2-12506", !is_attachment_or_collection),
+                // 12507: learn should not refer to an Implementation.
+                SBOL2_ROLE_LEARN => ("sbol2-12507", is_implementation),
+                _ => continue,
+            };
+            if offends {
+                self.warning(
+                    rule,
+                    object,
+                    Some(PROV_ENTITY),
+                    "a Usage's entity should match the TopLevel kind its role expects",
+                );
+            }
+        }
+    }
+
+    /// 10302: when a TopLevel derives from another TopLevel with the same
+    /// persistentIdentity and both carry a version, the source version should
+    /// precede the deriving version under semantic-versioning order.
+    fn validate_derivation_version_order(&mut self, object: &Object) {
+        if !object.is_top_level() {
+            return;
+        }
+        let Some(pid) = object
+            .first_resource(SBOL2_PERSISTENT_IDENTITY)
+            .and_then(Resource::as_iri)
+            .map(|iri| iri.as_str().to_owned())
+        else {
+            return;
+        };
+        let Some(version) = self.literal(object, SBOL2_VERSION) else {
+            return;
+        };
+        for derived in object.resources(PROV_WAS_DERIVED_FROM) {
+            let Some(iri) = derived.as_iri() else { continue };
+            let Some(source) = self.resolve(iri.as_str()) else {
+                continue;
+            };
+            if !source.is_top_level() {
+                continue;
+            }
+            let source_pid = source
+                .first_resource(SBOL2_PERSISTENT_IDENTITY)
+                .and_then(Resource::as_iri)
+                .map(|iri| iri.as_str().to_owned());
+            if source_pid.as_deref() != Some(pid.as_str()) {
+                continue;
+            }
+            if let Some(source_version) = self.literal(source, SBOL2_VERSION)
+                && !version_precedes(&source_version, &version)
+            {
+                self.warning(
+                    "sbol2-10302",
+                    object,
+                    Some(SBOL2_VERSION),
+                    "a derived TopLevel's source version should precede its own version",
+                );
             }
         }
     }
@@ -2092,6 +2460,57 @@ impl<'a> Validator<'a> {
             }
         }
         offenders
+    }
+
+    // --- generation-provenance cycles (Always) -------------------------
+
+    /// 10223: the provenance history formed by wasGeneratedBy (object to
+    /// Activity) and the entity references of that Activity's Usages (Activity
+    /// back to the objects it used) must not form a cycle. The graph links an
+    /// object to each entity used by an Activity that generated it; a walk that
+    /// returns to its start is a circular provenance chain.
+    fn validate_generation_cycles(&mut self) {
+        let mut graph: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        for object in self.document.objects().values() {
+            let Some(id) = object.identity().as_iri() else {
+                continue;
+            };
+            let mut successors = Vec::new();
+            for activity_ref in object.resources(PROV_WAS_GENERATED_BY) {
+                let Some(activity) = self.document.get(activity_ref) else {
+                    continue;
+                };
+                for usage_ref in activity.resources(PROV_QUALIFIED_USAGE) {
+                    let Some(usage) = self.document.get(usage_ref) else {
+                        continue;
+                    };
+                    if let Some(entity) =
+                        usage.first_resource(PROV_ENTITY).and_then(Resource::as_iri)
+                    {
+                        successors.push(entity.as_str().to_owned());
+                    }
+                }
+            }
+            graph.insert(id.as_str().to_owned(), successors);
+        }
+        let mut offenders = Vec::new();
+        for object in self.document.objects().values() {
+            let Some(id) = object.identity().as_iri() else {
+                continue;
+            };
+            let mut path = std::collections::BTreeSet::new();
+            if reaches_cycle(id.as_str(), &graph, &mut path) {
+                offenders.push(object.identity().clone());
+            }
+        }
+        for identity in offenders {
+            self.error_at(
+                "sbol2-10223",
+                &identity,
+                Some(PROV_WAS_GENERATED_BY),
+                "provenance formed by wasGeneratedBy and Usage entity references must not be circular",
+            );
+        }
     }
 
     // --- MapsTo useRemote uniqueness (Always) --------------------------
@@ -2486,6 +2905,7 @@ fn closed_property_rule(object: &Object) -> Option<&'static str> {
         (Sbol2Class::Attachment, "sbol2-13201"),
         (Sbol2Class::ExperimentalData, "sbol2-13301"),
         (Sbol2Class::Experiment, "sbol2-13401"),
+        (Sbol2Class::OmMeasure, "sbol2-13501"),
     ];
     MAP.iter()
         .find(|(class, _)| object.has_class(*class))
@@ -2520,6 +2940,34 @@ const BIOPAX_TYPES: &[&str] = &[
 fn ontology_curie(iri: &str) -> &str {
     iri.rsplit(['/', '#']).next().unwrap_or(iri)
 }
+/// The Table 1 sequence-encoding URIs (IUPAC DNA/RNA share one IRI).
+const TABLE_1_ENCODINGS: &[&str] = &[
+    IUPAC_NUCLEIC_ENCODING,
+    IUPAC_PROTEIN_ENCODING,
+    SMILES_ENCODING,
+];
+
+/// The Table 7 SequenceConstraint restriction URIs.
+const TABLE_7_RESTRICTIONS: &[&str] = &[
+    SBOL2_PRECEDES,
+    SBOL2_SAME_ORIENTATION_AS,
+    SBOL2_OPPOSITE_ORIENTATION_AS,
+    SBOL2_DIFFERENT_FROM,
+];
+
+/// The SBO modeling-framework branch root (SBO:0000004).
+const SBO_MODELING_FRAMEWORK: &str = "SBO:0000004";
+
+/// Whether `iri` names a term from the EDAM ontology. SBOL 2 documents write
+/// EDAM terms either as native `edamontology.org` URLs or as `identifiers.org`
+/// CURIE URLs (`.../edam:format_1915`).
+fn is_edam_iri(iri: &str) -> bool {
+    iri.starts_with("http://edamontology.org/")
+        || iri.starts_with("https://edamontology.org/")
+        || iri.contains("edam:")
+        || iri.contains("/edam/")
+}
+
 const SO_SEQUENCE_FEATURE: &str = "SO:0000110";
 const SO_TOPOLOGY_ATTRIBUTE: &str = "SO:0000986";
 const SO_STRAND_ATTRIBUTE: &str = "SO:0000983";
@@ -2687,6 +3135,32 @@ fn is_valid_version(value: &str) -> bool {
     };
     first.is_ascii_digit()
         && chars.all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.'))
+}
+
+/// Whether `earlier` strictly precedes `later` under semantic-versioning order:
+/// dot-separated components compared numerically where both are numeric, and
+/// lexically otherwise. Equal versions do not precede.
+fn version_precedes(earlier: &str, later: &str) -> bool {
+    let mut left = earlier.split('.');
+    let mut right = later.split('.');
+    loop {
+        match (left.next(), right.next()) {
+            (Some(a), Some(b)) => {
+                let ordering = match (a.parse::<u64>(), b.parse::<u64>()) {
+                    (Ok(a), Ok(b)) => a.cmp(&b),
+                    _ => a.cmp(b),
+                };
+                match ordering {
+                    std::cmp::Ordering::Equal => continue,
+                    std::cmp::Ordering::Less => return true,
+                    std::cmp::Ordering::Greater => return false,
+                }
+            }
+            (None, Some(_)) => return true,
+            (Some(_), None) => return false,
+            (None, None) => return false,
+        }
+    }
 }
 
 /// Whether `uri` ends with a delimiter (`/`, `#`, or `:`) immediately followed
