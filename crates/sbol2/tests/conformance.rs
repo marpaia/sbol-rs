@@ -98,19 +98,30 @@ fn noncompliant_documents_fail_only_under_compliant() {
 }
 
 #[test]
-fn best_practice_documents_pass_when_best_practice_off() {
-    // The best-practice family is only partially machine-checked here: the
-    // provenance role rules (10224-10227) are implemented, while the ontology
-    // recommendation rules are catalogued but deferred. So the corpus is
-    // asserted valid with best-practice off; the fail-under-best-practice
-    // direction is not asserted for files whose specific recommendation is not
-    // yet checked.
+fn best_practice_documents_flag_only_under_best_practice() {
+    // With best-practice checking off the corpus is error-free. With it on, the
+    // ontology-usage family flags the best-practice violations the corpus
+    // exercises (SO role/type recommendations, BioPAX type recommendations, and
+    // the SBO interaction/participation term rules), all at warning severity.
+    let best_practice_on = ValidationConfig::default().with_best_practice(true);
+    let mut flagged = 0;
     for (name, doc) in measure("SBOL2_bp") {
-        let report = doc.validate();
+        let off = doc.validate();
         assert!(
-            report.is_valid(),
+            off.is_valid(),
             "{name}: best-practice corpus file reported errors with best-practice off: {:?}",
-            report.errors().map(|i| i.rule).collect::<Vec<_>>()
+            off.errors().map(|i| i.rule).collect::<Vec<_>>()
         );
+        let on = doc.validate_with_config(&best_practice_on);
+        if on.warnings().next().is_some() || on.has_errors() {
+            flagged += 1;
+        }
     }
+    // Several corpus files are deliberately best-practice-conformant (a single
+    // ComponentDefinition with one Table 2 type and one sequence-feature role);
+    // the rest carry non-ontology role/type terms that the family flags.
+    assert!(
+        flagged >= 7,
+        "expected the best-practice family to flag at least 7 corpus files, flagged {flagged}"
+    );
 }

@@ -1,7 +1,11 @@
-// Rule ids whose dedicated InvalidFiles fixture the validator does not yet
-// reject: catalogued but the specific check is not implemented in the local
-// subset. Kept explicit so the strict/loose match set is auditable and grows
-// over time as more checks are added.
+// Rule ids whose dedicated InvalidFiles fixture the validator does not reject
+// as an error. Two cases: the check is not yet implemented in the local
+// subset, or the rule is a best-practice recommendation (SHOULD) that emits at
+// warning severity, so the fixture is not an error-match even though the check
+// runs. The best-practice ontology rules (10511, 10528, 10529, 10706, 10707,
+// 11905, 11907, 12007, 13505) are of the second kind; the conformance suite
+// asserts their fail direction against the SBOL2_bp corpus instead. Kept
+// explicit so the strict/loose match set is auditable and grows over time.
 [
     "sbol2-10101",
     "sbol2-10106",
@@ -11,7 +15,6 @@
     "sbol2-10222",
     "sbol2-10302",
     "sbol2-10405",
-    "sbol2-10503",
     "sbol2-10511",
     "sbol2-10516",
     "sbol2-10518",

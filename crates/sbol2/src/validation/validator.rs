@@ -905,6 +905,181 @@ impl<'a> Validator<'a> {
         // carries a design/build/test/learn role SHOULD have the matching
         // TopLevel type.
         self.validate_activity_role_usage(object);
+        self.validate_ontology_usage(object);
+    }
+
+    /// Ontology-recommendation checks: whether the SO/SBO terms a
+    /// ComponentDefinition, Component, Interaction, Participation, or Measure
+    /// carries fall in the branch the specification recommends for that field.
+    fn validate_ontology_usage(&mut self, object: &Object) {
+        let ontology = sbol_ontology::Ontology::bundled();
+        if object.has_class(Sbol2Class::ComponentDefinition) {
+            let types: Vec<&str> = object.iris(SBOL2_TYPE).map(|iri| iri.as_str()).collect();
+            let is_dna_or_rna_region =
+                types.iter().any(|t| *t == BIOPAX_DNA_REGION || *t == BIOPAX_RNA_REGION);
+            let is_dna_or_rna_molecule =
+                types.iter().any(|t| *t == BIOPAX_DNA_MOLECULE || *t == BIOPAX_RNA_MOLECULE);
+
+            // 10503 / 10525: exactly one Table 2 (BioPAX) type is recommended;
+            // more than one is forbidden.
+            let num_biopax = types.iter().filter(|t| BIOPAX_TYPES.contains(t)).count();
+            if num_biopax == 0 {
+                self.warning(
+                    "sbol2-10525",
+                    object,
+                    Some(SBOL2_TYPE),
+                    "a ComponentDefinition should contain a Table 2 type",
+                );
+            } else if num_biopax > 1 {
+                self.error(
+                    "sbol2-10503",
+                    object,
+                    Some(SBOL2_TYPE),
+                    "a ComponentDefinition must not contain more than one Table 2 type",
+                );
+            }
+
+            let num_so = object
+                .iris(SBOL2_ROLE)
+                .filter(|iri| ontology.is_in_branch(ontology_curie(iri.as_str()), SO_SEQUENCE_FEATURE))
+                .count();
+            let num_topo = types.iter().filter(|t| ontology.is_in_branch(ontology_curie(t), SO_TOPOLOGY_ATTRIBUTE)).count();
+            let num_strand =
+                types.iter().filter(|t| ontology.is_in_branch(ontology_curie(t), SO_STRAND_ATTRIBUTE)).count();
+
+            if is_dna_or_rna_region {
+                // 10527: exactly one SO sequence-feature role is recommended.
+                if num_so != 1 {
+                    self.warning(
+                        "sbol2-10527",
+                        object,
+                        Some(SBOL2_ROLE),
+                        "a DNA/RNA ComponentDefinition should contain exactly one sequence-feature role",
+                    );
+                }
+                // 10528: at most one topology-attribute type.
+                if num_topo > 1 {
+                    self.warning(
+                        "sbol2-10528",
+                        object,
+                        Some(SBOL2_TYPE),
+                        "a DNA/RNA ComponentDefinition should contain at most one topology type",
+                    );
+                }
+            } else if !is_dna_or_rna_molecule {
+                // 10511: no SO sequence-feature role without a DNA/RNA type.
+                if num_so != 0 {
+                    self.warning(
+                        "sbol2-10511",
+                        object,
+                        Some(SBOL2_ROLE),
+                        "a sequence-feature role should not appear without a DNA or RNA type",
+                    );
+                }
+                // 10529: no topology or strand type without a DNA/RNA type.
+                if num_topo != 0 || num_strand != 0 {
+                    self.warning(
+                        "sbol2-10529",
+                        object,
+                        Some(SBOL2_TYPE),
+                        "a topology or strand type should not appear without a DNA or RNA type",
+                    );
+                }
+            }
+        }
+
+        if object.has_class(Sbol2Class::Component) {
+            // 10706 / 10707: a Component's sequence-feature roles are recommended
+            // only when its definition is a DNA/RNA region.
+            if let Some(def_types) = self.definition_types(object) {
+                let def_is_dna_rna_region = def_types
+                    .iter()
+                    .any(|t| t == BIOPAX_DNA_REGION || t == BIOPAX_RNA_REGION);
+                let num_so = object
+                    .iris(SBOL2_ROLE)
+                    .filter(|iri| ontology.is_in_branch(ontology_curie(iri.as_str()), SO_SEQUENCE_FEATURE))
+                    .count();
+                if !def_is_dna_rna_region {
+                    if num_so != 0 {
+                        self.warning(
+                            "sbol2-10706",
+                            object,
+                            Some(SBOL2_ROLE),
+                            "a Component role should be a sequence-feature term only for DNA/RNA definitions",
+                        );
+                    }
+                } else if num_so > 1 {
+                    self.warning(
+                        "sbol2-10707",
+                        object,
+                        Some(SBOL2_ROLE),
+                        "a DNA/RNA Component should contain at most one sequence-feature role",
+                    );
+                }
+            }
+        }
+
+        if object.has_class(Sbol2Class::Interaction) {
+            // 11905: exactly one occurring-entity-representation SBO type.
+            let num = object
+                .iris(SBOL2_TYPE)
+                .filter(|iri| ontology.is_in_branch(ontology_curie(iri.as_str()), SBO_OCCURRING_ENTITY_REPRESENTATION))
+                .count();
+            if num != 1 {
+                self.warning(
+                    "sbol2-11905",
+                    object,
+                    Some(SBOL2_TYPE),
+                    "an Interaction should contain exactly one occurring-entity SBO type",
+                );
+            }
+        }
+
+        if object.has_class(Sbol2Class::Participation) {
+            // 12007: exactly one participant-role SBO term.
+            let num = object
+                .iris(SBOL2_ROLE)
+                .filter(|iri| ontology.is_in_branch(ontology_curie(iri.as_str()), SBO_PARTICIPANT_ROLE))
+                .count();
+            if num != 1 {
+                self.warning(
+                    "sbol2-12007",
+                    object,
+                    Some(SBOL2_ROLE),
+                    "a Participation should contain exactly one participant-role SBO term",
+                );
+            }
+        }
+
+        if object.has_class(Sbol2Class::OmMeasure) {
+            // 13505: a Measure with types should carry exactly one
+            // systems-description-parameter SBO type.
+            let types: Vec<&str> = object.iris(SBOL2_TYPE).map(|iri| iri.as_str()).collect();
+            if !types.is_empty() {
+                let num =
+                    types.iter().filter(|t| ontology.is_in_branch(ontology_curie(t), SBO_SYSTEMS_DESCRIPTION_PARAMETER)).count();
+                if num != 1 {
+                    self.warning(
+                        "sbol2-13505",
+                        object,
+                        Some(SBOL2_TYPE),
+                        "a Measure with types should carry exactly one systems-description-parameter SBO type",
+                    );
+                }
+            }
+        }
+    }
+
+    /// The BioPAX/SO type IRIs of the ComponentDefinition referenced by a
+    /// Component's definition property.
+    fn definition_types(&self, component: &Object) -> Option<Vec<String>> {
+        let def = component.first_resource(SBOL2_DEFINITION).and_then(Resource::as_iri)?;
+        let cd = self
+            .document
+            .objects()
+            .values()
+            .find(|o| o.identity().as_iri().is_some_and(|iri| iri.as_str() == def.as_str()))?;
+        Some(cd.iris(SBOL2_TYPE).map(|iri| iri.as_str().to_owned()).collect())
     }
 
     fn validate_activity_role_usage(&mut self, object: &Object) {
@@ -1080,6 +1255,41 @@ fn closed_property_rule(object: &Object) -> Option<&'static str> {
         .find(|(class, _)| object.has_class(*class))
         .map(|(_, rule)| *rule)
 }
+
+const BIOPAX_DNA_REGION: &str = "http://www.biopax.org/release/biopax-level3.owl#DnaRegion";
+const BIOPAX_RNA_REGION: &str = "http://www.biopax.org/release/biopax-level3.owl#RnaRegion";
+const BIOPAX_DNA_MOLECULE: &str = "http://www.biopax.org/release/biopax-level3.owl#Dna";
+const BIOPAX_RNA_MOLECULE: &str = "http://www.biopax.org/release/biopax-level3.owl#Rna";
+const BIOPAX_PROTEIN: &str = "http://www.biopax.org/release/biopax-level3.owl#Protein";
+const BIOPAX_COMPLEX: &str = "http://www.biopax.org/release/biopax-level3.owl#Complex";
+const BIOPAX_SMALL_MOLECULE: &str = "http://www.biopax.org/release/biopax-level3.owl#SmallMolecule";
+
+/// The Table 2 (BioPAX) ComponentDefinition types. SBOL 2 draws these from
+/// BioPAX rather than an ontology the bundled snapshot indexes, so they are
+/// matched by exact IRI.
+const BIOPAX_TYPES: &[&str] = &[
+    BIOPAX_DNA_REGION,
+    BIOPAX_RNA_REGION,
+    BIOPAX_DNA_MOLECULE,
+    BIOPAX_RNA_MOLECULE,
+    BIOPAX_PROTEIN,
+    BIOPAX_COMPLEX,
+    BIOPAX_SMALL_MOLECULE,
+];
+
+/// The compact ontology identifier (`SO:0000110`, `SBO:0000231`, …) an SBOL 2
+/// term IRI carries. SBOL 2 writes ontology terms as `identifiers.org` URLs
+/// with a lowercase path segment (`.../so/SO:0000110`); the bundled ontology
+/// keys on the trailing CURIE, so the last path or fragment segment is taken.
+fn ontology_curie(iri: &str) -> &str {
+    iri.rsplit(['/', '#']).next().unwrap_or(iri)
+}
+const SO_SEQUENCE_FEATURE: &str = "SO:0000110";
+const SO_TOPOLOGY_ATTRIBUTE: &str = "SO:0000986";
+const SO_STRAND_ATTRIBUTE: &str = "SO:0000983";
+const SBO_OCCURRING_ENTITY_REPRESENTATION: &str = "SBO:0000231";
+const SBO_PARTICIPANT_ROLE: &str = "SBO:0000003";
+const SBO_SYSTEMS_DESCRIPTION_PARAMETER: &str = "SBO:0000545";
 
 const SBOL2_DIFFERENT_FROM: &str = "http://sbols.org/v2#differentFrom";
 const SBOL2_MERGE_ROLES: &str = "http://sbols.org/v2#mergeRoles";
