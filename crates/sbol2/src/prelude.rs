@@ -1,26 +1,9 @@
-//! Rust implementation of the SBOL 2.3.0 specification.
-//!
-//! `sbol2` is the SBOL 2 peer of the [`sbol3`](https://docs.rs/sbol3) crate. It
-//! builds on the version-neutral machinery in [`sbol_core`] — the field-metadata
-//! descriptors, identity newtypes, RDF-backed document store — and layers on the
-//! SBOL 2 typed data model, its RDF serialization, and a shared field-metadata
-//! catalog. Most users reach it through the umbrella `sbol` crate as `sbol::v2`.
-#![forbid(unsafe_code)]
-#![allow(clippy::result_large_err)]
+//! Convenient re-exports for typical SBOL 2 construction and inspection
+//! workflows. `use sbol2::prelude::*;` brings the typed objects, builders,
+//! document, identity newtypes, and the [`SbolIdentified`] / [`SbolTopLevel`]
+//! accessor traits into scope.
 
-mod client;
-pub mod constants;
-mod document;
-mod error;
-pub mod identity;
-mod model;
-mod object;
-pub mod prelude;
-pub mod schema;
-#[doc(hidden)]
-pub mod vocab;
-
-pub use client::{
+pub use crate::client::{
     Activity, ActivityBuilder, Agent, AgentBuilder, Association, AssociationBuilder, Attachment,
     AttachmentBuilder, BinaryPrefix, BinaryPrefixBuilder, Collection, CollectionBuilder,
     CombinatorialDerivation, CombinatorialDerivationBuilder, Component, ComponentBuilder,
@@ -40,11 +23,9 @@ pub use client::{
     UnitExponentiation, UnitExponentiationBuilder, UnitMultiplication, UnitMultiplicationBuilder,
     Usage, UsageBuilder, VariableComponent, VariableComponentBuilder,
 };
-pub use document::Document;
-pub use error::{BuildError, ReadError, WriteError};
-pub use identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
-pub use model::{Identified, Sbol2Class, TopLevel};
-pub use object::ObjectClasses;
-pub use sbol_core::document::{ObjectStore, RawDocument};
-pub use sbol_core::object::Object;
-pub use sbol_rdf::{Graph as RdfGraph, Iri, Literal, RdfFormat, Resource, Term, Triple};
+pub use crate::document::Document;
+pub use crate::error::{BuildError, ReadError, WriteError};
+pub use crate::identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
+pub use crate::model::{Identified, Sbol2Class, TopLevel};
+pub use crate::object::ObjectClasses;
+pub use crate::{Iri, Literal, Object, RdfFormat, RdfGraph, Resource, Term, Triple};

@@ -307,7 +307,9 @@ const ALL_CLASS_IRIS: &[&str] = &[
     OM_BINARY_PREFIX,
 ];
 
-pub(crate) fn property_specs_for(object: &Object) -> BTreeMap<&'static str, PropertySpec> {
+/// Collects every field descriptor (inherited plus own) an object's RDF types
+/// resolve to, keyed by predicate IRI.
+pub fn property_specs_for(object: &Object) -> BTreeMap<&'static str, FieldDescriptor> {
     let mut specs = BTreeMap::new();
     for rdf_type in object.rdf_types() {
         collect_class_properties(rdf_type.as_str(), &mut specs);

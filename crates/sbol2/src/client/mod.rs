@@ -7,11 +7,13 @@
 
 mod accessors;
 mod annotation;
+mod builder;
 mod combinatorial;
 mod component_instance;
 mod document;
 mod extension;
 mod from_rdf;
+mod identity;
 mod interaction;
 mod location;
 mod module;
@@ -24,6 +26,18 @@ mod top_level;
 mod traits;
 
 pub use accessors::{SbolIdentified, SbolTopLevel};
+pub use builder::{
+    ActivityBuilder, AgentBuilder, AssociationBuilder, AttachmentBuilder, BinaryPrefixBuilder,
+    CollectionBuilder, CombinatorialDerivationBuilder, ComponentBuilder,
+    ComponentDefinitionBuilder, CompoundUnitBuilder, CutBuilder, ExperimentBuilder,
+    ExperimentalDataBuilder, FunctionalComponentBuilder, GenericLocationBuilder,
+    GenericTopLevelBuilder, IdentifiedExtensionBuilder, ImplementationBuilder, InteractionBuilder,
+    MapsToBuilder, MeasureBuilder, ModelBuilder, ModuleBuilder, ModuleDefinitionBuilder,
+    ParticipationBuilder, PlanBuilder, PrefixBuilder, PrefixedUnitBuilder, RangeBuilder,
+    SIPrefixBuilder, SequenceAnnotationBuilder, SequenceBuilder, SequenceConstraintBuilder,
+    SingularUnitBuilder, UnitBuilder, UnitDivisionBuilder, UnitExponentiationBuilder,
+    UnitMultiplicationBuilder, UsageBuilder, VariableComponentBuilder,
+};
 pub use annotation::{SequenceAnnotation, SequenceConstraint};
 pub use combinatorial::VariableComponent;
 pub use component_instance::{Component, FunctionalComponent};
