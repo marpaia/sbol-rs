@@ -1,16 +1,20 @@
-# Validating SBOL 3 documents
+# Validating SBOL documents
 
-The sbol-rs validator answers a specific question: **does this SBOL 3
-document conform to the spec?** The honest answer has more shape than
-yes/no, and this document explains what shape that takes.
+The sbol-rs validators answer a specific question: **does this SBOL
+document conform to the spec?** There is one validator for SBOL 3
+(`sbol3`) and one for SBOL 2 (`sbol2`); they share the same reporting
+types, the same `ValidationConfig`, and the same rule-classification
+taxonomy from `sbol-core`. The honest answer has more shape than yes/no,
+and this document explains what shape that takes for both versions.
 
 ## What the validator does
 
-Every SBOL 3.1.0 spec rule is in a catalog (`crates/sbol/rules.toml`)
-with a status, severity, and (where applicable) a blocker. When you
-call `Document::check()`, the validator runs every algorithm it has
-against your document and returns a `ValidationReport` carrying three
-things:
+Every spec rule is in a per-version catalog (`crates/sbol3/rules.toml`,
+149 rules; `crates/sbol2/rules.toml`, 268 rules) with a status, severity,
+gate, and (where applicable) a blocker. When you call `Document::check()`
+(SBOL 3) or `Document::validate()` (SBOL 2), the validator runs every
+algorithm it has against your document and returns a `ValidationReport`
+carrying three things:
 
 1. **Issues**: actionable diagnostics for things that are demonstrably
    wrong (`Error`) or recommended-but-not-required violations
@@ -32,8 +36,11 @@ rules, but they are not all the same shape. Appendix B (p.2837–2840)
 marks 40 rules with the ▲ symbol: weak-REQUIRED conditions that the
 spec itself says are NOT to be machine-reported. Of the remaining 109
 machine-checkable rules, **all 109 are fully implemented (100%)**. The
-[conformance report](conformance.md) carries the per-rule details and
-the freshness is enforced in CI.
+SBOL 2.3.0 catalog is larger — 268 rules, 29 of them ▲ — and of its 239
+machine-checkable rules **all 239 are fully implemented**. The
+[SBOL 3 conformance report](conformance.md) and the
+[SBOL 2 conformance report](sbol2-conformance.md) carry the per-rule
+details, and the freshness of both is enforced in CI.
 
 The validator surfaces this distinction at runtime via the coverage
 signal:
@@ -66,13 +73,46 @@ three are implementations; the last two record what's missing.
 | `MachineUncheckable` | 40 | Spec ▲: violations are not to be machine-reported. May have a local subset that emits warnings on positively-decidable cases. |
 | `Unimplemented` | 0 | No local algorithm yet. The `blocker` field names what's needed (Ontology data, Resolver protocol, Policy decision). |
 
-The full per-rule grid lives in [conformance.md](conformance.md). It's
-generated from the catalog; regenerate after any change to
-`validation_rule_statuses()` with:
+The counts above are the SBOL 3 catalog; SBOL 2 uses the same five
+statuses (Error 166, Warning 30, Configurable 43, ▲ MachineUncheckable
+29). The full per-rule grids live in [conformance.md](conformance.md) and
+[sbol2-conformance.md](sbol2-conformance.md). They are generated from the
+catalogs; regenerate after any change to a `validation_rule_statuses()`
+with:
 
 ```
-cargo run -p sbol --bin generate-conformance-report
+cargo run -p sbol3 --bin generate-conformance-report
+cargo run -p sbol2 --bin generate-sbol2-conformance-report
 ```
+
+## Shared configuration: validation gates
+
+Both validators read the same `ValidationConfig` (from `sbol-core`),
+which selects **which rule families run at all** — orthogonal to per-rule
+overrides and policy modes, which control severity *within* the running
+families. Its defaults match libSBOLj's `SBOLValidate` command-line
+defaults:
+
+| Flag | Default | Effect |
+|---|---|---|
+| `compliant` | on | Run the compliant-URI structural family. |
+| `complete` | on | Run the completeness family: every referenced object must be present. |
+| `best_practice` | off | Run the SHOULD-level best-practice family. |
+| `types_in_uri` | off | Interpret compliant URIs as carrying an optional type segment. |
+| `keep_going` | on | Continue past the first error and collect every issue. |
+
+`ValidationConfig::all_on()` enables every family;
+`ValidationConfig::default()` runs `compliant` + `complete`.
+
+The SBOL 2 catalog binds each rule to a **gate** naming the family that
+runs it — `Always`, `Compliant`, `Complete`, or `BestPractice` — so the
+flag model is directly observable per rule. This is what the SBOLTestSuite
+SBOL 2 corpora exercise: the valid `SBOL2` corpus passes under both the
+default and `all_on`; `SBOL2_ic` fails only when `complete` is on;
+`SBOL2_nc` fails only when `compliant` is on; and `SBOL2_bp` is flagged
+(at warning severity) only when `best_practice` is on. The gate counts and
+this behavior are tabulated in
+[sbol2-conformance.md](sbol2-conformance.md).
 
 ## Using the validator
 
@@ -93,6 +133,18 @@ document.check()?;
 
 // Err if any rule's coverage is partial (strict CI gate).
 document.check_complete()?;
+```
+
+The SBOL 2 surface mirrors this through `sbol2` (or `sbol::v2`):
+`Document::validate()` returns the same `ValidationReport`, and
+`Document::validate_with_config(&config)` takes the shared
+`ValidationConfig` to select gates:
+
+```rust
+use sbol2::validation::ValidationConfig;
+
+let document = sbol2::Document::read_path("design.xml")?;
+let report = document.validate_with_config(&ValidationConfig::all_on());
 ```
 
 The full options surface (per-rule overrides, severity floor/ceiling,
@@ -166,7 +218,7 @@ The validator emits three formats, all from the same
   [validation-output.md](validation-output.md). The serializer is
   hand-written so the core crate stays free of `serde_json` in its
   public dependency tree; the round-trip test under
-  `crates/sbol/tests/validation_output.rs` uses serde_json as a
+  `crates/sbol3/tests/validation_output.rs` uses serde_json as a
   test-only dep to verify every emitted field parses.
 - **SARIF v2.1.0**: for GitHub code scanning and editor extensions.
   Lives in `sbol-cli` behind the `sarif` feature flag (pulls in
@@ -218,22 +270,23 @@ document. Three explicit boundaries:
 
 ## Extending the validator
 
-Adding a new rule (or refining an existing one) is a three-step change:
+Adding a new rule (or refining an existing one) is a three-step change,
+shown here for SBOL 3; SBOL 2 mirrors it under `crates/sbol2/`:
 
-1. **Catalog**: add or update the entry in `crates/sbol/rules.toml`.
+1. **Catalog**: add or update the entry in `crates/sbol3/rules.toml`.
    The build script gates status/blocker/severity invariants and (for
    Policy rules) requires a committed ADR under `docs/policies/`.
 2. **Algorithm**: implement the check in
-   `crates/sbol/src/validation/rules/<section>.rs`, dispatched from
-   `Validator::validate` in `crates/sbol/src/validation/validator.rs`.
+   `crates/sbol3/src/validation/rules/<section>.rs`, dispatched from
+   `Validator::validate` in `crates/sbol3/src/validation/validator.rs`.
 3. **Tests**: add at least one regression case under
-   `crates/sbol/tests/rule_cases/<section>.rs`. The meta-test
+   `crates/sbol3/tests/rule_cases/<section>.rs`. The meta-test
    `implemented_validation_rules_have_regression_cases` fails the
    build if a rule with an algorithm lacks one.
 
-Regenerate `docs/conformance.md` (`cargo run -p sbol --bin
-generate-conformance-report`); CI's `git diff --exit-code` enforces
-freshness.
+Regenerate the conformance grid (`cargo run -p sbol3 --bin
+generate-conformance-report`, or the `sbol2` peer); CI's
+`git diff --exit-code` enforces freshness.
 
 See [testing.md](testing.md) for the full test architecture.
 
@@ -241,7 +294,8 @@ See [testing.md](testing.md) for the full test architecture.
 
 | Topic | Doc |
 |---|---|
-| Per-rule status grid (generated) | [conformance.md](conformance.md) |
+| SBOL 3 per-rule status grid (generated) | [conformance.md](conformance.md) |
+| SBOL 2 per-rule status grid (generated) | [sbol2-conformance.md](sbol2-conformance.md) |
 | JSON v1 output schema | [validation-output.md](validation-output.md) |
 | Policy ADRs (one per ambiguous rule) | [policies/](policies/) |
 | Test architecture | [testing.md](testing.md) |
