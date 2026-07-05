@@ -2,7 +2,7 @@
 
 The [`sbol-genbank`](../crates/sbol-genbank/) crate and the
 `sbol import-genbank` CLI subcommand read GenBank flat-files (`.gb` /
-`.gbk` — the format emitted by SnapGene, ApE, Benchling, NCBI, and
+`.gbk`, the format emitted by SnapGene, ApE, Benchling, NCBI, and
 SynBioHub) directly into native SBOL 3 documents.
 
 ## Validation basis
@@ -11,11 +11,11 @@ The importer rests on three independent legs, so correctness is
 grounded in external authorities rather than in the importer's own
 output alone:
 
-1. **Determinism** — a self-snapshot gate proves the same input always
+1. **Determinism**: a self-snapshot gate proves the same input always
    produces the same SBOL 3 output.
-2. **SO-mapping parity** — the GenBank-key → Sequence Ontology table is
+2. **SO-mapping parity**: the GenBank-key → Sequence Ontology table is
    pinned against the `sbol-utilities` `gb2so.csv` community reference.
-3. **Feature-table agreement with BioPython** — extracted locations and
+3. **Feature-table agreement with BioPython**: extracted locations and
    orientations are compared against BioPython's `Bio.SeqIO` over real
    records and multi-span `join` / `order` / `complement` locations.
 
@@ -34,7 +34,7 @@ snapshot at `tests/fixtures/genbank/expected/{name}.nt`. Any
 unintended change in importer output fails the gate.
 
 Both sides of the comparison come from `sbol-genbank`. The gate
-proves the importer is **stable and deterministic** — that the same
+proves the importer is **stable and deterministic**: that the same
 GenBank input always produces the same SBOL 3 output, byte for byte.
 It runs in pure Rust, with no network, no Docker, and no other
 tooling required. On its own it proves stability, not correctness;
@@ -51,20 +51,20 @@ SynBioHub). The parity test asserts every mapping entry whose GenBank
 key appears in the reference carries the same SO term. Keys the crate
 maps that the reference omits are enumerated in a reviewed allowlist,
 each with a rationale, so the delta is explicit rather than silent.
-The gate is pure Rust — the reference CSV is embedded at compile time.
+The gate is pure Rust; the reference CSV is embedded at compile time.
 
 ### BioPython feature-table oracle (external authority, Docker)
 
 [`crates/sbol-genbank/tests/biopython_oracle.rs`](../crates/sbol-genbank/tests/biopython_oracle.rs)
 compares `sbol-genbank`'s extracted feature locations against
-BioPython — the reference GenBank parser in the bioinformatics
+BioPython, the reference GenBank parser in the bioinformatics
 community. The harness under
 [`crates/sbol-genbank/tests/oracle/`](../crates/sbol-genbank/tests/oracle/)
 runs a pinned `biopython==1.85` Docker image over each fixture and
 emits a normalized feature table: each non-`source` feature's location
 spans as sorted 1-based-closed `[start, end, strand]` triples. The
-Rust test reproduces that table from the importer's output — mapping
-SBOL inline/reverseComplement orientation back to strand `1`/`-1` — and
+Rust test reproduces that table from the importer's output (mapping
+SBOL inline/reverseComplement orientation back to strand `1`/`-1`) and
 asserts the two agree as an order-independent multiset.
 
 The comparison covers the real corpus (including `pUC19`'s
@@ -90,11 +90,11 @@ Current corpus:
 
 | Fixture | Description |
 |---|---|
-| `BBa_E0040.gb` | GFP CDS (Aequorea victoria) — canonical iGEM "hello world" |
+| `BBa_E0040.gb` | GFP CDS (Aequorea victoria), canonical iGEM "hello world" |
 | `BBa_R0010.gb` | LacI-repressible promoter with multiple annotated features |
-| `BBa_B0034.gb` | Elowitz RBS — minimal single-feature design |
-| `BBa_F2620.gb` | PoPS receiver — composite design with 30 features, duplicate labels |
-| `pUC19.gbk` | NCBI `M77789.2` — the canonical cloning vector. `.gbk` extension exercises the SnapGene/community naming convention (NCBI uses `.gb`, SnapGene uses `.gbk`; both are the same flat-file format). |
+| `BBa_B0034.gb` | Elowitz RBS, minimal single-feature design |
+| `BBa_F2620.gb` | PoPS receiver: composite design with 30 features, duplicate labels |
+| `pUC19.gbk` | NCBI `M77789.2`, the canonical cloning vector. `.gbk` extension exercises the SnapGene/community naming convention (NCBI uses `.gb`, SnapGene uses `.gbk`; both are the same flat-file format). |
 
 Adding a new fixture: drop the `.gb` file under
 `tests/fixtures/genbank/`, run the regen binary, and commit both the
@@ -119,16 +119,16 @@ the refresh command in the failure message.
 
 The current corpus drives every importer code path:
 
-- **Simple records.** `BBa_E0040`, `BBa_B0034` — one Component, one
+- **Simple records.** `BBa_E0040`, `BBa_B0034`: one Component, one
   Sequence, a single feature with one location. Sanity check that
   the basic pipeline produces validating SBOL 3.
-- **Multi-feature designs.** `BBa_R0010` — seven annotated features
+- **Multi-feature designs.** `BBa_R0010`: seven annotated features
   on a single Sequence, each with its own SO role mapping. Exercises
   the feature-key → SO term table.
-- **Composite designs.** `BBa_F2620` — 30 features including
+- **Composite designs.** `BBa_F2620`: 30 features including
   duplicate `/label` qualifiers. Exercises the display-ID
   de-duplication logic and confirms IRI compliance holds at scale.
-- **Circular topology + NCBI dialect.** `pUC19.gbk` — circular
+- **Circular topology + NCBI dialect.** `pUC19.gbk`: circular
   cloning vector from NCBI with uppercase-month LOCUS line and the
   `.gbk` extension. Pins both the SO topology mapping
   (`SO:0000988 circular`) and the `.gbk` file-extension handling.
@@ -155,8 +155,8 @@ the real corpus does not reach. Fixtures under
 test asserts the exact SBOL `Range` coordinates and inline /
 reverseComplement orientation the feature lowers to. The expected
 values are hand-derived from the INSDC feature-table spec and the
-importer's coordinate conversion — gb-io's 0-based half-open
-`[start, end)` becomes SBOL 1-based-closed `start + 1 .. end` — so a
+importer's coordinate conversion (gb-io's 0-based half-open
+`[start, end)` becomes SBOL 1-based-closed `start + 1 .. end`), so a
 GenBank span `a..b` yields a Range with `start = a`, `end = b`. The
 lossy cases assert a `LossyLocation` warning is recorded and the
 offending feature is dropped while the rest of the record still
@@ -214,7 +214,7 @@ tests/fixtures/genbank/
 ## Runnable example
 
 [`crates/sbol-genbank/examples/genbank_to_sbol3.rs`](../crates/sbol-genbank/examples/genbank_to_sbol3.rs)
-runs the four-stage pipeline end-to-end — parse the `.gb` file with
+runs the four-stage pipeline end-to-end: parse the `.gb` file with
 `gb-io`, import into a native `sbol3::Document`, validate against the
 SBOL 3.1.0 spec rules, serialize to disk in the user-chosen RDF
 format, and then round-trip that file back through
@@ -231,8 +231,8 @@ cargo run -p sbol-genbank --example genbank_to_sbol3 \
 
 ## Related
 
-- [SBOL 2 → SBOL 3 upgrade conformance](sbol2-upgrade-conformance.md)
-  — the sibling harness for the SBOL 2 RDF input path.
-- [Validation system overview](validation.md) — the post-import
+- [SBOL 2 → SBOL 3 upgrade conformance](sbol2-upgrade-conformance.md):
+  the sibling harness for the SBOL 2 RDF input path.
+- [Validation system overview](validation.md): the post-import
   spec-compliance gate. `sbol import-genbank --validate` composes
   the two.

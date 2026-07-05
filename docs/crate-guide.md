@@ -198,7 +198,7 @@ tracked in each `rules.toml`:
   default is conservative, callable via `ValidationOptions`.
 - **MachineUncheckable (▲)**: the spec rule isn't algorithmically
   verifiable (e.g., requires biological judgment).
-- **Unimplemented**: a known gap. Neither catalog currently has any —
+- **Unimplemented**: a known gap. Neither catalog currently has any:
   every machine-checkable rule is implemented in both versions.
 
 Severity for a particular rule on a particular run can be lifted or
@@ -226,7 +226,7 @@ generated from `rules.toml`).
 
 The `sbol-convert` crate (re-exported as `sbol::convert`) sits alongside
 the validators and translates between SBOL 2 and SBOL 3 RDF at the triple
-level — no separate intermediate object model, no external runtime. Its
+level: no separate intermediate object model, no external runtime. Its
 `upgrade_from_sbol2` and `downgrade` functions take and return the typed
 `sbol3::Document` and an `sbol_rdf::Graph`.
 
@@ -246,18 +246,18 @@ Where conversion code lives:
 The downgrade engine classifies every SBOL 3 `Component` into one of
 three shapes before emitting:
 
-- **`CdOnly`** — emits a single `sbol2:ComponentDefinition`. Triggered
+- **`CdOnly`**: emits a single `sbol2:ComponentDefinition`. Triggered
   by `backport:sbol2type = ComponentDefinition` (round-tripped SBOL 2)
   or by structural-only signals (`sbol3:type` with a non-functional
   value, `sbol3:role`, `sbol3:hasSequence`, `sbol3:hasFeature` →
   `SequenceFeature`, `sbol3:hasConstraint`).
-- **`MdOnly`** — emits a single `sbol2:ModuleDefinition`. Triggered by
+- **`MdOnly`**: emits a single `sbol2:ModuleDefinition`. Triggered by
   `backport:sbol2type = ModuleDefinition` or by functional-only signals
   (`sbol3:hasInteraction`, `sbol3:hasInterface`, `sbol3:hasModel`, the
   synthesized `SBO:functionalEntity` type marker).
-- **`DualRole`** — emits BOTH a CD and an MD plus a synthesized linking
+- **`DualRole`**: emits BOTH a CD and an MD plus a synthesized linking
   `sbol2:FunctionalComponent`. Triggered by Components carrying both
-  structural and functional signals — the SBOL 2 surface can't express
+  structural and functional signals: the SBOL 2 surface can't express
   this in a single object.
 
 The user-facing story (workflows, the backport namespace, dual-role

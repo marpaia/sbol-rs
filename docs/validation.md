@@ -36,7 +36,7 @@ rules, but they are not all the same shape. Appendix B (p.2837–2840)
 marks 40 rules with the ▲ symbol: weak-REQUIRED conditions that the
 spec itself says are NOT to be machine-reported. Of the remaining 109
 machine-checkable rules, **all 109 are fully implemented (100%)**. The
-SBOL 2.3.0 catalog is larger — 268 rules, 29 of them ▲ — and of its 239
+SBOL 2.3.0 catalog is larger (268 rules, 29 of them ▲), and of its 239
 machine-checkable rules **all 239 are fully implemented**. The
 [SBOL 3 conformance report](conformance.md) and the
 [SBOL 2 conformance report](sbol2-conformance.md) carry the per-rule
@@ -88,7 +88,7 @@ cargo run -p sbol2 --bin generate-sbol2-conformance-report
 ## Shared configuration: validation gates
 
 Both validators read the same `ValidationConfig` (from `sbol-core`),
-which selects **which rule families run at all** — orthogonal to per-rule
+which selects **which rule families run at all**, orthogonal to per-rule
 overrides and policy modes, which control severity *within* the running
 families. Its defaults match libSBOLj's `SBOLValidate` command-line
 defaults:
@@ -105,7 +105,7 @@ defaults:
 `ValidationConfig::default()` runs `compliant` + `complete`.
 
 The SBOL 2 catalog binds each rule to a **gate** naming the family that
-runs it — `Always`, `Compliant`, `Complete`, or `BestPractice` — so the
+runs it (`Always`, `Compliant`, `Complete`, or `BestPractice`), so the
 flag model is directly observable per rule. This is what the SBOLTestSuite
 SBOL 2 corpora exercise: the valid `SBOL2` corpus passes under both the
 default and `all_on`; `SBOL2_ic` fails only when `complete` is on;

@@ -1,7 +1,7 @@
 # Testing architecture
 
-`sbol-rs` is correctness-critical: every claim about SBOL conformance —
-for both SBOL 2 and SBOL 3 — has to survive `cargo test`. This document
+`sbol-rs` is correctness-critical: every claim about SBOL conformance,
+for both SBOL 2 and SBOL 3, has to survive `cargo test`. This document
 maps the test surface so contributors know what each layer gates, where
 to add a new case, and how the fixture corpora are produced.
 
@@ -47,8 +47,8 @@ validation rules. Each entry carries:
 - `blocker` (Configurable / MachineUncheckable / Unimplemented): `Ontology`
   / `Resolver` / `Policy` / `External` / `StrictDatatype`. Names the
   configuration axis or what a fuller check would need.
-- `gate`: the validation family — `Always`, `Compliant`, `Complete`, or
-  `BestPractice` — selecting which `ValidationConfig` flag runs the rule.
+- `gate`: the validation family (`Always`, `Compliant`, `Complete`, or
+  `BestPractice`) selecting which `ValidationConfig` flag runs the rule.
 - `validator_function` / `note`: the emitting function (where applicable)
   and a short description of what is enforced.
 
@@ -100,7 +100,7 @@ corpora, each isolating one axis of the shared `ValidationConfig`: the
 `SBOL2` corpus (179 files) passes under both the default and `all_on`; the
 `SBOL2_ic` corpus (71) fails only under `complete`; `SBOL2_nc` (30) fails
 only under `compliant`; `SBOL2_bp` (11) is flagged only under
-`best_practice`, at warning severity. Every file parses — **0 parse
+`best_practice`, at warning severity. Every file parses: **0 parse
 failures** across all four corpora.
 
 `crates/sbol2/tests/invalid_files.rs` runs the per-rule negative corpus:
@@ -115,19 +115,19 @@ explicitly in `invalid_files_deferred.in`). The full grid is rendered into
 
 `crates/sbol-convert/tests/` gates the conversion pipeline both ways:
 
-- `upgrade_conformance.rs` / `upgrade_fixtures.rs` — SBOL 2 → SBOL 3
+- `upgrade_conformance.rs` / `upgrade_fixtures.rs`: SBOL 2 → SBOL 3
   against self-snapshots (see
   [`sbol2-upgrade-conformance.md`](sbol2-upgrade-conformance.md)).
 - `downgrade_round_trip.rs` / `downgrade_dual_role.rs` /
-  `downgrade_semantic.rs` — SBOL 3 → SBOL 2, including the dual-role
+  `downgrade_semantic.rs`: SBOL 3 → SBOL 2, including the dual-role
   Component split (see
   [`sbol3-downgrade-conformance.md`](sbol3-downgrade-conformance.md)).
-- `corpus_round_trip.rs` — the SBOL 2 → 3 → 2 fixed-point cycle over the
+- `corpus_round_trip.rs`: the SBOL 2 → 3 → 2 fixed-point cycle over the
   **full** SBOLTestSuite SBOL 2 corpora, asserting triple-for-triple
   equality: **290 fixtures round-trip clean**, 0 drift, 0 parse failures,
   0 upgrade-unsupported, with a single documented-lossy fixture
   allowlisted in `SBOL2_bp`.
-- `interop_backport.rs` — verifies the `http://sboltools.org/backport#`
+- `interop_backport.rs`: verifies the `http://sboltools.org/backport#`
   namespace against the sbol-utilities reference (`sbol3namespace` /
   `sbol2_access`) with string parity.
 
@@ -140,16 +140,16 @@ regenerated with `cargo run -p sbol-convert --bin generate-round-trip-report`.
 The FASTA and GenBank importers are validated against external references
 rather than only self-snapshots:
 
-- **SO-mapping parity** — GenBank feature-key → Sequence Ontology role
+- **SO-mapping parity**: GenBank feature-key → Sequence Ontology role
   mappings are diffed against the sbol-utilities `gb2so` reference table
   (`crates/sbol-genbank/tests/`); reconciling them exposed and fixed 9 real
   mapping bugs.
-- **BioPython feature-parity oracle** — `biopython_oracle.rs` in both
+- **BioPython feature-parity oracle**: `biopython_oracle.rs` in both
   `sbol-fasta` and `sbol-genbank` checks that parsed records match a
   BioPython reference decomposition.
-- **Multi-span locations** — `crates/sbol-genbank/tests/multispan.rs`
+- **Multi-span locations**: `crates/sbol-genbank/tests/multispan.rs`
   hand-verifies `join` / `order` / `complement` location fixtures.
-- **Malformed input** — `crates/sbol-genbank/tests/malformed.rs` and the
+- **Malformed input**: `crates/sbol-genbank/tests/malformed.rs` and the
   FASTA edge tests confirm graceful rejection of broken input.
 
 See [`fasta-import-conformance.md`](fasta-import-conformance.md) and
@@ -240,7 +240,7 @@ See [`rdf-io.md`](rdf-io.md) for the user-facing I/O subsystem reference.
 ## Cross-implementation performance benchmarks
 
 Separate from the correctness harness, `crates/sbol-bench` times four
-phases — `parse`, `serialize`, `convert`, and `validate` — for both
+phases (`parse`, `serialize`, `convert`, and `validate`) for both
 SBOL versions sbol-rs implements. The matrix has an **SBOL 2** side and
 an **SBOL 3** side. On the SBOL 3 side it compares sbol-rs against
 pySBOL3, libSBOLj3, and sboljs; on the SBOL 2 side it compares sbol-rs
@@ -252,12 +252,12 @@ overhead.
 The serialize phase covers both same-format round trips
 (`turtle -> turtle`) and cross-format conversions (`turtle -> rdfxml`),
 so conversion cost is measured directly. The validate phase runs for
-the implementations that ship a validator on the relevant version —
+the implementations that ship a validator on the relevant version:
 sbol-rs on both versions, pySBOL3 and libSBOLj3 on SBOL 3. SBOL 2 is
 exchanged as RDF/XML; sbol-rs additionally reads and writes Turtle,
 JSON-LD, and N-Triples for SBOL 2, so those formats are benchmarked
-for sbol-rs. This is not a CI gate — there is no perf-regression check
-— but it gives contributors a reproducible way to compare
+for sbol-rs. This is not a CI gate (there is no perf-regression check),
+but it gives contributors a reproducible way to compare
 implementations head-to-head on the same fixtures. Run
 `cargo run --release -p sbol-bench`; see
 [`benches/cross-impl/README.md`](../benches/cross-impl/README.md) for
@@ -348,7 +348,7 @@ cache from the pinned `SynBioDex/SBOLTestSuite` archive at commit
 [`tests/sbol3_fixtures_manifest.tsv`](../tests/sbol3_fixtures_manifest.tsv).
 The valid-input set is 31 upstream fixtures plus 2 local supplements
 (`experimental_data.ttl`, `variable_feature.ttl`) that exercise features
-the upstream corpus doesn't cover — 33 in total.
+the upstream corpus doesn't cover, 33 in total.
 
 ### SBOL 2 source fixtures
 

@@ -10,9 +10,9 @@ normative severity, blocker, and coverage-kind against the shared taxonomy in
 [`sbol_core::validation`], enforces that policy-blocked rules have an ADR file,
 and emits two files into `OUT_DIR`:
 
-- `rule_catalog.rs` — a `VALIDATION_RULE_STATUSES` slice literal, sorted by rule
+- `rule_catalog.rs`: a `VALIDATION_RULE_STATUSES` slice literal, sorted by rule
   id for diff stability.
-- `rule_spec_meta.rs` — the `VALIDATION_RULE_SPEC_*` constants from the TOML
+- `rule_spec_meta.rs`: the `VALIDATION_RULE_SPEC_*` constants from the TOML
   `[meta]` block.
 
 The emitted code refers to the rule-status, `Blocker`, and `CoverageKind` types

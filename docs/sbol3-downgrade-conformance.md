@@ -1,8 +1,8 @@
 # SBOL 3 → SBOL 2 downgrade conformance
 
 How the `sbol-convert` downgrade functions and the `sbol downgrade` subcommand
-are gated in CI. For the conversion model itself — what gets preserved,
-what intentionally diverges, how dual-role Components split — see
+are gated in CI. For the conversion model itself (what gets preserved,
+what intentionally diverges, how dual-role Components split), see
 [`conversion.md`](conversion.md).
 
 ## Gates
@@ -23,7 +23,7 @@ SBOL 2 we started with. Triples that intentionally don't survive a
 round-trip (see [Known intentional divergences in `conversion.md`](conversion.md#known-intentional-divergences))
 are documented and allow-listed by the fixture diff.
 
-This is a stronger gate than self-snapshot alone — it tests both
+This is a stronger gate than self-snapshot alone: it tests both
 directions simultaneously. A change in either that breaks symmetry
 shows up here.
 
@@ -84,8 +84,8 @@ cargo run -p sbol-convert --bin regenerate-sbol2-upgrade-snapshots
 
 ## Empirical round-trip coverage
 
-[`sbol3-round-trip-report.md`](sbol3-round-trip-report.md) — generated
-by `cargo run -p sbol-convert --bin generate-round-trip-report` — runs the full
+[`sbol3-round-trip-report.md`](sbol3-round-trip-report.md), generated
+by `cargo run -p sbol-convert --bin generate-round-trip-report`, runs the full
 `upgrade → downgrade → re-upgrade` pipeline against every committed
 real-world fixture and diffs the triple sets. Its headline is 21 / 21
 clean over the committed real-world fixtures. The broader gate is
@@ -105,7 +105,7 @@ real data before investing in deeper coverage.
 `sbol downgrade` runs a **round-trip check** instead: the downgraded
 SBOL 2 is upgraded back through `sbol_convert::upgrade_from_sbol2`, and the resulting
 SBOL 3 document is run through `Document::validate`. This proves
-structural correctness — if the downgrade preserved enough information
+structural correctness: if the downgrade preserved enough information
 for the upgrade to rebuild a valid SBOL 3 document, the SBOL 2 itself
 is well-formed enough for any SBOL 2 consumer.
 
@@ -156,15 +156,15 @@ crates/sbol-genbank/src/bin/
 
 ## Related
 
-- [Conversion guide](conversion.md) — user-facing reference for the
+- [Conversion guide](conversion.md), the user-facing reference for the
   conversion model: workflows, the backport namespace, dual-role
   Component splits, known divergences, known limitations.
-- [SBOL 2 → SBOL 3 upgrade conformance](sbol2-upgrade-conformance.md)
-  — the inverse direction's CI gate. The two share the
+- [SBOL 2 → SBOL 3 upgrade conformance](sbol2-upgrade-conformance.md):
+  the inverse direction's CI gate. The two share the
   `crates/sbol-convert/src/sbol2_vocab.rs` vocabulary and the
   `http://sboltools.org/backport#` namespace.
-- [GenBank → SBOL 3 import conformance](genbank-import-conformance.md)
-  — pure-Rust GenBank reader; feeds the GenBank-derived round-trip
+- [GenBank → SBOL 3 import conformance](genbank-import-conformance.md):
+  pure-Rust GenBank reader; feeds the GenBank-derived round-trip
   fixtures.
-- [Validation system overview](validation.md) — the post-round-trip
+- [Validation system overview](validation.md): the post-round-trip
   spec-compliance gate behind `sbol downgrade --validate`.

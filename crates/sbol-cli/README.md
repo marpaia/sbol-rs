@@ -84,7 +84,7 @@ sbol convert design.ttl --to ntriples > design.nt
 ## `sbol upgrade`
 
 Convert an SBOL 2 RDF document to SBOL 3. Most published synbio content
-predates SBOL 3 — SynBioHub serves SBOL 2 by default, iGEM Registry parts
+predates SBOL 3: SynBioHub serves SBOL 2 by default, iGEM Registry parts
 ship as SBOL 2, JBEI ICE exports SBOL 2. Upgrade once on ingest and use
 the modern toolchain:
 
@@ -109,13 +109,13 @@ Notable flags:
   folds the result into the exit code.
 - `--strict` exits `1` if any conversion warnings were produced.
 
-The full conversion model — what the upgrade preserves, what it can't,
-what triggers warnings — is documented in
+The full conversion model (what the upgrade preserves, what it can't,
+what triggers warnings) is documented in
 [docs/conversion.md](https://github.com/marpaia/sbol-rs/blob/master/docs/conversion.md).
 
 ## `sbol downgrade`
 
-Convert an SBOL 3 RDF document back to SBOL 2 — for publishing to
+Convert an SBOL 3 RDF document back to SBOL 2, for publishing to
 SynBioHub, libSBOLj2, pySBOL2, or any other tool that hasn't migrated.
 
 ```sh
@@ -127,7 +127,7 @@ The downgrade is the inverse of `sbol upgrade`. Documents that came
 through `sbol upgrade` round-trip with near-zero loss because the
 upgrade preserves SBOL 2 identities and types under a
 `http://sboltools.org/backport#` namespace; the downgrade reads those
-triples back. Native SBOL 3 documents lose more — see
+triples back. Native SBOL 3 documents lose more; see
 [docs/conversion.md](https://github.com/marpaia/sbol-rs/blob/master/docs/conversion.md)
 for the loss model.
 
@@ -139,7 +139,7 @@ Notable flags:
   to match the SynBioHub / libSBOLj convention.
 - `--from <FORMAT>` overrides input-format inference (useful for SBOL 3
   RDF/XML files with `.xml` or non-standard extensions).
-- `--validate` — round-trips the produced SBOL 2 back through
+- `--validate` round-trips the produced SBOL 2 back through
   `sbol upgrade` and validates the resulting SBOL 3, checking that the
   downgrade preserved the design losslessly. (To validate an SBOL 2
   document directly against the SBOL 2 spec, use `sbol validate`.) If the
@@ -159,7 +159,7 @@ sbol import-genbank pBR322.gb \
     --output pBR322.ttl
 ```
 
-`--namespace` is required because GenBank carries no IRI concept — you
+`--namespace` is required because GenBank carries no IRI concept: you
 supply the namespace under which the SBOL 3 top-levels will be rooted.
 
 Each GenBank feature becomes an SBOL 3 SequenceFeature; coordinates
