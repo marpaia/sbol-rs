@@ -1,0 +1,12 @@
+@prefix sbol: <http://sbols.org/v2#> .
+@prefix biopax: <http://www.biopax.org/release/biopax-level3.owl#> .
+@prefix so: <https://identifiers.org/SO:> .
+
+<https://example.org/lab/J23100/1>
+    a sbol:ComponentDefinition ;
+    sbol:persistentIdentity <https://example.org/lab/J23100> ;
+    sbol:displayId "J23100" ;
+    sbol:version "1" ;
+    sbol:type biopax:Dna ;
+    sbol:role so:0000167 ;
+    sbol:sequence <https://example.org/lab/missing_seq/1> .

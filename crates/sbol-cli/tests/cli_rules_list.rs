@@ -38,6 +38,24 @@ fn rules_list_text_contains_known_rule_and_header() {
 }
 
 #[test]
+fn rules_list_sbol_version_2_lists_the_sbol2_catalog() {
+    let assertion = Command::cargo_bin("sbol")
+        .unwrap()
+        .args(["rules", "list", "--sbol-version", "2", "--color", "never"])
+        .assert()
+        .success();
+    let stdout = String::from_utf8(assertion.get_output().stdout.clone()).unwrap();
+    assert!(
+        stdout.contains("sbol2-10101"),
+        "expected sbol2-10101 in the SBOL 2 rules listing: {stdout}"
+    );
+    assert!(
+        !stdout.contains("sbol3-"),
+        "SBOL 2 catalog should not contain SBOL 3 rules: {stdout}"
+    );
+}
+
+#[test]
 fn rules_list_truncates_long_notes_by_default() {
     let assertion = Command::cargo_bin("sbol")
         .unwrap()
