@@ -9,6 +9,7 @@
 #![allow(clippy::result_large_err)]
 
 mod client;
+mod conformance;
 pub mod constants;
 mod document;
 mod error;
@@ -41,6 +42,7 @@ pub use client::{
     UnitExponentiation, UnitExponentiationBuilder, UnitMultiplication, UnitMultiplicationBuilder,
     Usage, UsageBuilder, VariableComponent, VariableComponentBuilder,
 };
+pub use conformance::render_sbol2_conformance_report;
 pub use document::Document;
 pub use error::{BuildError, ReadError, WriteError};
 pub use identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
