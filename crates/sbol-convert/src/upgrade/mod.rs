@@ -502,6 +502,12 @@ struct Engine<'a> {
     /// suffix, so the emitted `sbol3:displayId` still matches the
     /// IRI's last segment (sbol3-10204 compliance).
     location_display_id_overrides: HashMap<String, String>,
+    /// Canonical IRIs of custom-typed (GenericTopLevel) subjects that carry
+    /// SBOL 2 identity properties but no recognized SBOL 2 / PROV / OM type.
+    /// SBOL 3 has no GenericTopLevel class, so each is treated as an SBOL 3
+    /// top-level: its custom `rdf:type` is retained and it receives a
+    /// synthesized `sbol3:hasNamespace`.
+    generic_top_levels: HashSet<String>,
     report: UpgradeReport,
 }
 

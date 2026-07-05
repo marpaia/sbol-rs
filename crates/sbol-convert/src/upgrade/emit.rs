@@ -162,6 +162,27 @@ impl<'a> Engine<'a> {
             }
         }
 
+        // Custom-typed (GenericTopLevel) subjects are SBOL 3 top-levels and
+        // need `hasNamespace` too. Their canonical IRI is already computed;
+        // derive the namespace the same way as for typed top-levels.
+        for canonical in self.generic_top_levels.clone() {
+            if self.namespaced_subjects.contains(&canonical) {
+                continue;
+            }
+            self.namespaced_subjects.insert(canonical.clone());
+            let namespace = match self.identity.namespace_for(&canonical) {
+                Some(ns) => Some(ns.to_owned()),
+                None => self.fallback_namespace(&canonical),
+            };
+            if let Some(namespace) = namespace {
+                self.output_triples.push(Triple {
+                    subject: Resource::Iri(Iri::new_unchecked(canonical)),
+                    predicate: Iri::from_static(v3::SBOL_HAS_NAMESPACE),
+                    object: Term::Resource(Resource::Iri(Iri::new_unchecked(namespace))),
+                });
+            }
+        }
+
         // Promote `dcterms:title` → `sbol3:name` and
         // `dcterms:description` → `sbol3:description` for any subject
         // that has them. We don't drop the originals — sbolgraph

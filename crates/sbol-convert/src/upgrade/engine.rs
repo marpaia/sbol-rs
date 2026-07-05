@@ -27,6 +27,7 @@ impl<'a> Engine<'a> {
             namespaced_subjects: HashSet::new(),
             used_iris: HashSet::new(),
             location_display_id_overrides: HashMap::new(),
+            generic_top_levels: HashSet::new(),
             report: UpgradeReport::default(),
         }
     }
@@ -74,14 +75,52 @@ impl<'a> Engine<'a> {
             self.report
                 .push(UpgradeWarning::IdentityCollision { canonical, sources });
         }
+        // A document is SBOL 2 if it carries ANY predicate in the SBOL 2
+        // namespace (persistentIdentity / displayId / version / the domain
+        // properties), even when no subject's rdf:type is SBOL 2-namespaced.
+        // GenericTopLevel (custom rdf:type), PROV-only, and OM-only documents
+        // are all valid SBOL 2 with this shape.
+        let mut saw_sbol2_predicate = false;
+        // Subjects carrying a non-SBOL2/PROV/OM rdf:type together with SBOL 2
+        // identity properties, keyed to whether they also carry a recognized
+        // SBOL 2 / PROV type (those go through the ordinary top-level path).
+        let mut custom_typed: HashSet<String> = HashSet::new();
+        let mut recognized_typed: HashSet<String> = HashSet::new();
+        let mut sbol2_identified: HashSet<String> = HashSet::new();
+
         for triple in self.input.triples() {
             let predicate = triple.predicate.as_str();
+
+            if predicate.starts_with(v2::SBOL2_NS) {
+                saw_sbol2_predicate = true;
+                if (predicate == v2::SBOL2_PERSISTENT_IDENTITY
+                    || predicate == v2::SBOL2_DISPLAY_ID)
+                    && let Some(subject_iri) = triple.subject.as_iri()
+                {
+                    sbol2_identified.insert(subject_iri.as_str().to_owned());
+                }
+            }
 
             if predicate == v3::RDF_TYPE {
                 if let Some(iri) = triple.object.as_iri()
                     && let Some(subject_iri) = triple.subject.as_iri()
                 {
                     let object = iri.as_str();
+                    let subject = subject_iri.as_str().to_owned();
+
+                    // Split subjects by whether their rdf:type is a
+                    // recognized SBOL 2 / PROV / OM class. A subject with
+                    // only a custom (foreign-namespace) type is a
+                    // GenericTopLevel candidate.
+                    if object.starts_with(v2::SBOL2_NS)
+                        || object.starts_with(v3::PROV_NS)
+                        || object.starts_with(v3::OM_NS)
+                    {
+                        recognized_typed.insert(subject.clone());
+                    } else {
+                        custom_typed.insert(subject.clone());
+                    }
+
                     // Capture SBOL 2 types directly, plus the PROV top-level
                     // classes (Activity / Agent / Plan) that SBOL 2 documents
                     // commonly carry alongside SBOL 2 typed objects (e.g.
@@ -93,7 +132,6 @@ impl<'a> Engine<'a> {
                         || object == v3::PROV_AGENT_CLASS
                         || object == v3::PROV_PLAN
                     {
-                        let subject = subject_iri.as_str().to_owned();
                         let should_replace =
                             self.typed_subjects.get(&subject).is_none_or(|existing| {
                                 type_precedence(object) > type_precedence(existing)
@@ -152,12 +190,46 @@ impl<'a> Engine<'a> {
             }
         }
 
-        if !self
+        // Reject only when the document has NEITHER an SBOL 2 predicate NOR a
+        // recognized SBOL 2 / PROV / OM rdf:type. Genuine SBOL 3 and non-SBOL
+        // input carry no SBOL 2 predicates and land here.
+        // An empty graph is trivially a valid (empty) SBOL 2 document — and a
+        // valid empty SBOL 3 document — so it upgrades to empty rather than
+        // being rejected. Only a graph that carries triples yet none of the
+        // SBOL 2 markers (i.e. genuine SBOL 3 or non-SBOL input) is rejected.
+        let has_recognized_type = self
             .typed_subjects
             .values()
-            .any(|t| t.starts_with(v2::SBOL2_NS))
-        {
+            .any(|t| t.starts_with(v2::SBOL2_NS) || is_prov_top_level(t))
+            || !recognized_typed.is_empty();
+        let is_empty = self.input.triples().is_empty();
+        if !is_empty && !saw_sbol2_predicate && !has_recognized_type {
             return Err(UpgradeError::NotSbol2);
+        }
+
+        // Custom-typed subjects that carry SBOL 2 identity properties but no
+        // recognized SBOL 2 / PROV / OM type are GenericTopLevels: SBOL 3 has
+        // no GenericTopLevel class, so the custom rdf:type is retained and the
+        // subject is treated as an SBOL 3 top-level (it needs `hasNamespace`).
+        // A subject nested under another identified subject is a child, not a
+        // top-level, so it is excluded.
+        let identity_prefixes: HashSet<String> = sbol2_identified
+            .iter()
+            .map(|iri| format!("{}/", self.identity.rewrite_iri(iri)))
+            .collect();
+        for subject in &sbol2_identified {
+            if !custom_typed.contains(subject) || recognized_typed.contains(subject) {
+                continue;
+            }
+            let canonical = self.identity.rewrite_iri(subject).to_owned();
+            // A subject never starts with its own `{iri}/` prefix, so this
+            // flags only subjects genuinely nested under a different one.
+            let is_child = identity_prefixes
+                .iter()
+                .any(|prefix| canonical.starts_with(prefix.as_str()));
+            if !is_child {
+                self.generic_top_levels.insert(canonical);
+            }
         }
 
         // Second pass to resolve SA-with-component: `sbol2:component` is
