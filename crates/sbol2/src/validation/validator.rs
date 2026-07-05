@@ -538,6 +538,35 @@ impl<'a> Validator<'a> {
             }
         }
 
+        // 12903: an enumerate CombinatorialDerivation must not contain a
+        // VariableComponent whose operator is zeroOrMore or oneOrMore.
+        if object.has_class(Sbol2Class::CombinatorialDerivation)
+            && object
+                .resources(SBOL2_STRATEGY)
+                .any(|r| r.as_iri().is_some_and(|iri| iri.as_str() == SBOL2_ENUMERATE))
+        {
+            let mut offending = false;
+            for vc_ref in object.resources(SBOL2_VARIABLE_COMPONENT) {
+                let Some(vc) = self.document.get(vc_ref) else {
+                    continue;
+                };
+                if vc.resources(SBOL2_OPERATOR).any(|r| {
+                    r.as_iri()
+                        .is_some_and(|iri| matches!(iri.as_str(), SBOL2_OP_ZERO_OR_MORE | SBOL2_OP_ONE_OR_MORE))
+                }) {
+                    offending = true;
+                }
+            }
+            if offending {
+                self.error(
+                    "sbol2-12903",
+                    object,
+                    Some(SBOL2_STRATEGY),
+                    "an enumerate CombinatorialDerivation must not use a zeroOrMore or oneOrMore operator",
+                );
+            }
+        }
+
         // 10522: no two SequenceAnnotations of a ComponentDefinition may refer
         // to the same Component.
         if object.has_class(Sbol2Class::ComponentDefinition) {
@@ -1139,6 +1168,30 @@ impl<'a> Validator<'a> {
                     object,
                     Some(predicate),
                     format!("`{predicate}` refers to `{iri}`, which is not the required class"),
+                );
+            }
+        }
+
+        // 10807: the ComponentInstance named by a MapsTo remote must have
+        // public access.
+        if object.has_class(Sbol2Class::MapsTo) {
+            let mut bad = Vec::new();
+            for value in object.resources(SBOL2_REMOTE) {
+                let Some(iri) = value.as_iri() else { continue };
+                if let Some(remote) = self.resolve(iri.as_str())
+                    && !remote
+                        .resources(SBOL2_ACCESS)
+                        .any(|r| r.as_iri().is_some_and(|a| a.as_str() == SBOL2_PUBLIC))
+                {
+                    bad.push(iri.as_str().to_owned());
+                }
+            }
+            for iri in bad {
+                self.error(
+                    "sbol2-10807",
+                    object,
+                    Some(SBOL2_REMOTE),
+                    format!("the MapsTo remote `{iri}` must have public access"),
                 );
             }
         }
