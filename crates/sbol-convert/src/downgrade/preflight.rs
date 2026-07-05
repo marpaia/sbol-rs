@@ -177,6 +177,15 @@ impl<'a> Engine<'a> {
             }
         }
 
+        // `sbol3:hasNamespace` is carried by (and only by) SBOL 3 top-level
+        // objects. Custom-typed GenericTopLevels have no typed accessor above,
+        // so pick them up here: any subject with `hasNamespace` is a
+        // top-level and needs its SBOL 2 identity (persistent identity /
+        // version) restored.
+        for subject in self.sbol3_namespaces.keys().cloned().collect::<Vec<_>>() {
+            self.top_levels.insert(subject);
+        }
+
         // Unknown future SBOL 2 classes are archived by the upgrade as a
         // backport type but have no SBOL 3 class triple. Treat those
         // backport-only root subjects as top-levels so identity restoration
