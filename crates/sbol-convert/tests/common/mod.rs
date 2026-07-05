@@ -3,6 +3,7 @@
 //! on-disk fixtures without racing each other during `cargo test --workspace`.
 #![allow(dead_code)]
 
+pub mod corpus;
 pub mod downgrade;
 pub mod upgrade;
 
