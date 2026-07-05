@@ -1,12 +1,10 @@
 use std::env;
 use std::process::ExitCode;
 
-use sbol::v3::{
-    Blocker, NormativeSeverity, RuleStatus, ValidationRuleStatus, validation_rule_statuses,
-};
+use sbol::v3::{Blocker, NormativeSeverity, RuleStatus, ValidationRuleStatus};
 use serde_json::{Value, json};
 
-use crate::cli::{RuleStatusFilter, RulesCommand, RulesFormat, RulesListArgs};
+use crate::cli::{CatalogVersionArg, RuleStatusFilter, RulesCommand, RulesFormat, RulesListArgs};
 use crate::style::{Styles, paint, rule_status_code};
 
 pub(crate) fn rules(command: RulesCommand, styles: Styles) -> ExitCode {
@@ -16,7 +14,11 @@ pub(crate) fn rules(command: RulesCommand, styles: Styles) -> ExitCode {
 }
 
 fn rules_list(args: RulesListArgs, styles: Styles) -> ExitCode {
-    let statuses: Vec<&ValidationRuleStatus> = validation_rule_statuses()
+    let catalog: &[ValidationRuleStatus] = match args.sbol_version {
+        CatalogVersionArg::V2 => sbol::v2::validation::validation_rule_statuses(),
+        CatalogVersionArg::V3 => sbol::v3::validation_rule_statuses(),
+    };
+    let statuses: Vec<&ValidationRuleStatus> = catalog
         .iter()
         .filter(|status| status_matches_filter(status.status, args.status))
         .collect();
