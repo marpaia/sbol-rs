@@ -51,6 +51,7 @@ impl<'a> Validator<'a> {
             self.validate_controlled_values(object);
             self.validate_value_bounds(object);
             self.validate_derivation_cycles(object);
+            self.validate_containment(object);
         }
 
         // Always: whole-document checks.
@@ -497,6 +498,200 @@ impl<'a> Validator<'a> {
         None
     }
 
+    /// Cross-object containment: the Component/FunctionalComponent references
+    /// carried by SequenceAnnotation, SequenceConstraint, Participation, and
+    /// MapsTo must point at instances contained by the appropriate parent
+    /// definition.
+    fn validate_containment(&mut self, object: &Object) {
+        if object.has_class(Sbol2Class::SequenceConstraint) {
+            self.validate_sequence_constraint(object);
+        }
+        if object.has_class(Sbol2Class::SequenceAnnotation) {
+            // 10905: the referenced Component must belong to the containing CD.
+            let missing = match object.first_resource(SBOL2_COMPONENT).and_then(Resource::as_iri) {
+                Some(component) => match self.container_by(object, SBOL2_SEQUENCE_ANNOTATION) {
+                    Some(cd) => !self.lists(cd, SBOL2_COMPONENT, component.as_str()),
+                    None => false,
+                },
+                None => false,
+            };
+            if missing {
+                self.error(
+                    "sbol2-10905",
+                    object,
+                    Some(SBOL2_COMPONENT),
+                    "the Component of a SequenceAnnotation must be contained by its ComponentDefinition",
+                );
+            }
+        }
+        if object.has_class(Sbol2Class::Participation) {
+            // 12003: the participant FunctionalComponent must belong to the
+            // ModuleDefinition that contains the Interaction of the Participation.
+            let missing = match object.first_resource(SBOL2_PARTICIPANT).and_then(Resource::as_iri) {
+                Some(participant) => match self.container_by(object, SBOL2_PARTICIPATION) {
+                    Some(interaction) => match self.container_by(interaction, SBOL2_INTERACTION) {
+                        Some(md) => !self.lists(md, SBOL2_FUNCTIONAL_COMPONENT, participant.as_str()),
+                        None => false,
+                    },
+                    None => false,
+                },
+                None => false,
+            };
+            if missing {
+                self.error(
+                    "sbol2-12003",
+                    object,
+                    Some(SBOL2_PARTICIPANT),
+                    "the participant of a Participation must be a FunctionalComponent of the ModuleDefinition",
+                );
+            }
+        }
+        if object.has_class(Sbol2Class::MapsTo) {
+            self.validate_maps_to_local(object);
+        }
+    }
+
+    fn validate_sequence_constraint(&mut self, object: &Object) {
+        let subject = object.first_resource(SBOL2_SUBJECT).and_then(Resource::as_iri);
+        let obj = object.first_resource(SBOL2_OBJECT).and_then(Resource::as_iri);
+        // 11406: subject and object must not be the same Component.
+        if let (Some(subject), Some(obj)) = (subject, obj)
+            && subject.as_str() == obj.as_str()
+        {
+            self.error(
+                "sbol2-11406",
+                object,
+                Some(SBOL2_OBJECT),
+                "the object of a SequenceConstraint must not be the same Component as its subject",
+            );
+        }
+        let Some(cd) = self.container_by(object, SBOL2_SEQUENCE_CONSTRAINT) else {
+            return;
+        };
+        // 11403 / 11405: subject and object must be Components of the CD.
+        let subject_missing =
+            subject.map(|s| !self.lists(cd, SBOL2_COMPONENT, s.as_str())).unwrap_or(false);
+        let object_missing =
+            obj.map(|o| !self.lists(cd, SBOL2_COMPONENT, o.as_str())).unwrap_or(false);
+        // 11413: under differentFrom, subject and object Components must not
+        // resolve to the same ComponentDefinition.
+        let is_different_from = object
+            .first_resource(SBOL2_RESTRICTION)
+            .and_then(Resource::as_iri)
+            .is_some_and(|iri| iri.as_str() == SBOL2_DIFFERENT_FROM);
+        let same_definition = is_different_from
+            && match (subject, obj) {
+                (Some(s), Some(o)) => {
+                    match (self.definition_of(s.as_str()), self.definition_of(o.as_str())) {
+                        (Some(sd), Some(od)) => sd == od,
+                        _ => false,
+                    }
+                }
+                _ => false,
+            };
+        if subject_missing {
+            self.error(
+                "sbol2-11403",
+                object,
+                Some(SBOL2_SUBJECT),
+                "the subject of a SequenceConstraint must be a Component of its ComponentDefinition",
+            );
+        }
+        if object_missing {
+            self.error(
+                "sbol2-11405",
+                object,
+                Some(SBOL2_OBJECT),
+                "the object of a SequenceConstraint must be a Component of its ComponentDefinition",
+            );
+        }
+        if same_definition {
+            self.error(
+                "sbol2-11413",
+                object,
+                None,
+                "a differentFrom SequenceConstraint must relate Components with different definitions",
+            );
+        }
+    }
+
+    fn validate_maps_to_local(&mut self, object: &Object) {
+        let Some(local) = object.first_resource(SBOL2_LOCAL).and_then(Resource::as_iri) else {
+            return;
+        };
+        let Some(owner) = self.container_by(object, SBOL2_MAPS_TO) else {
+            return;
+        };
+        // The owning instance sits in a ComponentDefinition (as a Component) or a
+        // ModuleDefinition (as a FunctionalComponent or Module).
+        let owner_id = owner.identity().as_iri().map(|iri| iri.as_str().to_owned());
+        let Some(owner_id) = owner_id else {
+            return;
+        };
+        let local = local.as_str().to_owned();
+        if let Some(cd) = self.definition_containing(&owner_id, SBOL2_COMPONENT) {
+            // 10803: local must refer to another Component in the same CD.
+            let missing = !self.lists(cd, SBOL2_COMPONENT, &local);
+            if missing {
+                self.error(
+                    "sbol2-10803",
+                    object,
+                    Some(SBOL2_LOCAL),
+                    "the local of a MapsTo must refer to a Component in the same ComponentDefinition",
+                );
+            }
+        } else if let Some(md) = self
+            .definition_containing(&owner_id, SBOL2_FUNCTIONAL_COMPONENT)
+            .or_else(|| self.definition_containing(&owner_id, SBOL2_MODULE))
+        {
+            // 10804: local must refer to a FunctionalComponent in the same MD.
+            let missing = !self.lists(md, SBOL2_FUNCTIONAL_COMPONENT, &local);
+            if missing {
+                self.error(
+                    "sbol2-10804",
+                    object,
+                    Some(SBOL2_LOCAL),
+                    "the local of a MapsTo must refer to a FunctionalComponent in the same ModuleDefinition",
+                );
+            }
+        }
+    }
+
+    /// The object that lists `child`'s identity in its `predicate` property.
+    fn container_by(&self, child: &Object, predicate: &str) -> Option<&Object> {
+        let child_id = child.identity().as_iri()?.as_str();
+        self.definition_containing(child_id, predicate)
+    }
+
+    /// The object whose `predicate` property lists `child_id`.
+    fn definition_containing(&self, child_id: &str, predicate: &str) -> Option<&Object> {
+        self.document.objects().values().find(|candidate| {
+            candidate
+                .resources(predicate)
+                .any(|r| r.as_iri().is_some_and(|iri| iri.as_str() == child_id))
+        })
+    }
+
+    /// Whether `container`'s `predicate` property lists `target`.
+    fn lists(&self, container: &Object, predicate: &str, target: &str) -> bool {
+        container
+            .resources(predicate)
+            .any(|r| r.as_iri().is_some_and(|iri| iri.as_str() == target))
+    }
+
+    /// The definition URI of the ComponentInstance identified by `instance`.
+    fn definition_of(&self, instance: &str) -> Option<String> {
+        let object = self
+            .document
+            .objects()
+            .values()
+            .find(|o| o.identity().as_iri().is_some_and(|iri| iri.as_str() == instance))?;
+        object
+            .first_resource(SBOL2_DEFINITION)
+            .and_then(Resource::as_iri)
+            .map(|iri| iri.as_str().to_owned())
+    }
+
     fn integer(&self, object: &Object, predicate: &str) -> Option<i64> {
         object
             .values(predicate)
@@ -886,6 +1081,7 @@ fn closed_property_rule(object: &Object) -> Option<&'static str> {
         .map(|(_, rule)| *rule)
 }
 
+const SBOL2_DIFFERENT_FROM: &str = "http://sbols.org/v2#differentFrom";
 const SBOL2_MERGE_ROLES: &str = "http://sbols.org/v2#mergeRoles";
 const SBOL2_OVERRIDE_ROLES: &str = "http://sbols.org/v2#overrideRoles";
 const SBOL2_VERIFY_IDENTICAL: &str = "http://sbols.org/v2#verifyIdentical";
