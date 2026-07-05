@@ -1,6 +1,8 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
+use sbol_core::document::{ObjectStore, RawDocument};
+
 use crate::client::{
     Activity, Agent, Association, Attachment, BinaryPrefix, Collection, CombinatorialDerivation,
     Component, ComponentReference, CompoundUnit, Constraint, Cut, EntireSequence, Experiment,
@@ -19,8 +21,7 @@ use crate::{Object, RdfFormat, RdfGraph, Resource};
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub struct Document {
-    graph: RdfGraph,
-    objects: BTreeMap<Resource, Object>,
+    raw: RawDocument,
     typed: Vec<SbolObject>,
 }
 
@@ -122,8 +123,7 @@ impl Document {
             .filter_map(SbolObject::try_from_object)
             .collect();
         Self {
-            graph,
-            objects,
+            raw: RawDocument::from_parts(graph, objects),
             typed,
         }
     }
@@ -134,37 +134,31 @@ impl Document {
         typed: Vec<SbolObject>,
     ) -> Self {
         Self {
-            graph,
-            objects,
+            raw: RawDocument::from_parts(graph, objects),
             typed,
         }
     }
 
     /// Serializes the document in the given RDF format.
     pub fn write(&self, format: RdfFormat) -> Result<String, WriteError> {
-        self.graph.write(format).map_err(WriteError::Rdf)
+        self.raw.write(format)
     }
 
     /// Writes the document to a file in the given RDF format. The caller
     /// chooses the format explicitly; no inference from the path's
     /// extension is performed.
     pub fn write_path(&self, path: impl AsRef<Path>, format: RdfFormat) -> Result<(), WriteError> {
-        let path = path.as_ref();
-        let serialized = self.write(format)?;
-        std::fs::write(path, serialized).map_err(|source| WriteError::Io {
-            path: path.to_path_buf(),
-            source,
-        })
+        self.raw.write_path(path, format)
     }
 
     /// Serializes the underlying RDF graph as Turtle.
     pub fn write_turtle(&self) -> Result<String, WriteError> {
-        self.write(RdfFormat::Turtle)
+        self.raw.write_turtle()
     }
 
     /// Returns the underlying RDF graph.
     pub fn rdf_graph(&self) -> &RdfGraph {
-        &self.graph
+        self.raw.rdf_graph()
     }
 
     /// Returns RDF-backed objects indexed by identity.
@@ -174,12 +168,12 @@ impl Document {
     /// have an owned typed representation. For SBOL classes with an owned
     /// surface, prefer [`Document::components`] and friends.
     pub fn objects(&self) -> &BTreeMap<Resource, Object> {
-        &self.objects
+        self.raw.objects()
     }
 
     /// Returns the RDF-backed object at `identity`, if any.
     pub fn get(&self, identity: &Resource) -> Option<&Object> {
-        self.objects.get(identity)
+        self.raw.get(identity)
     }
 
     /// Returns the owned typed SBOL objects in the document, in identity order.
@@ -356,6 +350,16 @@ impl Document {
         context: ValidationContext<'_>,
     ) -> Result<ValidationReport, ValidationReport> {
         check_outcome(self.validate_with_context(context), true)
+    }
+}
+
+impl ObjectStore for Document {
+    fn objects(&self) -> &BTreeMap<Resource, Object> {
+        self.raw.objects()
+    }
+
+    fn get(&self, identity: &Resource) -> Option<&Object> {
+        self.raw.get(identity)
     }
 }
 

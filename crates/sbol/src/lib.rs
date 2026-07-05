@@ -151,6 +151,7 @@ pub use client::{
 };
 pub use conformance::render_conformance_report;
 pub use document::{Document, UpgradeFromPathError};
+pub use sbol_core::document::{ObjectStore, RawDocument};
 pub use downgrade::{
     DowngradeCounts, DowngradeError, DowngradeOptions, DowngradeReport, DowngradeWarning,
     sbol3_to_sbol2,
