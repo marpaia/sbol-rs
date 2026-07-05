@@ -3,7 +3,7 @@
 Each file in this directory is an Architecture Decision Record for a
 single SBOL 3.1.0 validation rule whose semantics the spec leaves under-
 specified. The validator's `PolicyOptions` (in
-`crates/sbol/src/validation/options.rs`) carries one tunable per theme,
+`crates/sbol3/src/validation/options.rs`) carries one tunable per theme,
 and each tunable's variants map onto the decisions captured here.
 
 ## Format
@@ -31,6 +31,6 @@ Each ADR follows the same 5-section structure:
 
 ## Build-script gate
 
-`crates/sbol/build.rs` enforces that every rule with `blocker = "Policy"`
+`crates/sbol3/build.rs` enforces that every rule with `blocker = "Policy"`
 has a corresponding `docs/policies/<rule-id>.md` file. Drift fails the
 build with the offending rule ID, not a generic missing-file error.

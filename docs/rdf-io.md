@@ -55,7 +55,7 @@ via `Document::read` if your input comes through an ambiguous channel.
 `ReadError` and `WriteError` are both `#[non_exhaustive]`:
 
 ```rust
-use sbol::ReadError;
+use sbol::v3::ReadError;
 
 match Document::read_path(&path) {
     Ok(document) => { /* ... */ }
@@ -95,7 +95,7 @@ four committed reference files:
 <stem>.libSBOLj3.expected.nt
 ```
 
-`cargo test -p sbol --test cross_impl` parses each reference in its own
+`cargo test -p sbol3 --test cross_impl` parses each reference in its own
 format and asserts the normalized triple set matches what sbol-rs
 produces by serializing the same source fixture in that format. CI
 needs nothing besides `cargo test`; no Docker, no JDK.
@@ -170,5 +170,7 @@ swapping backends doesn't ripple into the public `sbol` API surface.
 - **Canonical / pretty serialization.** Triple order is insertion
   order; prefix layout follows oxrdfio defaults. Diff-friendly
   canonical Turtle is a separate, post-0.1.0 concern.
-- **SBOL 1 / SBOL 2 import/export.** Out of scope for this crate;
-  belongs in a future migration crate. See the roadmap.
+- **SBOL 2 ⇄ SBOL 3 conversion.** Out of scope for the I/O layer; it
+  lives in [`sbol-convert`](../crates/sbol-convert/) and is documented in
+  [`conversion.md`](conversion.md). This page covers the shared RDF
+  serialization surface, which both versions use.

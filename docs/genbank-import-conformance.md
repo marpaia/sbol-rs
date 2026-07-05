@@ -215,7 +215,7 @@ tests/fixtures/genbank/
 
 [`crates/sbol-genbank/examples/genbank_to_sbol3.rs`](../crates/sbol-genbank/examples/genbank_to_sbol3.rs)
 runs the four-stage pipeline end-to-end — parse the `.gb` file with
-`gb-io`, import into a native `sbol::Document`, validate against the
+`gb-io`, import into a native `sbol3::Document`, validate against the
 SBOL 3.1.0 spec rules, serialize to disk in the user-chosen RDF
 format, and then round-trip that file back through
 `Document::read_path` to confirm the graph is stable.

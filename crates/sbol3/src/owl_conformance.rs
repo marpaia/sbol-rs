@@ -1,4 +1,4 @@
-//! Schema-conformance machinery for comparing `crates/sbol/src/vocab.rs`
+//! Schema-conformance machinery for comparing `crates/sbol3/src/vocab.rs`
 //! against the upstream SBOL 3 OWL document (`sbol-owl3`).
 //!
 //! The data this module operates on:
@@ -39,7 +39,7 @@ const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
 
-/// IRIs declared by the upstream OWL that `crates/sbol/src/vocab.rs`
+/// IRIs declared by the upstream OWL that `crates/sbol3/src/vocab.rs`
 /// intentionally does not surface as constants. Every entry must carry
 /// a one-line reason a future maintainer can re-evaluate without
 /// re-deriving it from the spec.
@@ -414,7 +414,7 @@ pub const OWL_ONLY_ALLOWLIST: &[(&str, &str)] = &[
     ),
 ];
 
-/// IRIs `crates/sbol/src/vocab.rs` exposes that the pinned OWL does not.
+/// IRIs `crates/sbol3/src/vocab.rs` exposes that the pinned OWL does not.
 /// Every entry must cite the SBOL 3.1.0 spec section that legitimizes
 /// it; if you cannot point at the spec, the constant is almost
 /// certainly a bug (see the `#zero` / `#none` removals in `CHANGELOG.md`
@@ -501,7 +501,7 @@ pub fn extract_owl_identifiers(rdf_xml: &str) -> Result<OwlIdentifiers, String> 
 }
 
 /// Returns every `http://sbols.org/v3#X` IRI (X non-empty) declared as a
-/// string literal in `crates/sbol/src/vocab.rs`. Compiled in at build
+/// string literal in `crates/sbol3/src/vocab.rs`. Compiled in at build
 /// time.
 pub fn extract_vocab_iris() -> BTreeSet<String> {
     extract_vocab_iris_from(VOCAB_SOURCE)
@@ -654,7 +654,7 @@ pub fn render_owl_conformance_report(
         "Authoritative model source: SBOL 3.1.0 PDF (`spec/SBOL3.1.0.md`).\n\
          Cross-check source: SBOL OWL published by \
          [SynBioDex/sbol-owl3](https://github.com/SynBioDex/sbol-owl3).\n\
-         Compared against: `crates/sbol/src/vocab.rs`.\n\n",
+         Compared against: `crates/sbol3/src/vocab.rs`.\n\n",
     );
     out.push_str("See [`docs/ontology-conformance.md`](ontology-conformance.md) ");
     out.push_str("for the design and triage flow.\n\n");
@@ -775,7 +775,7 @@ pub fn render_owl_conformance_report(
 
     out.push_str("## Intentional omissions from `vocab.rs`\n\n");
     out.push_str(
-        "Entries from [`OWL_ONLY_ALLOWLIST`](../crates/sbol/src/owl_conformance.rs). \
+        "Entries from [`OWL_ONLY_ALLOWLIST`](../crates/sbol3/src/owl_conformance.rs). \
          These are IRIs the upstream \
          OWL declares for modeling purposes that `vocab.rs` deliberately \
          does not surface — abstract OWL super-properties whose subclasses \
@@ -800,7 +800,7 @@ pub fn render_owl_conformance_report(
 
     out.push_str("## Spec-mandated values missing from the pinned OWL\n\n");
     out.push_str(
-        "Entries from [`RUST_ONLY_ALLOWLIST`](../crates/sbol/src/owl_conformance.rs). \
+        "Entries from [`RUST_ONLY_ALLOWLIST`](../crates/sbol3/src/owl_conformance.rs). \
          Each IRI is enumerated in a specific table of the SBOL 3.1.0 PDF \
          — which is the authoritative source — but the pinned OWL does not \
          declare it. These are likely upstream defects rather than \

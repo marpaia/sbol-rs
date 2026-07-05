@@ -247,15 +247,15 @@ Callers wanting a strict CI gate use `Document::check_complete` (or the CLI's `-
 
 These claims are provisional and describe what is currently exercised by the test suite. Release-grade profile boundaries will be finalized before the first crates.io publish.
 
-- **Structural import / export**: Turtle parse and serialize for the SBOLTestSuite fixture corpus is exercised by `representative_fixtures_round_trip_as_normalized_rdf` in `crates/sbol/tests/sbol3_fixtures.rs`.
+- **Structural import / export**: Turtle parse and serialize for the SBOLTestSuite fixture corpus is exercised by `representative_fixtures_round_trip_as_normalized_rdf` in `crates/sbol3/tests/sbol3_fixtures.rs`.
 - **Lossless RDF round-trip**: Parse → write → reparse yields equal normalized triple sets for every representative fixture.
 - **Typed round-trip with extension preservation**: `typed_round_trip_preserves_extension_triples_on_typed_objects` verifies that non-SBOL/PROV/OM predicates survive a typed rebuild.
 - **Cross-implementation RDF I/O equivalence vs libSBOLj3**: 33 SBOLTestSuite SBOL3 fixtures (the full valid-input set in `tests/sbol3_fixtures_manifest.tsv`) parse and serialize to normalized triple sets identical to libSBOLj3 1.0.5.2 reference output. CI runs `cargo test --test cross_impl` against committed `*.libSBOLj3.expected.ttl` files in `tests/fixtures/cross-impl/`. This compares parser/serializer output only; the two libraries' validator outputs have not been systematically compared.
-- **Property-based testing**: `crates/sbol/tests/properties.rs` exercises eight spec-derived properties under `proptest` at the default case count, including catalog coverage partitioning and override-builder semantics.
+- **Property-based testing**: `crates/sbol3/tests/properties.rs` exercises eight spec-derived properties under `proptest` at the default case count, including catalog coverage partitioning and override-builder semantics.
 - **Fuzz coverage**: `cargo fuzz run read_turtle`, `cargo fuzz run round_trip`, `cargo fuzz run validate`, and `cargo fuzz run round_trip_validate` (see `fuzz/`) exercise the parser and validator under libFuzzer. CI smoke runs the parser targets for 60s each; the validator targets are local-only until corpus and budget are tuned.
 
 ## Per-rule regression cases
 
-Every rule with an algorithm has at least one regression case in `crates/sbol/tests/rule_cases/`, organized by spec section. The catalog is enforced by `implemented_validation_rules_have_regression_cases` and `validation_rule_regression_cases_report_expected_rule_ids` in `crates/sbol/tests/validation_rules.rs`.
+Every rule with an algorithm has at least one regression case in `crates/sbol3/tests/rule_cases/`, organized by spec section. The catalog is enforced by `implemented_validation_rules_have_regression_cases` and `validation_rule_regression_cases_report_expected_rule_ids` in `crates/sbol3/tests/validation_rules.rs`.
 
 Selected high-value clusters also have positive cases (the rule must NOT fire on a valid example), verified by `positive_rule_cases_do_not_report_their_rule`.
