@@ -1,0 +1,74 @@
+{
+  "features": [
+    {
+      "key": "CDS",
+      "spans": [
+        [
+          1,
+          88,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          1,
+          200,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          89,
+          126,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "promoter",
+      "spans": [
+        [
+          137,
+          142,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "promoter",
+      "spans": [
+        [
+          161,
+          166,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          166,
+          200,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          173,
+          173,
+          1
+        ]
+      ]
+    }
+  ]
+}

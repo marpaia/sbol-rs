@@ -1193,6 +1193,7 @@ version = "0.2.1"
 dependencies = [
  "sbol-rdf",
  "sbol3",
+ "serde_json",
  "tempfile",
  "thiserror",
 ]
@@ -1205,6 +1206,7 @@ dependencies = [
  "sbol-convert",
  "sbol-rdf",
  "sbol3",
+ "serde_json",
  "tempfile",
  "thiserror",
 ]

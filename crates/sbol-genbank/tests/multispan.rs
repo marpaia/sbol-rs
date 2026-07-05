@@ -11,7 +11,7 @@
 
 use std::path::PathBuf;
 
-use sbol3::{LocationRef, RdfFormat, SbolIdentified, SbolTopLevel, Severity};
+use sbol3::{LocationRef, RdfFormat, Severity};
 use sbol_genbank::{GenbankImporter, ImportWarning};
 
 const INLINE: &str = "http://sbols.org/v3#inline";
@@ -45,10 +45,7 @@ fn assert_no_validation_errors(document: &sbol3::Document, name: &str) {
 /// Returns a feature's Ranges as ordered `(start, end, orientation)`
 /// tuples, preserving the order the importer emitted them (which mirrors
 /// the textual span order in the GenBank location).
-fn ranges_of(
-    document: &sbol3::Document,
-    feature_display_id: &str,
-) -> Vec<(i64, i64, String)> {
+fn ranges_of(document: &sbol3::Document, feature_display_id: &str) -> Vec<(i64, i64, String)> {
     let identity = format!("https://example.org/lab/MULTISPAN/{feature_display_id}");
     let sf = document
         .sequence_features()
@@ -78,10 +75,7 @@ fn multi_exon_join_yields_ordered_inline_ranges() {
     // join(1..6,16..24): two inline spans, first span first.
     assert_eq!(
         ranges_of(&document, "exon_join"),
-        vec![
-            (1, 6, INLINE.to_owned()),
-            (16, 24, INLINE.to_owned()),
-        ]
+        vec![(1, 6, INLINE.to_owned()), (16, 24, INLINE.to_owned())]
     );
 }
 
@@ -104,7 +98,7 @@ fn complement_of_join_marks_every_span_reverse_complement() {
         ranges_of(&document, "rev_join"),
         vec![
             (1, 6, REVERSE_COMPLEMENT.to_owned()),
-            (16, 24, REVERSE_COMPLEMENT.to_owned()),
+            (16, 24, REVERSE_COMPLEMENT.to_owned())
         ]
     );
 }
@@ -118,7 +112,7 @@ fn join_of_complement_mixes_orientations_per_span() {
         ranges_of(&document, "mixed_join"),
         vec![
             (1, 6, REVERSE_COMPLEMENT.to_owned()),
-            (16, 24, INLINE.to_owned()),
+            (16, 24, INLINE.to_owned())
         ]
     );
 }
@@ -131,10 +125,7 @@ fn order_lowers_like_join_to_inline_ranges() {
     // carried into SBOL 3.
     assert_eq!(
         ranges_of(&document, "ordered"),
-        vec![
-            (1, 6, INLINE.to_owned()),
-            (16, 24, INLINE.to_owned()),
-        ]
+        vec![(1, 6, INLINE.to_owned()), (16, 24, INLINE.to_owned())]
     );
 }
 
@@ -143,11 +134,12 @@ fn between_site_is_dropped_with_a_lossy_warning() {
     let (document, report) = import("multispan.gb");
     // A `7^8` between-residues site has no SBOL 3 Range equivalent; the
     // feature is skipped and a LossyLocation warning is recorded.
+    let identities: Vec<&str> = document
+        .sequence_features()
+        .filter_map(|sf| sf.identity.as_iri().map(|i| i.as_str()))
+        .collect();
     assert!(
-        document
-            .sequence_features()
-            .all(|sf| sf.identity.as_iri().map(|i| i.as_str())
-                != Some("https://example.org/lab/MULTISPAN/between_site")),
+        !identities.contains(&"https://example.org/lab/MULTISPAN/between_site"),
         "the between-site feature must be dropped"
     );
     assert!(
@@ -190,10 +182,10 @@ fn gap_and_external_locations_are_lossy_but_do_not_abort_the_record() {
     );
     // The well-formed control CDS still imports as a single inline span.
     assert_eq!(report.features, 1);
+    let target = "https://example.org/lab/LOSSY/ok_control";
     let ok = document
         .sequence_features()
-        .find(|sf| sf.identity.as_iri().map(|i| i.as_str())
-            == Some("https://example.org/lab/LOSSY/ok_control"))
+        .find(|sf| sf.identity.as_iri().map(|i| i.as_str()) == Some(target))
         .expect("control feature missing");
     let ranges: Vec<_> = ok
         .locations(&document)

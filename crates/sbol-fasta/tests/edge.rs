@@ -2,7 +2,7 @@
 //! RNA/DNA/protein detection boundary, empty records, and non-UTF-8
 //! bytes. Each test pins documented behavior rather than a panic.
 
-use sbol3::{SbolIdentified, SbolTopLevel, Severity};
+use sbol3::Severity;
 use sbol_fasta::{FastaImporter, ImportError, ImportWarning};
 
 fn importer() -> FastaImporter {

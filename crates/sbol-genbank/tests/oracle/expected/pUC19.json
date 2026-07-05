@@ -1,0 +1,74 @@
+{
+  "features": [
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          1,
+          447,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          1,
+          230,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          233,
+          289,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          290,
+          447,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          448,
+          547,
+          -1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          548,
+          684,
+          -1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          685,
+          2686,
+          -1
+        ]
+      ]
+    }
+  ]
+}
