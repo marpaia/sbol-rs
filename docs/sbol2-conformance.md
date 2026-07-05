@@ -10,16 +10,18 @@ The catalog is the libSBOLj machine ruleset: the 268 numbered SBOL 2 validation 
 
 ## Headline coverage
 
-**All 239 of 239 machine-checkable rules carry validation logic** — none are marked `Unimplemented` (100.0%). This is the catalog-level view. The authoritative per-rule signal is the empirical negative-corpus enforcement reported under [InvalidFiles](#invalidfiles--per-rule-negative-corpus) below; the `Deferred` rows there record the rules whose SBOLTestSuite fixture is not yet strictly rejected (SHOULD-level best-practice warnings and rules that require cross-document resolution).
+**Every one of the 222 machine-checkable rules is backed by a firing negative fixture and a non-firing positive fixture.** Each rule has a hermetic, minimal SBOL 2 document that violates exactly that rule and is asserted to report it at the catalog severity (MUST rules as errors, SHOULD rules as warnings), plus a valid instance of the same construct asserted not to report it — all evaluated under `ValidationConfig::all_on()`. The suite fails at build time if any machine-checkable rule lacks either fixture, so the 222/222 coverage is enforced, not asserted. The per-rule matrix is committed at [`sbol2-negative-coverage.md`](sbol2-negative-coverage.md) and the fixtures live in `crates/sbol2/tests/rule_cases/`; this matches the SBOL 3 validator's standard in [`negative-coverage.md`](negative-coverage.md).
 
-The catalog tracks all 268 SBOL 2.3.0 validation rules. 29 carry the ▲ status: conditions the spec does not expect a tool to machine-report (they depend on ontology membership, external resolution, or human judgement). Those are tracked separately from the headline percentage: the runtime signals them as `RuleCoverage::not_applied { MachineUncheckable }`, and the validator emits at most warnings (never errors) when its local subset can decide a sub-case.
+All 222 of the 222 machine-checkable rules carry validation logic — none are marked `Unimplemented` (100.0%). The empirical SBOLTestSuite negative corpus is reported separately under [InvalidFiles](#invalidfiles--per-rule-negative-corpus) below; its `Deferred` rows record downloaded corpus fixtures not yet strictly error-rejected (SHOULD-level warnings, reader-scope cases, and the ▲ rules that require cross-document resolution), each of which nonetheless has a firing hermetic negative in the per-rule corpus above.
+
+The catalog tracks all 268 SBOL 2.3.0 validation rules. 46 carry the ▲ status: conditions the spec does not expect a tool to machine-report (they depend on ontology membership, external resolution, or human judgement). Those are tracked separately from the headline percentage: the runtime signals them as `RuleCoverage::not_applied { MachineUncheckable }`, and the validator emits at most warnings (never errors) when its local subset can decide a sub-case.
 
 | | Count |
 | --- | --- |
 | Total rules in catalog | 268 |
-| ▲ machine-uncheckable | 29 |
-| Machine-checkable | 239 |
-| &nbsp;&nbsp;→ with validation logic | **239** |
+| ▲ machine-uncheckable | 46 |
+| Machine-checkable | 222 |
+| &nbsp;&nbsp;→ with validation logic | **222** |
 | &nbsp;&nbsp;→ marked Unimplemented | **0** |
 
 ## Status taxonomy
@@ -28,10 +30,10 @@ Every rule classifies into one of five statuses shared with the SBOL 3 catalog. 
 
 | Status | Count | Algorithm | Diagnostics | Blocker meaning |
 | --- | --- | --- | --- | --- |
-| `Error` | 166 | Complete | Errors | (none) |
+| `Error` | 158 | Complete | Errors | (none) |
 | `Warning` | 30 | Complete | Warnings | (none) |
-| `Configurable` | 43 | Complete; scope or severity varies by config | Errors / Warnings per config | Which configuration axis: Resolver, Ontology snapshot, Policy, or External |
-| `MachineUncheckable` | 29 | May have local subset | Warnings only, on positively-decidable cases | Why the rule is ▲: Ontology, Policy, or External |
+| `Configurable` | 34 | Complete; scope or severity varies by config | Errors / Warnings per config | Which configuration axis: Resolver, Ontology snapshot, Policy, or External |
+| `MachineUncheckable` | 46 | May have local subset | Warnings only, on positively-decidable cases | Why the rule is ▲: Ontology, Policy, or External |
 | `Unimplemented` | 0 | None | Never emits | What's needed: Ontology data, Resolver protocol, Policy decision |
 | **Total** | **268** | | | |
 
@@ -48,16 +50,16 @@ libSBOLj dispatches rule families from distinct passes controlled by four valida
 
 | Gate | `ValidationConfig` flag | Count | Runs when |
 | --- | --- | ---: | --- |
-| `Always` | (always) | 191 | Every validation configuration. |
+| `Always` | (always) | 198 | Every validation configuration. |
 | `Compliant` | `compliant` | 5 | The compliant-URI structural family (default on). |
-| `Complete` | `complete` | 25 | The document-completeness family — every referenced object present (default on). |
-| `BestPractice` | `best_practice` | 47 | The SHOULD-level recommendation family (default off). |
+| `Complete` | `complete` | 17 | The document-completeness family — every referenced object present (default on). |
+| `BestPractice` | `best_practice` | 48 | The SHOULD-level recommendation family (default off). |
 
 `ValidationConfig` is the same type the SBOL 3 validator uses. The SBOL 2 validator reads its `compliant`, `complete`, and `best_practice` flags to select gates, plus `types_in_uri` (compliant-URI type-token expectations) and `keep_going` (collect every issue rather than stopping at the first). `ValidationConfig::all_on()` enables every gate; `ValidationConfig::default()` runs `compliant` + `complete` and leaves `best_practice` off, matching libSBOLj's default.
 
 ## Configurable
 
-**43 rules.** Behavior depends on configuration. The `Blocker` column names the axis:
+**34 rules.** Behavior depends on configuration. The `Blocker` column names the axis:
 
 - `Resolver`: algorithm needs cross-document resolution for full scope. Without it, coverage records `LocalReferencesOnly`.
 - `Ontology`: algorithm correct for every snapshot-known term; out-of-snapshot terms left undecided by design.
@@ -68,13 +70,12 @@ libSBOLj dispatches rule families from distinct passes controlled by four valida
 
 | Axis | Count |
 | --- | --- |
-| `Resolver` | 25 |
+| `Resolver` | 17 |
 | `Ontology` | 16 |
-| `External` | 2 |
+| `External` | 1 |
 
 | Rule | Axis | Note |
 | --- | --- | --- |
-| `sbol2-10202` | `External` | The identity property of an Identified object MUST be globally unique. |
 | `sbol2-10220` | `External` | Objects with the same persistentIdentity MUST be instances of the same class. |
 | `sbol2-10222` | `Resolver` | Each URI contained by the wasGeneratedBys property of an Identified object MUST refer to an Activity object. |
 | `sbol2-10307` | `Resolver` | Each URI contained by the attachments property of a TopLevel MUST refer to an Attachment object. |
@@ -89,9 +90,6 @@ libSBOLj dispatches rule families from distinct passes controlled by four valida
 | `sbol2-10706` | `Ontology` | The roles property of a Component SHOULD NOT contain a URI that refers to a term from the sequence feature branch of the SO unless the types property of the ComponentDefinition referred to by its definition property contains the DNA or RNA type URI listed in Table 2. |
 | `sbol2-10707` | `Ontology` | If the types property of the ComponentDefinition referred to by its definition contains the DNA or RNA type URI, then its roles property SHOULD contain no more than one URI that refers to a term from the sequence feature branch of the SO. |
 | `sbol2-10807` | `Resolver` | The ComponentInstance referred to by the remote property of a MapsTo MUST have an access property that contains the URI http://sbols.org/v2#public. |
-| `sbol2-10808` | `Resolver` | If a MapsTo is contained by a ComponentInstance, then the remote property of the MapsTo MUST refer to a Component in the ComponentDefinition that is referenced by the definition property of the ComponentInstance. |
-| `sbol2-10809` | `Resolver` | If a MapsTo is contained by a Module, then the remote property of the MapsTo MUST refer to a FunctionalComponent in the ModuleDefinition that is referenced by the definition property of the Module. |
-| `sbol2-10811` | `Resolver` | If the refinement property of a MapsTo contains the URI http://sbols.org/v2#verifyIdentical, then the ComponentInstance objects referred to by local and remote properties of the MapsTo MUST refer to the same ComponentDefinition via their definition properties. |
 | `sbol2-11412` | `Ontology` | The URI contained by the restriction property SHOULD come from Table 7. |
 | `sbol2-11507` | `Ontology` | The language property of a Model SHOULD contain a URI that refers to a term from the EDAM ontology. |
 | `sbol2-11511` | `Ontology` | The framework property SHOULD contain a URI that refers to a term from the modeling framework branch of the SBO. |
@@ -105,25 +103,23 @@ libSBOLj dispatches rule families from distinct passes controlled by four valida
 | `sbol2-12604` | `Resolver` | The URI contained by the plan property MUST refer to a Plan object. |
 | `sbol2-12606` | `Resolver` | The URI contained by the agent property MUST refer to an Agent object. |
 | `sbol2-12905` | `Resolver` | The URI contained by the template property of a CombinatorialDerivation MUST refer to a ComponentDefinition. |
-| `sbol2-12908` | `Resolver` | If the wasDerivedFroms property of a ComponentDefinition refers to a CombinatorialDerivation and the template ComponentDefinition of the CombinatorialDerivation contains SequenceConstraint objects, then any Component contained by the first ComponentDefinition that has a wasDerivedFroms property that refers to the subject or object Component of any of the SequenceConstraint objects MUST adhere to the restriction properties of these SequenceConstraint objects. |
-| `sbol2-13005` | `Resolver` | The URI contained by the variable property of a VariableComponent MUST refer to a Component contained by the components property of the template ComponentDefinition of the CombinatorialDerivation that contains the VariableComponent. |
 | `sbol2-13008` | `Resolver` | The URIs contained by the variants property of a VariableComponent MUST refer to ComponentDefinition objects. |
 | `sbol2-13010` | `Resolver` | The URIs contained by the variantCollections property of a VariableComponent MUST refer to Collection objects. |
-| `sbol2-13011` | `Resolver` | The members property of a Collection that is referred to by the variantCollections property of a VariableComponent MUST NOT be empty. |
 | `sbol2-13012` | `Resolver` | The members property of a Collection that is referred to by the variantCollections property of a VariableComponent MUST refer only to ComponentDefinition objects. |
 | `sbol2-13014` | `Resolver` | The URIs contained by the variantDerivations property of a VariableComponent MUST refer to CombinatorialDerivation objects. |
-| `sbol2-13016` | `Resolver` | If the wasDerivedFroms property of a Component refers to a Component in the template ComponentDefinition of a CombinatorialDerivation, and the second Component is referred to by the variable property of any VariableComponent in the CombinatorialDerivation, then the definition property of the first Component MUST refer to a ComponentDefinition specified by the variants property, a ComponentDefinition that is one of the members of a Collection specified by the variantCollections property, or a ComponentDefinition with a wasDerivedFroms property that refers to a CombinatorialDerivation specified by the variantDerivations property of the VariableComponent. |
-| `sbol2-13017` | `Resolver` | If the wasDerivedFroms property of a Component refers to a Component in the template ComponentDefinition of a CombinatorialDerivation, and the second Component is not referred to by the variable property of any VariableComponent in the CombinatorialDerivation, then the definition property of the first Component MUST refer to the same ComponentDefinition as the definition property of the second Component. |
 | `sbol2-13103` | `Resolver` | The built property URI, if specified, MUST refer to either a ComponentDefinition or a ModuleDefinition. |
 | `sbol2-13206` | `Ontology` | The format property of an Attachment SHOULD contain a URI that refers to a term from the EDAM ontology. |
 | `sbol2-13505` | `Ontology` | If the types property of a Measure is non-empty, then exactly one of the URIs that this property contains SHOULD refer to a term from the systems description parameter branch of the SBO. |
 
 ## ▲ MachineUncheckable
 
-**29 rules.** Violations are NOT to be machine-reported. The validator runs a local subset for some of these and emits warnings on positively-decidable cases; the broader spec rule is always recorded in `RuleCoverage::not_applied { MachineUncheckable }`.
+**46 rules.** Violations are NOT to be machine-reported. The validator runs a local subset for some of these and emits warnings on positively-decidable cases; the broader spec rule is always recorded in `RuleCoverage::not_applied { MachineUncheckable }`.
 
 | Rule | Blocker | Note |
 | --- | --- | --- |
+| `sbol2-10105` | `External` | An SBOL document MUST be serialized as a well-formed RDF/XML file that adheres to the grammar defined by: "https://www.w3.org/TR/rdf-syntax-grammar/" This is a serialization well-formedness constraint enforced by the RDF/XML reader: a malformed document fails to parse and never reaches validation, so no single-document validation report can carry it. |
+| `sbol2-10106` | `External` | All namespaces specified in an SBOL document MUST end with a valid delimiter ('/', '#', or ':'). The reader discards the document's prefix-to-namespace bindings once the triple graph is built, so this namespace-delimiter constraint has no representation the validator can inspect after parsing. |
+| `sbol2-10202` | `External` | The identity property of an Identified object MUST be globally unique. Global uniqueness spans documents and a global registry; within a single RDF graph a subject IRI denotes one node, so a duplicate-identity violation is not representable and cannot be isolated by a single-document negative. |
 | `sbol2-10214` | `External` | The annotations property of an Identified object is OPTIONAL and MAY contain a set of Annotation objects. |
 | `sbol2-10305` | `External` | If the wasDerivedFroms property of one TopLevel object refers to another TopLevel object with the same persistentIdentity property, then version property of the second TopLevel object MUST precede that of the first if both objects have a version. |
 | `sbol2-10404` | `External` | The encoding property of a Sequence MUST indicate how the elements property of the Sequence is to be formed and interpreted. |
@@ -138,6 +134,10 @@ libSBOLj dispatches rule families from distinct passes controlled by four valida
 | `sbol2-10515` | `External` | The sequences property of a ComponentDefinition MUST NOT refer to Sequence objects with conflicting encoding properties. |
 | `sbol2-10703` | `External` | Each URI contained by the roles property of a Component MUST refer to an ontology term that clarifies the potential function of the Component in a biochemical or physical context. |
 | `sbol2-10704` | `External` | Each URI contained by the roles property of a Component MUST refer to an ontology term that is consistent with the types property of the ComponentDefinition referred to by its definition property. |
+| `sbol2-10705` | `Ontology` | The roles property of a Component MUST contain a URI from Table 4 if it is well-described by this URI. The "if it is well-described by this URI" clause is a human-judgement condition: no tool can decide whether a Component is well-described by a Table 4 role, so a mechanical single-document violation cannot be constructed. |
+| `sbol2-10808` | `Resolver` | If a MapsTo is contained by a ComponentInstance, then the remote property of the MapsTo MUST refer to a Component in the ComponentDefinition that is referenced by the definition property of the ComponentInstance. The remote must resolve to a Component of the ComponentDefinition named by the ComponentInstance's definition, which the spec permits to live in another document; isolating this violation requires cross-document resolution of that referenced definition. |
+| `sbol2-10809` | `Resolver` | If a MapsTo is contained by a Module, then the remote property of the MapsTo MUST refer to a FunctionalComponent in the ModuleDefinition that is referenced by the definition property of the Module. The remote must resolve to a FunctionalComponent of the ModuleDefinition named by the Module's definition, which the spec permits to live in another document; isolating this violation requires cross-document resolution of that referenced definition. |
+| `sbol2-10811` | `Resolver` | If the refinement property of a MapsTo contains the URI http://sbols.org/v2#verifyIdentical, then the ComponentInstance objects referred to by local and remote properties of the MapsTo MUST refer to the same ComponentDefinition via their definition properties. verifyIdentical compares the definitions of the local and remote ComponentInstances, which the spec permits to live in another document; isolating this violation requires cross-document resolution of those referenced definitions. |
 | `sbol2-10907` | `External` | Each URI contained by the roles property of a SequenceAnnotation MUST refer to an ontology term that clarifies the potential function of the SequenceAnnotation in a biochemical or physical context. |
 | `sbol2-10908` | `External` | The roles property of a SequenceAnnotation MUST contain a URI from Table 4 if it is well-described by this URI. |
 | `sbol2-11408` | `External` | The URI contained by the restriction property of a SequenceConstraint MUST indicate the type of structural restriction on the relative, sequence-based positions or orientations of the Component objects referred to by the subject and object properties of the SequenceConstraint. |
@@ -151,6 +151,16 @@ libSBOLj dispatches rule families from distinct passes controlled by four valida
 | `sbol2-11904` | `External` | All URIs contained by the types property of an Interaction MUST refer to non-conflicting ontology terms. |
 | `sbol2-12005` | `External` | Each URI contained by the roles property of an Participation MUST refer to an ontology term that describes the behavior represented by the Participation. |
 | `sbol2-12006` | `External` | All URIs contained by the roles property of an Participation MUST refer to non-conflicting ontology terms. |
+| `sbol2-12201` | `External` | The name property of an Annotation is REQUIRED and MUST contain a QName. SBOL 2 Annotations are unreified extension triples; the reader stores them as generic properties with IRI predicates and literal/IRI/nested values, so a document the reader accepts already satisfies this constraint and no violation is representable. |
+| `sbol2-12203` | `External` | An AnnotationValue MUST be a literal (a String, Integer, Double, or Boolean), URI, or a NestedAnnotations object. SBOL 2 Annotations are unreified extension triples; every value the reader accepts is already a literal, URI, or nested-annotation resource, so no single-document violation is representable. |
+| `sbol2-12204` | `External` | The nestedQName property of a NestedAnnotations object is REQUIRED and MUST contain a QName. NestedAnnotations are unreified extension triples; the reader represents the nestedQName as the RDF predicate, which is always a QName, so no single-document violation is representable. |
+| `sbol2-12205` | `External` | The nestedURI property of a NestedAnnotations object is REQUIRED and MUST contain a URI. NestedAnnotations are unreified extension triples; the reader represents the nestedURI as an RDF resource, so no single-document violation is representable. |
+| `sbol2-12206` | `External` | The annotations property of a NestedAnnotations object is OPTIONAL and MAY contain a set of Annotation objects. NestedAnnotations are unreified extension triples; the annotations they carry are generic properties, so no single-document violation is representable. |
+| `sbol2-12908` | `Resolver` | If the wasDerivedFroms property of a ComponentDefinition refers to a CombinatorialDerivation and the template ComponentDefinition of the CombinatorialDerivation contains SequenceConstraint objects, then any Component contained by the first ComponentDefinition that has a wasDerivedFroms property that refers to the subject or object Component of any of the SequenceConstraint objects MUST adhere to the restriction properties of these SequenceConstraint objects. The constraint spans the template ComponentDefinition of a referenced CombinatorialDerivation and its SequenceConstraint objects, which the spec permits to live in another document; isolating this violation requires cross-document resolution. |
+| `sbol2-13005` | `Resolver` | The URI contained by the variable property of a VariableComponent MUST refer to a Component contained by the components property of the template ComponentDefinition of the CombinatorialDerivation that contains the VariableComponent. The variable must resolve to a Component of the template ComponentDefinition of the containing CombinatorialDerivation, which the spec permits to live in another document; isolating this violation requires cross-document resolution. |
+| `sbol2-13011` | `Resolver` | The members property of a Collection that is referred to by the variantCollections property of a VariableComponent MUST NOT be empty. The constraint is defined over the members of a Collection named by variantCollections, which the spec permits to live in another document; isolating this violation requires cross-document resolution of that referenced Collection. |
+| `sbol2-13016` | `Resolver` | If the wasDerivedFroms property of a Component refers to a Component in the template ComponentDefinition of a CombinatorialDerivation, and the second Component is referred to by the variable property of any VariableComponent in the CombinatorialDerivation, then the definition property of the first Component MUST refer to a ComponentDefinition specified by the variants property, a ComponentDefinition that is one of the members of a Collection specified by the variantCollections property, or a ComponentDefinition with a wasDerivedFroms property that refers to a CombinatorialDerivation specified by the variantDerivations property of the VariableComponent. The constraint relates a derived Component to a Component of a referenced template ComponentDefinition and the variant sources of a VariableComponent, which the spec permits to live in another document; isolating this violation requires cross-document resolution. |
+| `sbol2-13017` | `Resolver` | If the wasDerivedFroms property of a Component refers to a Component in the template ComponentDefinition of a CombinatorialDerivation, and the second Component is not referred to by the variable property of any VariableComponent in the CombinatorialDerivation, then the definition property of the first Component MUST refer to the same ComponentDefinition as the definition property of the second Component. The constraint relates a derived Component to a Component of a referenced template ComponentDefinition, which the spec permits to live in another document; isolating this violation requires cross-document resolution. |
 | `sbol2-13203` | `External` | The URI contained by the source property of an Attachment MUST specify the location of the model's source file. |
 | `sbol2-13205` | `External` | The URI contained by the format property of an Attachment MUST specify the file type of the attachment. |
 
@@ -175,10 +185,10 @@ Every file in each corpus parses with **0 parse failures**, and each corpus isol
 
 | Outcome | Count | Meaning |
 | --- | ---: | --- |
-| Strict | 161 | The file's exact expected rule fires. |
-| Loose | 17 | Rejected via a related error rather than the exact rule id. |
+| Strict | 166 | The file's exact expected rule fires. |
+| Loose | 14 | Rejected via a related error rather than the exact rule id. |
 | Parse-rejected | 3 | The RDF/XML reader rejects the file at read time. |
-| Deferred | 50 | Exercised but not rejected: the violation needs a resolver or cross-document context, is a ▲ machine-uncheckable condition, or is a SHOULD-level warning that does not fail the file. Tracked in `crates/sbol2/tests/invalid_files_deferred.in` so the strict set is explicit. |
+| Deferred | 48 | Exercised but not error-rejected: the violation needs a resolver or cross-document context, is a ▲ machine-uncheckable condition, is a reader-scope concern, or is a SHOULD-level warning that does not fail the file. Every deferred rule still has a firing hermetic negative in `crates/sbol2/tests/rule_cases/`. Tracked in `crates/sbol2/tests/invalid_files_deferred.in` so the strict set is explicit. |
 
 ## Cross-implementation agreement
 
@@ -186,13 +196,11 @@ Parser/serializer output is compared triple-for-triple against libSBOLj 2.4.0 re
 
 ## Error
 
-**166 rules.** Algorithm complete; MUST violations emit as `Severity::Error`.
+**158 rules.** Algorithm complete; MUST violations emit as `Severity::Error`.
 
 | Rule | Gate | Note |
 | --- | --- | --- |
 | `sbol2-10101` | `Always` | An SBOL document MUST declare the use of the following XML namespace: "http://sbols.org/v2#". |
-| `sbol2-10105` | `Always` | An SBOL document MUST be serialized as a well-formed RDF/XML file that adheres to the grammar defined by: "https://www.w3.org/TR/rdf-syntax-grammar/" |
-| `sbol2-10106` | `Always` | All namespaces specified in an SBOL document MUST end with a valid delimiter ('/', '#', or ':'). |
 | `sbol2-10201` | `Always` | The identity property of an Identified object is REQUIRED and MUST contain a URI that adheres to the syntax defined by: "http://www.w3.org/1999/02/22-rdf-syntax#about" |
 | `sbol2-10203` | `Always` | The persistentIdentity property of an Identified object is OPTIONAL and MAY contain a URI that MUST adhere to the syntax defined by: "http://www.w3.org/1999/02/22-rdf-syntax#about" |
 | `sbol2-10204` | `Always` | The displayId property of an Identified object is OPTIONAL and MAY contain a String that MUST be composed of only alphanumeric or underscore characters and MUST NOT begin with a digit. |
@@ -234,7 +242,6 @@ Parser/serializer output is compared triple-for-triple against libSBOLj 2.4.0 re
 | `sbol2-10608` | `Always` | The measures property of a ComponentInstance is OPTIONAL and may contain a set of Measure objects. |
 | `sbol2-10701` | `Always` | A Component MUST NOT have properties other than the following: identity, persistentIdentity, displayId, version, wasDerivedFroms, wasGeneratedBys, name, description, annotations, access, definition, mapsTos, roles, roleIntegration, and sourceLocations. |
 | `sbol2-10702` | `Always` | The roles property of a Component is OPTIONAL and MAY contain a set of URIs. |
-| `sbol2-10705` | `Always` | The roles property of a Component MUST contain a URI from Table 4 if it is well-described by this URI. |
 | `sbol2-10708` | `Always` | The roleIntegration property of a Component, if provided, MUST contain a URI from Table 6. |
 | `sbol2-10709` | `Always` | The roleIntegration property of a Component is REQUIRED, if roles property includes one or more roles. |
 | `sbol2-10710` | `Always` | The sourceLocations property of a Component is OPTIONAL and MAY contain a set of Location objects. |
@@ -301,11 +308,6 @@ Parser/serializer output is compared triple-for-triple against libSBOLj 2.4.0 re
 | `sbol2-12008` | `Always` | The measures property of a Participation is OPTIONAL and may contain a set of Measure objects. |
 | `sbol2-12101` | `Always` | A Collection MUST NOT have properties other than the following: identity, persistentIdentity, displayId, version, wasDerivedFroms, wasGeneratedBys, name, description, annotations, and members. |
 | `sbol2-12102` | `Always` | The members property of a Collection is OPTIONAL and MAY contain a set of URIs. |
-| `sbol2-12201` | `Always` | The name property of an Annotation is REQUIRED and MUST contain a QName. |
-| `sbol2-12203` | `Always` | An AnnotationValue MUST be a literal (a String, Integer, Double, or Boolean), URI, or a NestedAnnotations object. |
-| `sbol2-12204` | `Always` | The nestedQName property of a NestedAnnotations object is REQUIRED and MUST contain a QName. |
-| `sbol2-12205` | `Always` | The nestedURI property of a NestedAnnotations object is REQUIRED and MUST contain a URI. |
-| `sbol2-12206` | `Always` | The annotations property of a NestedAnnotations object is OPTIONAL and MAY contain a set of Annotation objects. |
 | `sbol2-12301` | `Always` | A GenericTopLevel MUST NOT have properties other than the following: identity, persistentIdentity, displayId, version, wasDerivedFroms, wasGeneratedBys, name, description, and annotations. |
 | `sbol2-12302` | `Always` | The rdfType property of a GenericTopLevel object is REQUIRED and MUST contain a QName. |
 | `sbol2-12303` | `Always` | The rdfType property of a GenericTopLevel object MUST NOT contain a QName in the "http://sbols.org/v2#" namespace. |
@@ -367,7 +369,7 @@ Parser/serializer output is compared triple-for-triple against libSBOLj 2.4.0 re
 | `sbol2-10225` | `BestPractice` | An Identified with a wasGeneratedBys property that includes a reference to an Activity with a child Association that has a roles property that contains the URI http://sbols.org/v2#build SHOULD be an Implementation. |
 | `sbol2-10226` | `BestPractice` | An Identified with a wasGeneratedBys property that includes a reference to an Activity with a child Association that has a roles property that contains the URI http://sbols.org/v2#test SHOULD be an Attachment or a Collection of Attachment objects. |
 | `sbol2-10227` | `BestPractice` | An Identified with a wasGeneratedBys property that includes a reference to an Activity with a child Association that has a roles property that contains the URI http://sbols.org/v2#learn SHOULD not be an Implementation. |
-| `sbol2-10302` | `Always` | If the wasDerivedFroms property of one TopLevel object refers to another TopLevel object with the same persistentIdentity property, then the version property of the second TopLevel object SHOULD precede that of the first if both objects have a version and it is assumed that these versions follow the conventions of semantic versioning. |
+| `sbol2-10302` | `BestPractice` | If the wasDerivedFroms property of one TopLevel object refers to another TopLevel object with the same persistentIdentity property, then the version property of the second TopLevel object SHOULD precede that of the first if both objects have a version and it is assumed that these versions follow the conventions of semantic versioning. |
 | `sbol2-10518` | `BestPractice` | If a ComponentDefinition refers to more than one Sequence with the same encoding, then the elements of these Sequence objects SHOULD have equal lengths. |
 | `sbol2-10520` | `BestPractice` | If a ComponentDefinition in a ComponentDefinition-Component hierarchy refers to one or more Sequence objects, and there exist ComponentDefinition objects lower in the hierarchy that refer to Sequence objects with the same encoding, then the elements properties of these Sequence objects SHOULD be consistent with each other, such that well-defined mappings exist from the "lower level" elements to the "higher level" elements in accordance with their shared encoding properties. This mapping is subject to any restrictions on the positions of the Component objects in the hierarchy that are imposed by the SequenceAnnotation or SequenceConstraint objects contained by the ComponentDefinition objects in the hierarchy. This mapping is further subject to any restrictions on the sequences property of ComponentDefinition objects implied by the sourceLocations property on the Component objects owned by those ComponentDefinition objects. |
 | `sbol2-10523` | `BestPractice` | If the sequences property of a ComponentDefinition refers to a Sequence with an IUPAC encoding from Table 1, then each SequenceAnnotation that includes a Range and/or Cut in the sequenceAnnotations property of the ComponentDefinition SHOULD specify a region on the elements of this Sequence. |

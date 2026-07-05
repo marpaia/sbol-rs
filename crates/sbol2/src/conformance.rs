@@ -77,13 +77,27 @@ fn render_headline_coverage(out: &mut String, statuses: &[ValidationRuleStatus])
 
     out.push_str("## Headline coverage\n\n");
     out.push_str(&format!(
-        "**All {implemented} of {machine_checkable} machine-checkable rules carry validation \
-         logic** — none are marked `Unimplemented` ({pct:.1}%). This is the catalog-level \
-         view. The authoritative per-rule signal is the empirical negative-corpus enforcement \
-         reported under [InvalidFiles](#invalidfiles--per-rule-negative-corpus) below; the \
-         `Deferred` rows there record the rules whose SBOLTestSuite fixture is not yet \
-         strictly rejected (SHOULD-level best-practice warnings and rules that require \
-         cross-document resolution).\n\n"
+        "**Every one of the {machine_checkable} machine-checkable rules is backed by a firing \
+         negative fixture and a non-firing positive fixture.** Each rule has a hermetic, minimal \
+         SBOL 2 document that violates exactly that rule and is asserted to report it at the \
+         catalog severity (MUST rules as errors, SHOULD rules as warnings), plus a valid instance \
+         of the same construct asserted not to report it — all evaluated under \
+         `ValidationConfig::all_on()`. The suite fails at build time if any machine-checkable \
+         rule lacks either fixture, so the {machine_checkable}/{machine_checkable} coverage is \
+         enforced, not asserted. The per-rule matrix is committed at \
+         [`sbol2-negative-coverage.md`](sbol2-negative-coverage.md) and the fixtures live in \
+         `crates/sbol2/tests/rule_cases/`; this matches the SBOL 3 validator's standard in \
+         [`negative-coverage.md`](negative-coverage.md).\n\n"
+    ));
+    out.push_str(&format!(
+        "All {implemented} of the {machine_checkable} machine-checkable rules carry validation \
+         logic — none are marked `Unimplemented` ({pct:.1}%). The empirical SBOLTestSuite \
+         negative corpus is reported separately under \
+         [InvalidFiles](#invalidfiles--per-rule-negative-corpus) below; its `Deferred` rows \
+         record downloaded corpus fixtures not yet strictly error-rejected (SHOULD-level \
+         warnings, reader-scope cases, and the \u{25B2} rules that require cross-document \
+         resolution), each of which nonetheless has a firing hermetic negative in the per-rule \
+         corpus above.\n\n"
     ));
     out.push_str(&format!(
         "The catalog tracks all {total} SBOL 2.3.0 validation rules. {triangle} carry the \
@@ -334,18 +348,19 @@ fn render_corpus_results(out: &mut String) {
     out.push_str("| Outcome | Count | Meaning |\n");
     out.push_str("| --- | ---: | --- |\n");
     out.push_str(
-        "| Strict | 161 | The file's exact expected rule fires. |\n",
+        "| Strict | 166 | The file's exact expected rule fires. |\n",
     );
     out.push_str(
-        "| Loose | 17 | Rejected via a related error rather than the exact rule id. |\n",
+        "| Loose | 14 | Rejected via a related error rather than the exact rule id. |\n",
     );
     out.push_str(
         "| Parse-rejected | 3 | The RDF/XML reader rejects the file at read time. |\n",
     );
     out.push_str(
-        "| Deferred | 50 | Exercised but not rejected: the violation needs a resolver or \
-         cross-document context, is a \u{25B2} machine-uncheckable condition, or is a \
-         SHOULD-level warning that does not fail the file. Tracked in \
+        "| Deferred | 48 | Exercised but not error-rejected: the violation needs a resolver or \
+         cross-document context, is a \u{25B2} machine-uncheckable condition, is a reader-scope \
+         concern, or is a SHOULD-level warning that does not fail the file. Every deferred rule \
+         still has a firing hermetic negative in `crates/sbol2/tests/rule_cases/`. Tracked in \
          `crates/sbol2/tests/invalid_files_deferred.in` so the strict set is explicit. |\n\n",
     );
 }
