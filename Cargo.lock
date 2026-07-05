@@ -1138,6 +1138,7 @@ dependencies = [
  "sbol-convert",
  "sbol-core",
  "sbol-rdf",
+ "sbol2",
  "sbol3",
 ]
 
@@ -1234,6 +1235,16 @@ version = "0.2.1"
 dependencies = [
  "serde",
  "toml",
+]
+
+[[package]]
+name = "sbol2"
+version = "0.2.1"
+dependencies = [
+ "sbol-core",
+ "sbol-ontology",
+ "sbol-rdf",
+ "thiserror",
 ]
 
 [[package]]

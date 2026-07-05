@@ -19,12 +19,13 @@ rustdoc-args = ["--cfg", "docsrs"]
 [dependencies]
 sbol-core.workspace = true
 sbol-rdf.workspace = true
+sbol2 = { workspace = true, optional = true }
 sbol3 = { workspace = true, optional = true }
 sbol-convert = { workspace = true, optional = true }
 
 [features]
 default = ["v3", "convert"]
+v2 = ["dep:sbol2"]
 v3 = ["dep:sbol3"]
 convert = ["dep:sbol-convert", "v3"]
-v2 = []
 http-resolver = ["sbol3/http-resolver", "sbol-convert/http-resolver"]
