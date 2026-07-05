@@ -360,6 +360,18 @@ impl<'a> Engine<'a> {
                 });
             }
 
+            // sbol3namespace: stash the SBOL 3 object's `hasNamespace` on
+            // the SBOL 2 object so sbol-utilities / sbolgraph — and a
+            // future sbol-rs re-upgrade — can reconstruct the SBOL 3
+            // namespace without re-deriving it from the identity IRI.
+            if let Some(namespace) = self.sbol3_namespaces.get(&sbol3_iri) {
+                self.output_triples.push(Triple {
+                    subject: subject.clone(),
+                    predicate: Iri::from_static(v2::BACKPORT_SBOL3_NAMESPACE),
+                    object: Term::Resource(Resource::Iri(Iri::new_unchecked(namespace.clone()))),
+                });
+            }
+
             // persistentIdentity: prefer the recorded backport value;
             // otherwise the unversioned SBOL 3 IRI itself is the
             // persistent identity.

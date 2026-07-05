@@ -335,6 +335,10 @@ struct Engine<'a> {
     subcomponent_targets: HashMap<String, String>,
     /// Top-level subjects whose IRIs need a version suffix appended.
     top_levels: HashSet<String>,
+    /// SBOL 3 subject IRI → its `sbol3:hasNamespace` value. Emitted back
+    /// onto the corresponding SBOL 2 object as `backport:sbol3namespace`
+    /// so sbol-utilities / sbolgraph can reconstruct the SBOL 3 namespace.
+    sbol3_namespaces: HashMap<String, String>,
     /// IRI rewrite map (SBOL 3 IRI → SBOL 2 IRI). Built during
     /// preflight; applied to every subject and object during the main
     /// pass.

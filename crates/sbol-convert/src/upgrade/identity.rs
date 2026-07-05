@@ -40,12 +40,23 @@ impl IdentityMap {
         let mut persistent_identity: HashMap<String, String> = HashMap::new();
         let mut display_id: HashMap<String, String> = HashMap::new();
         let mut rewrite_candidates: HashSet<String> = HashSet::new();
+        // Subject IRI → SBOL 3 namespace stashed by an sbol-utilities /
+        // sbolgraph downgrade under `backport:sbol3namespace`. When present
+        // it overrides the persistentIdentity/displayId derivation below.
+        let mut sbol3_namespace_hints: HashMap<String, String> = HashMap::new();
 
         for triple in graph.triples() {
             let subject = match triple.subject.as_iri() {
                 Some(iri) => iri.as_str().to_owned(),
                 None => continue,
             };
+            if triple.predicate.as_str() == v2::BACKPORT_SBOL3_NAMESPACE {
+                if let Some(iri) = triple.object.as_iri() {
+                    sbol3_namespace_hints.insert(subject.clone(), iri.as_str().to_owned());
+                } else if let Some(value) = literal_value(&triple.object) {
+                    sbol3_namespace_hints.insert(subject.clone(), value.to_owned());
+                }
+            }
             match triple.predicate.as_str() {
                 v3::RDF_TYPE => {
                     if triple
@@ -104,6 +115,18 @@ impl IdentityMap {
             if let Some(namespace) = namespace {
                 namespaces.insert(canonical, namespace);
             }
+        }
+
+        // An explicit `backport:sbol3namespace` annotation wins over the
+        // derived namespace: it records exactly what the SBOL 3 source
+        // (round-tripped through sbol-rs, sbol-utilities, or sbolgraph)
+        // carried, which derivation can only approximate.
+        for (subject, namespace) in sbol3_namespace_hints {
+            let canonical = rewrites
+                .get(&subject)
+                .cloned()
+                .unwrap_or(subject);
+            namespaces.insert(canonical, namespace);
         }
 
         Self {

@@ -401,6 +401,14 @@ impl<'a> Engine<'a> {
             return;
         }
 
+        // `backport:sbol3namespace` carries the SBOL 3 object namespace an
+        // sbol-utilities/sbolgraph downgrade stashed on the SBOL 2 side.
+        // It is consumed by `IdentityMap` to derive `hasNamespace` and must
+        // not pass through into the SBOL 3 output.
+        if predicate == v2::BACKPORT_SBOL3_NAMESPACE {
+            return;
+        }
+
         // Restore a `backport:sbol3_*` predicate to its `sbol3:*` form.
         // The downgrade archives unmapped SBOL 3 predicates under that
         // namespace so they don't pollute the SBOL 2 surface; the

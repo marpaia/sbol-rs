@@ -19,7 +19,7 @@ fn round_trip_diff(fixture: &str) -> (Vec<String>, Vec<String>) {
     let (upgraded, _ureport) =
         sbol_convert::upgrade_from_sbol2(&input, RdfFormat::Turtle).expect("upgrade");
     let (downgraded_graph, _dreport) = sbol_convert::downgrade(&upgraded).expect("downgrade");
-    let downgraded: Vec<String> = canonicalize(&downgraded_graph);
+    let downgraded: Vec<String> = strip_backport(&canonicalize(&downgraded_graph));
 
     let only_in_original: Vec<String> = original
         .iter()
@@ -43,6 +43,20 @@ fn canonicalize(graph: &sbol3::RdfGraph) -> Vec<String> {
     lines.sort();
     lines.dedup();
     lines
+}
+
+/// The `http://sboltools.org/backport#` namespace holds converter-added
+/// round-trip metadata (`sbol3namespace`, `sbol2type`, …), never original
+/// SBOL 2 content. An SBOL 2 → SBOL 3 → SBOL 2 diff of genuine SBOL 2
+/// data must ignore these annotations: they legitimately appear only on
+/// the downgraded side and re-upgrade consumes them, so their presence is
+/// not drift.
+fn strip_backport(lines: &[String]) -> Vec<String> {
+    lines
+        .iter()
+        .filter(|line| !line.contains("http://sboltools.org/backport#"))
+        .cloned()
+        .collect()
 }
 
 #[test]

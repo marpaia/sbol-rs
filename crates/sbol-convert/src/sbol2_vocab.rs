@@ -173,6 +173,19 @@ pub(crate) const BACKPORT_SBOL2_PERSISTENT_IDENTITY: &str =
     "http://sboltools.org/backport#sbol2persistentIdentity";
 pub(crate) const BACKPORT_SBOL2_VERSION: &str = "http://sboltools.org/backport#sbol2version";
 pub(crate) const BACKPORT_SBOL2_DIRECTION: &str = "http://sboltools.org/backport#sbol2_direction";
+
+/// FunctionalComponent `access`, preserved through the round trip. Byte
+/// interoperable with sbol-utilities' `BACKPORT_NAMESPACE + 'sbol2_access'`.
+/// The generic `sbol2_` prefix already produces this exact IRI for the
+/// unmapped `sbol2:access` predicate; the named constant documents the
+/// interop contract and lets both directions match on it explicitly.
+pub(crate) const BACKPORT_SBOL2_ACCESS: &str = "http://sboltools.org/backport#sbol2_access";
+
+/// The SBOL 3 object's `hasNamespace`, stashed on the corresponding SBOL 2
+/// object by the downgrade so sbol-utilities / sbolgraph can reconstruct
+/// the SBOL 3 namespace, and read by the upgrade when present. Byte
+/// interoperable with sbol-utilities' `BACKPORT3_NAMESPACE`.
+pub(crate) const BACKPORT_SBOL3_NAMESPACE: &str = "http://sboltools.org/backport#sbol3namespace";
 pub(crate) const BACKPORT_SEQUENCE_ANNOTATION_DISPLAY_ID: &str =
     "http://sboltools.org/backport#sequenceAnnotationDisplayId";
 pub(crate) const BACKPORT_SEQUENCE_ANNOTATION_PREDICATE_PREFIX: &str =

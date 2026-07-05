@@ -21,6 +21,7 @@ impl<'a> Engine<'a> {
             resolved_type_sets: HashMap::new(),
             subcomponent_targets: HashMap::new(),
             top_levels: HashSet::new(),
+            sbol3_namespaces: HashMap::new(),
             iri_rewrites: HashMap::new(),
             sa_collapses: HashMap::new(),
             mapsto_reconstructions: HashMap::new(),
@@ -90,6 +91,12 @@ impl<'a> Engine<'a> {
                 }
                 v2::BACKPORT_SBOL2_DIRECTION => {
                     self.restored_fc_directions.insert(subject.clone());
+                }
+                v3::SBOL_HAS_NAMESPACE => {
+                    if let Some(iri) = triple.object.as_iri() {
+                        self.sbol3_namespaces
+                            .insert(subject.clone(), iri.as_str().to_owned());
+                    }
                 }
                 v2::DCTERMS_TITLE => {
                     self.dcterms_index
