@@ -10,7 +10,7 @@ The catalog is the libSBOLj machine ruleset: the 268 numbered SBOL 2 validation 
 
 ## Headline coverage
 
-**239 of 239 machine-checkable spec rules are fully implemented (100.0%).**
+**All 239 of 239 machine-checkable rules carry validation logic** — none are marked `Unimplemented` (100.0%). This is the catalog-level view. The authoritative per-rule signal is the empirical negative-corpus enforcement reported under [InvalidFiles](#invalidfiles--per-rule-negative-corpus) below; the `Deferred` rows there record the rules whose SBOLTestSuite fixture is not yet strictly rejected (SHOULD-level best-practice warnings and rules that require cross-document resolution).
 
 The catalog tracks all 268 SBOL 2.3.0 validation rules. 29 carry the ▲ status: conditions the spec does not expect a tool to machine-report (they depend on ontology membership, external resolution, or human judgement). Those are tracked separately from the headline percentage: the runtime signals them as `RuleCoverage::not_applied { MachineUncheckable }`, and the validator emits at most warnings (never errors) when its local subset can decide a sub-case.
 
@@ -19,8 +19,8 @@ The catalog tracks all 268 SBOL 2.3.0 validation rules. 29 carry the ▲ status:
 | Total rules in catalog | 268 |
 | ▲ machine-uncheckable | 29 |
 | Machine-checkable | 239 |
-| &nbsp;&nbsp;→ fully implemented | **239** |
-| &nbsp;&nbsp;→ not yet implemented | **0** |
+| &nbsp;&nbsp;→ with validation logic | **239** |
+| &nbsp;&nbsp;→ marked Unimplemented | **0** |
 
 ## Status taxonomy
 

@@ -77,8 +77,13 @@ fn render_headline_coverage(out: &mut String, statuses: &[ValidationRuleStatus])
 
     out.push_str("## Headline coverage\n\n");
     out.push_str(&format!(
-        "**{implemented} of {machine_checkable} machine-checkable spec rules are fully \
-         implemented ({pct:.1}%).**\n\n"
+        "**All {implemented} of {machine_checkable} machine-checkable rules carry validation \
+         logic** — none are marked `Unimplemented` ({pct:.1}%). This is the catalog-level \
+         view. The authoritative per-rule signal is the empirical negative-corpus enforcement \
+         reported under [InvalidFiles](#invalidfiles--per-rule-negative-corpus) below; the \
+         `Deferred` rows there record the rules whose SBOLTestSuite fixture is not yet \
+         strictly rejected (SHOULD-level best-practice warnings and rules that require \
+         cross-document resolution).\n\n"
     ));
     out.push_str(&format!(
         "The catalog tracks all {total} SBOL 2.3.0 validation rules. {triangle} carry the \
@@ -94,8 +99,8 @@ fn render_headline_coverage(out: &mut String, statuses: &[ValidationRuleStatus])
          | Total rules in catalog | {total} |\n\
          | \u{25B2} machine-uncheckable | {triangle} |\n\
          | Machine-checkable | {machine_checkable} |\n\
-         | &nbsp;&nbsp;\u{2192} fully implemented | **{implemented}** |\n\
-         | &nbsp;&nbsp;\u{2192} not yet implemented | **{unimplemented}** |\n\n"
+         | &nbsp;&nbsp;\u{2192} with validation logic | **{implemented}** |\n\
+         | &nbsp;&nbsp;\u{2192} marked Unimplemented | **{unimplemented}** |\n\n"
     ));
 }
 
