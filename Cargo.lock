@@ -1135,19 +1135,7 @@ dependencies = [
 name = "sbol"
 version = "0.2.1"
 dependencies = [
- "criterion",
- "proptest",
- "sbol-core",
- "sbol-ontology",
- "sbol-rdf",
- "sbol-rulegen",
- "serde",
- "serde_json",
- "sha2",
- "sha3",
- "thiserror",
- "toml",
- "ureq 2.12.1",
+ "sbol3",
 ]
 
 [[package]]
@@ -1232,6 +1220,25 @@ version = "0.2.1"
 dependencies = [
  "serde",
  "toml",
+]
+
+[[package]]
+name = "sbol3"
+version = "0.2.1"
+dependencies = [
+ "criterion",
+ "proptest",
+ "sbol-core",
+ "sbol-ontology",
+ "sbol-rdf",
+ "sbol-rulegen",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sha3",
+ "thiserror",
+ "toml",
+ "ureq 2.12.1",
 ]
 
 [[package]]

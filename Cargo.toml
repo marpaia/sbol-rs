@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/sbol",
+    "crates/sbol3",
     "crates/sbol-bench",
     "crates/sbol-core",
     "crates/sbol-rulegen",
@@ -28,6 +29,7 @@ oxrdf = "0.3.3"
 oxrdfio = "0.2.5"
 proptest = "1"
 sbol = { path = "crates/sbol", version = "0.2.1" }
+sbol3 = { path = "crates/sbol3", version = "0.2.1" }
 sbol-core = { path = "crates/sbol-core", version = "0.2.1" }
 sbol-rulegen = { path = "crates/sbol-rulegen", version = "0.2.1" }
 sbol-fasta = { path = "crates/sbol-fasta", version = "0.2.1" }

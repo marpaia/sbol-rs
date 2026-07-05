@@ -3,7 +3,7 @@ name = "sbol"
 version = "0.2.1"
 edition.workspace = true
 rust-version.workspace = true
-description = "Rust implementation of the SBOL 3.1.0 specification."
+description = "Umbrella facade for the sbol-rs ecosystem (SBOL 3 today; SBOL 2 + conversion behind features)."
 repository.workspace = true
 homepage.workspace = true
 documentation = "https://docs.rs/sbol"
@@ -11,42 +11,13 @@ license.workspace = true
 readme = "../../README.md"
 keywords = ["sbol", "synthetic-biology", "rdf"]
 categories = ["science", "parser-implementations"]
-exclude = ["tests/", "src/bin/"]
 
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-sbol-core.workspace = true
-sbol-ontology.workspace = true
-sbol-rdf.workspace = true
-sha3.workspace = true
-thiserror.workspace = true
-ureq = { workspace = true, optional = true }
-
-[dev-dependencies]
-criterion = { version = "0.8", default-features = false, features = ["cargo_bench_support"] }
-proptest.workspace = true
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-sha2 = "0.11"
-toml = { version = "1.1", default-features = false, features = ["parse", "serde"] }
-
-[[bench]]
-name = "validate"
-harness = false
-
-[[bench]]
-name = "parse_validate"
-harness = false
-
-[build-dependencies]
-sbol-rulegen.workspace = true
+sbol3.workspace = true
 
 [features]
-http-resolver = ["dep:ureq"]
-
-[[example]]
-name = "synbiohub_upgrade"
-required-features = ["http-resolver"]
+http-resolver = ["sbol3/http-resolver"]
