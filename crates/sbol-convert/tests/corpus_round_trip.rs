@@ -8,10 +8,11 @@
 //! and asserts `A == B` at the level of canonical triples. The first
 //! upgrade normalizes the SBOL 2 input into the SBOL 3 graph the converter
 //! actually reasons about; a lossless conversion is one where a second
-//! downgrade/upgrade lands on that same graph. Files the RDF/XML reader
-//! cannot parse are skipped and counted (a reader limitation, not a
-//! conversion defect). Files that genuinely cannot round-trip are listed
-//! in [`ALLOWLIST`] with a reason.
+//! downgrade/upgrade lands on that same graph. Two non-drift outcomes are
+//! counted separately: files the RDF/XML reader cannot parse (`parse-fail`,
+//! a reader limitation) and files that parse but the upgrade declines as not
+//! SBOL 2 (`upgrade-unsupported`). Files that genuinely cannot round-trip
+//! are listed in [`ALLOWLIST`] with a reason.
 
 mod common;
 
@@ -21,6 +22,7 @@ use std::path::Path;
 use common::corpus::{xml_files, CORPUS_DIRS};
 
 use sbol3::RdfFormat;
+use sbol_convert::UpgradeError;
 
 /// Corpus files that legitimately cannot reach the SBOL 2 → SBOL 3 fixed
 /// point, paired with the reason. Keyed by file name (unique across the
@@ -76,19 +78,33 @@ fn canonicalize(graph: &sbol3::RdfGraph) -> Vec<String> {
 struct DirReport {
     clean: usize,
     drift: Vec<String>,
+    /// The RDF/XML reader could not parse the file — a reader limitation, not
+    /// a conversion defect.
     parse_skip: usize,
+    /// The file parsed as RDF but the upgrade declined it as not SBOL 2
+    /// (`UpgradeError::NotSbol2`) — a genuinely upgrade-unsupported outcome,
+    /// tracked separately from a parse failure so the report stays honest.
+    upgrade_unsupported: usize,
     reupgrade_fail: Vec<String>,
     downgrade_fail: Vec<String>,
 }
 
 /// Runs the fixed-point cycle for one file. `Ok(true)` = clean, `Ok(false)`
-/// = drifted, `Err(kind)` distinguishes the failure bucket.
+/// = drifted, `Err(kind)` distinguishes the failure bucket. A genuine RDF
+/// parse failure (`"parse"`) is kept distinct from an
+/// upgrade-declined-as-not-SBOL-2 outcome (`"upgrade-unsupported"`).
 fn fixed_point(path: &Path) -> Result<bool, &'static str> {
     let text = std::fs::read_to_string(path).map_err(|_| "read")?;
 
-    // First upgrade: also the parse gate. RDF/XML reader gaps surface here.
+    // First upgrade: also the parse gate. RDF/XML reader gaps surface as a
+    // `Parse` error; a well-formed document the upgrade declines surfaces as
+    // `NotSbol2`.
     let (upgraded, _) =
-        sbol_convert::upgrade_from_sbol2(&text, RdfFormat::RdfXml).map_err(|_| "parse")?;
+        sbol_convert::upgrade_from_sbol2(&text, RdfFormat::RdfXml).map_err(|err| match err {
+            UpgradeError::Parse(_) => "parse",
+            UpgradeError::NotSbol2 => "upgrade-unsupported",
+            _ => "upgrade-unsupported",
+        })?;
     let before = canonicalize(upgraded.rdf_graph());
 
     let (downgraded, _) = sbol_convert::downgrade(&upgraded).map_err(|_| "downgrade")?;
@@ -121,6 +137,7 @@ fn corpus_round_trips_to_fixed_point() {
                     }
                 }
                 Err("parse") => report.parse_skip += 1,
+                Err("upgrade-unsupported") => report.upgrade_unsupported += 1,
                 Err("reupgrade") => {
                     report.reupgrade_fail.push(name.clone());
                     if !is_allowlisted(&name) && drift_samples.len() < 20 {
@@ -142,6 +159,7 @@ fn corpus_round_trips_to_fixed_point() {
     let mut total_clean = 0;
     let mut total_drift = 0;
     let mut total_skip = 0;
+    let mut total_unsupported = 0;
     let mut total_fail = 0;
     for (dir, report) in &reports {
         let non_allow_drift = report
@@ -159,16 +177,17 @@ fn corpus_round_trips_to_fixed_point() {
             .filter(|n| is_allowlisted(n))
             .count();
         eprintln!(
-            "  {dir:<10} clean={:<4} drift={:<3} (allowlisted={}) parse-skip={}",
-            report.clean, non_allow_drift, allow, report.parse_skip
+            "  {dir:<10} clean={:<4} drift={:<3} (allowlisted={}) parse-fail={} upgrade-unsupported={}",
+            report.clean, non_allow_drift, allow, report.parse_skip, report.upgrade_unsupported
         );
         total_clean += report.clean;
         total_drift += non_allow_drift;
         total_skip += report.parse_skip;
+        total_unsupported += report.upgrade_unsupported;
         total_fail += allow;
     }
     eprintln!(
-        "  {:<10} clean={total_clean} unexpected-drift={total_drift} allowlisted={total_fail} parse-skip={total_skip}\n",
+        "  {:<10} clean={total_clean} unexpected-drift={total_drift} allowlisted={total_fail} parse-fail={total_skip} upgrade-unsupported={total_unsupported}\n",
         "TOTAL"
     );
 
