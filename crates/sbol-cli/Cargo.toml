@@ -22,7 +22,7 @@ path = "src/main.rs"
 
 [dependencies]
 clap.workspace = true
-sbol.workspace = true
+sbol = { workspace = true, features = ["v2"] }
 sbol-fasta.workspace = true
 sbol-genbank.workspace = true
 sbol-ontology.workspace = true

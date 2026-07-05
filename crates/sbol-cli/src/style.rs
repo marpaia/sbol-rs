@@ -37,6 +37,14 @@ impl Styles {
             "error"
         }
     }
+
+    pub(crate) fn warn_label(self) -> &'static str {
+        if self.stderr {
+            "\x1b[1;33mwarning\x1b[0m"
+        } else {
+            "warning"
+        }
+    }
 }
 
 pub(crate) fn paint(enabled: bool, code: &str, text: &str) -> String {

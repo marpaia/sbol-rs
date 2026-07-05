@@ -8,7 +8,7 @@ use sbol::v3::{ExternalValidationMode, RdfFormat, Severity};
 #[command(
     name = "sbol",
     version = env!("SBOL_VERSION_FULL"),
-    about = "Command-line tool for SBOL 3 documents",
+    about = "Command-line tool for SBOL 2 and SBOL 3 documents",
     propagate_version = true
 )]
 pub(crate) struct Cli {
@@ -23,7 +23,7 @@ pub(crate) struct Cli {
 
 #[derive(Subcommand)]
 pub(crate) enum Command {
-    /// Validate an SBOL 3 document against the spec.
+    /// Validate an SBOL 2 or SBOL 3 document against the spec.
     Validate(ValidateArgs),
     /// Convert an SBOL 3 document between RDF serializations.
     Convert(ConvertArgs),
@@ -167,12 +167,41 @@ impl From<SeverityArg> for Severity {
     }
 }
 
+/// Which SBOL major version to validate the input as.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+pub(crate) enum SbolVersionArg {
+    /// Detect the version from the document's RDF namespaces.
+    Auto,
+    /// Force the SBOL 2 validator.
+    #[value(name = "2")]
+    V2,
+    /// Force the SBOL 3 validator.
+    #[value(name = "3")]
+    V3,
+}
+
+/// Which SBOL validation-rule catalog to list.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+pub(crate) enum CatalogVersionArg {
+    /// The SBOL 2 catalog.
+    #[value(name = "2")]
+    V2,
+    /// The SBOL 3 catalog.
+    #[value(name = "3")]
+    V3,
+}
+
 #[derive(Args)]
 pub(crate) struct ValidateArgs {
-    /// Path to an SBOL 3 document. Format is inferred from the extension —
-    /// `.ttl` (Turtle), `.rdf` (RDF/XML), `.jsonld` (JSON-LD), or `.nt`
-    /// (N-Triples).
+    /// Path to an SBOL 2 or SBOL 3 document. Format is inferred from the
+    /// extension — `.ttl` (Turtle), `.rdf` / `.xml` (RDF/XML), `.jsonld`
+    /// (JSON-LD), or `.nt` (N-Triples).
     pub(crate) path: PathBuf,
+
+    /// Which SBOL version to validate as. `auto` detects the version from
+    /// the document's RDF namespaces; `2` and `3` force a validator.
+    #[arg(long, value_enum, default_value_t = SbolVersionArg::Auto)]
+    pub(crate) sbol_version: SbolVersionArg,
 
     /// Output format.
     #[arg(long, value_enum, default_value_t = OutputFormat::Text)]
@@ -239,6 +268,35 @@ pub(crate) struct ValidateArgs {
     /// ones on conflict.
     #[arg(long = "ontology", value_name = "NAME")]
     pub(crate) ontology: Vec<String>,
+
+    /// Run the completeness family: every referenced object must be present
+    /// in the document. On by default for both versions.
+    #[arg(long, conflicts_with = "incomplete")]
+    pub(crate) complete: bool,
+
+    /// Skip the completeness family, so references to objects outside the
+    /// document are not flagged. The counterpart to `--complete`.
+    #[arg(long)]
+    pub(crate) incomplete: bool,
+
+    /// Skip the compliant-URI structural family (SBOL 2's compliant-URI
+    /// checks, SBOL 3's structural URI checks).
+    #[arg(long)]
+    pub(crate) non_compliant: bool,
+
+    /// Run the SHOULD-level best-practice family. On by default for SBOL 3;
+    /// use this to opt in for SBOL 2.
+    #[arg(long, conflicts_with = "no_best_practices")]
+    pub(crate) best_practice: bool,
+
+    /// Skip the SHOULD-level best-practice family and report only MUST
+    /// violations. On by default for SBOL 2; use this to opt out for SBOL 3.
+    #[arg(long)]
+    pub(crate) no_best_practices: bool,
+
+    /// Interpret compliant URIs as carrying an optional type segment.
+    #[arg(long)]
+    pub(crate) types_in_uri: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
@@ -439,6 +497,10 @@ pub(crate) struct ConvertArgs {
 
 #[derive(Args)]
 pub(crate) struct RulesListArgs {
+    /// Which catalog to list: the SBOL 2 rules or the SBOL 3 rules.
+    #[arg(long, value_enum, default_value_t = CatalogVersionArg::V3)]
+    pub(crate) sbol_version: CatalogVersionArg,
+
     /// Output format.
     #[arg(long, value_enum, default_value_t = RulesFormat::Text)]
     pub(crate) format: RulesFormat,
