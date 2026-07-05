@@ -204,6 +204,14 @@ pub const OM_HAS_EXPONENT: &str =
 pub const OM_HAS_PREFIX: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/hasPrefix";
 
+// === XSD datatypes for typed literals ===
+
+pub const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+pub const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+pub const XSD_LONG: &str = "http://www.w3.org/2001/XMLSchema#long";
+pub const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+pub const XSD_DATE_TIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
+
 // === Controlled values ===
 
 pub const SBOL2_PUBLIC: &str = "http://sbols.org/v2#public";

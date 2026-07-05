@@ -3,9 +3,17 @@ use std::collections::BTreeMap;
 use crate::client::shared::{
     ComponentInstanceData, IdentifiedData, LocationData, MeasuredData, TopLevelData,
 };
-use crate::schema::{Cardinality, FieldDescriptor, class_spec};
+use crate::client::object::for_each_variant;
+use crate::client::{Sbol2Object, ToRdf};
+use crate::schema::{FieldDescriptor, ValueKind, class_spec, xsd_datatype};
 use crate::vocab::*;
 use crate::{BuildError, Iri, Literal, Resource, Sbol2Class, Term, Triple};
+
+impl ToRdf for Sbol2Object {
+    fn to_rdf_triples(&self) -> Result<Vec<Triple>, BuildError> {
+        for_each_variant!(self, object => object.to_rdf_triples())
+    }
+}
 
 pub(crate) fn emit_identified(
     e: &mut Emitter<'_>,
@@ -82,18 +90,11 @@ impl<'t> Emitter<'t> {
         }
     }
 
-    fn descriptor(&self, predicate: &'static str) -> &FieldDescriptor {
+    fn value_kind(&self, predicate: &'static str) -> ValueKind {
         self.descriptors
             .get(predicate)
             .unwrap_or_else(|| panic!("unknown predicate `{predicate}` for class {:?}", self.class))
-    }
-
-    fn missing(&self, predicate: &'static str) -> BuildError {
-        BuildError::MissingRequired {
-            identity: self.identity.clone(),
-            class: self.class,
-            property: predicate,
-        }
+            .value_kind
     }
 
     pub(crate) fn iris(
@@ -101,10 +102,7 @@ impl<'t> Emitter<'t> {
         predicate: &'static str,
         values: &[Iri],
     ) -> Result<(), BuildError> {
-        let descriptor = self.descriptor(predicate);
-        if descriptor.cardinality == Cardinality::OneOrMore && values.is_empty() {
-            return Err(self.missing(predicate));
-        }
+        self.value_kind(predicate);
         for value in values {
             push_iri(self.triples, self.identity, predicate, value.clone());
         }
@@ -116,10 +114,7 @@ impl<'t> Emitter<'t> {
         predicate: &'static str,
         values: &[Resource],
     ) -> Result<(), BuildError> {
-        let descriptor = self.descriptor(predicate);
-        if descriptor.cardinality == Cardinality::OneOrMore && values.is_empty() {
-            return Err(self.missing(predicate));
-        }
+        self.value_kind(predicate);
         for value in values {
             push_resource(self.triples, self.identity, predicate, value.clone());
         }
@@ -131,15 +126,11 @@ impl<'t> Emitter<'t> {
         predicate: &'static str,
         value: Option<&Iri>,
     ) -> Result<(), BuildError> {
-        let descriptor = self.descriptor(predicate);
-        match (descriptor.cardinality, value) {
-            (Cardinality::ExactlyOne, None) => Err(self.missing(predicate)),
-            (_, Some(value)) => {
-                push_iri(self.triples, self.identity, predicate, value.clone());
-                Ok(())
-            }
-            _ => Ok(()),
+        self.value_kind(predicate);
+        if let Some(value) = value {
+            push_iri(self.triples, self.identity, predicate, value.clone());
         }
+        Ok(())
     }
 
     pub(crate) fn resource(
@@ -147,15 +138,11 @@ impl<'t> Emitter<'t> {
         predicate: &'static str,
         value: Option<&Resource>,
     ) -> Result<(), BuildError> {
-        let descriptor = self.descriptor(predicate);
-        match (descriptor.cardinality, value) {
-            (Cardinality::ExactlyOne, None) => Err(self.missing(predicate)),
-            (_, Some(value)) => {
-                push_resource(self.triples, self.identity, predicate, value.clone());
-                Ok(())
-            }
-            _ => Ok(()),
+        self.value_kind(predicate);
+        if let Some(value) = value {
+            push_resource(self.triples, self.identity, predicate, value.clone());
         }
+        Ok(())
     }
 
     pub(crate) fn literal(
@@ -163,15 +150,11 @@ impl<'t> Emitter<'t> {
         predicate: &'static str,
         value: Option<&str>,
     ) -> Result<(), BuildError> {
-        let descriptor = self.descriptor(predicate);
-        match (descriptor.cardinality, value) {
-            (Cardinality::ExactlyOne, None) => Err(self.missing(predicate)),
-            (_, Some(value)) => {
-                push_literal(self.triples, self.identity, predicate, value);
-                Ok(())
-            }
-            _ => Ok(()),
+        let kind = self.value_kind(predicate);
+        if let Some(value) = value {
+            push_literal(self.triples, self.identity, predicate, value, kind);
         }
+        Ok(())
     }
 
     pub(crate) fn literals(
@@ -179,12 +162,9 @@ impl<'t> Emitter<'t> {
         predicate: &'static str,
         values: &[String],
     ) -> Result<(), BuildError> {
-        let descriptor = self.descriptor(predicate);
-        if descriptor.cardinality == Cardinality::OneOrMore && values.is_empty() {
-            return Err(self.missing(predicate));
-        }
+        let kind = self.value_kind(predicate);
         for value in values {
-            push_literal(self.triples, self.identity, predicate, value);
+            push_literal(self.triples, self.identity, predicate, value, kind);
         }
         Ok(())
     }
@@ -194,15 +174,11 @@ impl<'t> Emitter<'t> {
         predicate: &'static str,
         value: Option<i64>,
     ) -> Result<(), BuildError> {
-        let descriptor = self.descriptor(predicate);
-        match (descriptor.cardinality, value) {
-            (Cardinality::ExactlyOne, None) => Err(self.missing(predicate)),
-            (_, Some(value)) => {
-                push_literal(self.triples, self.identity, predicate, &value.to_string());
-                Ok(())
-            }
-            _ => Ok(()),
+        let kind = self.value_kind(predicate);
+        if let Some(value) = value {
+            push_literal(self.triples, self.identity, predicate, &value.to_string(), kind);
         }
+        Ok(())
     }
 
     /// Emit an extension/annotation triple. Bypasses the descriptor table
@@ -260,10 +236,15 @@ fn push_literal(
     identity: &Resource,
     predicate: &'static str,
     value: &str,
+    kind: ValueKind,
 ) {
+    let literal = match xsd_datatype(kind) {
+        Some(datatype) => Literal::new(value, Iri::from_static(datatype), None),
+        None => Literal::simple(value),
+    };
     triples.push(Triple {
         subject: identity.clone(),
         predicate: Iri::from_static(predicate),
-        object: Term::Literal(Literal::simple(value)),
+        object: Term::Literal(literal),
     });
 }

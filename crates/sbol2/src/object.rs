@@ -3,8 +3,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use sbol_core::object::Object;
 
 use crate::model::{Identified, TopLevel};
+use crate::schema::literal_datatype;
 use crate::vocab::*;
-use crate::{Iri, RdfGraph, Resource, Sbol2Class, Term};
+use crate::{Iri, Literal, RdfGraph, Resource, Sbol2Class, Term};
 
 /// Classifies an [`Object`] against the SBOL 2 class hierarchy.
 ///
@@ -33,6 +34,36 @@ impl ObjectClasses for Object {
             .filter_map(Sbol2Class::from_iri)
             .any(|candidate| candidate.is_a(class))
     }
+}
+
+/// Rewrites the datatype of every recognized SBOL 2 literal to the datatype
+/// the data model assigns it, leaving extension-triple literals untouched.
+/// This lets the parsed graph and the graph rebuilt from typed objects agree
+/// regardless of how the source serialization typed its literals.
+pub(crate) fn canonicalize_literals(graph: &RdfGraph) -> RdfGraph {
+    let triples = graph
+        .triples()
+        .iter()
+        .map(|triple| {
+            let Term::Literal(literal) = &triple.object else {
+                return triple.clone();
+            };
+            let Some(datatype) = literal_datatype(triple.predicate.as_str()) else {
+                return triple.clone();
+            };
+            if literal.datatype().as_str() == datatype && literal.language().is_none() {
+                return triple.clone();
+            }
+            let mut triple = triple.clone();
+            triple.object = Term::Literal(Literal::new(
+                literal.value(),
+                Iri::from_static(datatype),
+                None,
+            ));
+            triple
+        })
+        .collect();
+    RdfGraph::new(triples)
 }
 
 pub(crate) fn collect_objects(graph: &RdfGraph) -> BTreeMap<Resource, Object> {

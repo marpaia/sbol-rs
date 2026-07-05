@@ -216,6 +216,97 @@ pub(crate) fn class_spec(iri: &str) -> Option<ClassSpec> {
     })
 }
 
+/// The canonical XSD datatype IRI for a literal-valued [`ValueKind`], or
+/// `None` for the reference kinds (`Uri`, `Url`).
+pub(crate) fn xsd_datatype(kind: ValueKind) -> Option<&'static str> {
+    match kind {
+        ValueKind::String => Some(XSD_STRING),
+        ValueKind::Integer => Some(XSD_INTEGER),
+        ValueKind::Long => Some(XSD_LONG),
+        ValueKind::Float => Some(XSD_DECIMAL),
+        ValueKind::DateTime => Some(XSD_DATE_TIME),
+        ValueKind::Uri | ValueKind::Url => None,
+        _ => None,
+    }
+}
+
+/// The spec-defined XSD datatype for a recognized literal-valued predicate.
+///
+/// SBOL 2 files vary in how they type literals — a Turtle file may write
+/// `sbol:start 10` (an `xsd:integer`) while an RDF/XML file writes
+/// `<sbol:start>10</sbol:start>` (an `xsd:string`) for the same property. The
+/// serializer emits, and the reader normalizes to, the datatype the SBOL 2
+/// data model assigns each property, so the typed surface and its RDF form
+/// agree. Predicates outside the recognized field set (extension triples)
+/// keep their literals verbatim.
+pub(crate) fn literal_datatype(predicate: &str) -> Option<&'static str> {
+    static CACHE: std::sync::OnceLock<BTreeMap<&'static str, &'static str>> =
+        std::sync::OnceLock::new();
+    CACHE
+        .get_or_init(|| {
+            let mut map = BTreeMap::new();
+            for class_iri in ALL_CLASS_IRIS {
+                if let Some(spec) = class_spec(class_iri) {
+                    for field in spec.fields {
+                        if let Some(datatype) = xsd_datatype(field.value_kind) {
+                            map.insert(field.predicate, datatype);
+                        }
+                    }
+                }
+            }
+            map
+        })
+        .get(predicate)
+        .copied()
+}
+
+const ALL_CLASS_IRIS: &[&str] = &[
+    SBOL2_IDENTIFIED_CLASS,
+    SBOL2_TOP_LEVEL_CLASS,
+    SBOL2_MEASURED_CLASS,
+    SBOL2_COMPONENT_INSTANCE_CLASS,
+    SBOL2_LOCATION_CLASS,
+    SBOL2_SEQUENCE_CLASS,
+    SBOL2_COMPONENT_DEFINITION_CLASS,
+    SBOL2_MODULE_DEFINITION_CLASS,
+    SBOL2_MODEL_CLASS,
+    SBOL2_COLLECTION_CLASS,
+    SBOL2_COMBINATORIAL_DERIVATION_CLASS,
+    SBOL2_IMPLEMENTATION_CLASS,
+    SBOL2_ATTACHMENT_CLASS,
+    SBOL2_EXPERIMENTAL_DATA_CLASS,
+    SBOL2_EXPERIMENT_CLASS,
+    SBOL2_GENERIC_TOP_LEVEL_CLASS,
+    SBOL2_COMPONENT_CLASS,
+    SBOL2_FUNCTIONAL_COMPONENT_CLASS,
+    SBOL2_MODULE_CLASS,
+    SBOL2_MAPS_TO_CLASS,
+    SBOL2_SEQUENCE_ANNOTATION_CLASS,
+    SBOL2_SEQUENCE_CONSTRAINT_CLASS,
+    SBOL2_VARIABLE_COMPONENT_CLASS,
+    SBOL2_INTERACTION_CLASS,
+    SBOL2_PARTICIPATION_CLASS,
+    SBOL2_RANGE_CLASS,
+    SBOL2_CUT_CLASS,
+    SBOL2_GENERIC_LOCATION_CLASS,
+    PROV_ACTIVITY,
+    PROV_AGENT_CLASS,
+    PROV_PLAN,
+    PROV_ASSOCIATION,
+    PROV_USAGE,
+    OM_MEASURE,
+    OM_UNIT,
+    OM_SINGULAR_UNIT,
+    OM_COMPOUND_UNIT,
+    OM_UNIT_MULTIPLICATION,
+    OM_UNIT_DIVISION,
+    OM_UNIT_EXPONENTIATION,
+    OM_PREFIXED_UNIT,
+    OM_PREFIX,
+    OM_SI_PREFIX,
+    OM_BINARY_PREFIX,
+];
+
 pub(crate) fn property_specs_for(object: &Object) -> BTreeMap<&'static str, PropertySpec> {
     let mut specs = BTreeMap::new();
     for rdf_type in object.rdf_types() {

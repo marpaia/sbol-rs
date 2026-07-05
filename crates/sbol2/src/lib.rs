@@ -10,6 +10,7 @@
 
 mod client;
 pub mod constants;
+mod document;
 mod error;
 pub mod identity;
 mod model;
@@ -18,6 +19,17 @@ pub mod schema;
 #[doc(hidden)]
 pub mod vocab;
 
+pub use client::{
+    Activity, Agent, Association, Attachment, BinaryPrefix, Collection, CombinatorialDerivation,
+    Component, ComponentDefinition, ComponentInstanceData, CompoundUnit, Cut, Experiment,
+    ExperimentalData, ExtensionTriple, FunctionalComponent, GenericLocation, GenericTopLevel,
+    IdentifiedData, IdentifiedExtension, Implementation, Interaction, LocationData, MapsTo,
+    Measure, MeasuredData, Model, Module, ModuleDefinition, Participation, Plan, Prefix,
+    PrefixData, PrefixedUnit, Range, SIPrefix, Sbol2Object, SbolIdentified, SbolTopLevel, Sequence,
+    SequenceAnnotation, SequenceConstraint, SingularUnit, ToRdf, TopLevelData, TryFromObject, Unit,
+    UnitData, UnitDivision, UnitExponentiation, UnitMultiplication, Usage, VariableComponent,
+};
+pub use document::Document;
 pub use error::{BuildError, ReadError, WriteError};
 pub use identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
 pub use model::{Identified, Sbol2Class, TopLevel};
