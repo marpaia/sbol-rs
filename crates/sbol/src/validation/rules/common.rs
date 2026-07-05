@@ -1,3 +1,4 @@
+use crate::object::ObjectClasses;
 use crate::schema::{Cardinality, FieldDescriptor as PropertySpec, TargetClass};
 use crate::validation::context::{ExternalValidationMode, ResolutionErrorKind};
 use crate::validation::helpers::{

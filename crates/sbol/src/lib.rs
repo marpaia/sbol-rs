@@ -158,7 +158,8 @@ pub use downgrade::{
 pub use error::{BuildError, ReadError, WriteError};
 pub use identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
 pub use model::{Identified, SbolClass, TopLevel};
-pub use object::Object;
+pub use object::ObjectClasses;
+pub use sbol_core::object::Object;
 pub use owl_conformance::{
     OWL_ONLY_ALLOWLIST, OwlConformanceReport, OwlIdentifiers, OwlPinInfo, RUST_ONLY_ALLOWLIST,
     analyze_owl_conformance, extract_owl_identifiers, extract_vocab_iris,

@@ -1,5 +1,6 @@
 //! RDF type inspection: class-hierarchy checks and target/external-resource classification.
 
+use crate::object::ObjectClasses;
 use super::*;
 
 pub(crate) fn known_external_resource(iri: &str) -> Option<ExternalResource> {

@@ -2,6 +2,7 @@
 //! (`ComponentReferenceResolver`) and resolving the type-bearing
 //! referent of a feature (`TypeReferentResolver`).
 
+use crate::object::ObjectClasses;
 use std::collections::BTreeSet;
 
 use super::{OwnershipIndex, iri_values, parent_by_identity_prefix};

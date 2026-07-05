@@ -42,6 +42,7 @@ pub use crate::document::Document;
 pub use crate::error::{BuildError, ReadError, WriteError};
 pub use crate::identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
 pub use crate::model::{Identified, SbolClass, TopLevel};
+pub use crate::object::ObjectClasses;
 pub use crate::resolve::{FeatureTrace, ObjectGraph, ReferenceError, VariantSet};
 pub use crate::validation::DocumentSet;
 pub use crate::{Iri, Literal, Object, RdfFormat, RdfGraph, Resource, Term, Triple};

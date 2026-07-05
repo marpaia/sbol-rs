@@ -1,6 +1,7 @@
 //! Constraint evaluation: Table 8 (identity / orientation) and Table 10
 //! (sequential) relation outcomes for `sbol:Constraint`.
 
+use crate::object::ObjectClasses;
 use super::{
     ComponentReferenceResolver, DirectionalOrientation, LocationResolver, OwnershipIndex,
     directional_orientation_value, sequential_relation_satisfied,

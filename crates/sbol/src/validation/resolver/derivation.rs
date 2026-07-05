@@ -1,6 +1,7 @@
 //! Combinatorial-derivation resolution: template/variable feature context,
 //! derived components, and allowed variant expansion.
 
+use crate::object::ObjectClasses;
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::{FEATURE_EQUIVALENCE_PREDICATES, OwnershipIndex, iri_values, term_values};

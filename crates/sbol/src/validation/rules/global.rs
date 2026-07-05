@@ -1,3 +1,4 @@
+use crate::object::ObjectClasses;
 use std::collections::BTreeSet;
 
 use crate::validation::helpers::component_allows_sequence;

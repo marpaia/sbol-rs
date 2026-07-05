@@ -165,6 +165,8 @@ PREFIX sbol: <http://sbols.org/v3#>
         .get(&sbol::Resource::iri("https://example.org/component"))
         .unwrap();
 
+    use sbol::ObjectClasses;
+
     assert!(object.has_class(sbol::SbolClass::Component));
     assert!(object.is_top_level());
     assert_eq!(object.identified().display_id.as_deref(), Some("component"));

@@ -1,3 +1,4 @@
+use crate::object::ObjectClasses;
 use crate::validation::helpers::first_invalid_sequence_element;
 use crate::validation::tables;
 use crate::validation::validator::Validator;

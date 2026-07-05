@@ -1,3 +1,4 @@
+use crate::object::ObjectClasses;
 use sha3::{Digest, Sha3_256};
 
 use crate::validation::context::{

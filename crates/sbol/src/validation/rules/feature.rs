@@ -1,3 +1,4 @@
+use crate::object::ObjectClasses;
 use crate::validation::tables;
 use crate::validation::validator::Validator;
 use crate::vocab::*;

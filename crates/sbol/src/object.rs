@@ -1,80 +1,37 @@
 use std::collections::{BTreeMap, BTreeSet};
 
+use sbol_core::object::Object;
+
 use crate::model::{Identified, TopLevel};
 use crate::vocab::*;
-use crate::{Iri, Literal, RdfGraph, Resource, SbolClass, Term};
+use crate::{Iri, RdfGraph, Resource, SbolClass, Term};
 
-/// An SBOL or SBOL extension object.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-pub struct Object {
-    identity: Resource,
-    rdf_types: BTreeSet<Iri>,
-    classes: BTreeSet<SbolClass>,
-    properties: BTreeMap<Iri, Vec<Term>>,
-    identified: Identified,
-    top_level: Option<TopLevel>,
+/// Classifies an [`Object`] against the SBOL class hierarchy.
+///
+/// The neutral [`Object`] retains only its raw `rdf_types`; this extension
+/// trait interprets those IRIs as SBOL classes, honoring subclass
+/// relationships through [`SbolClass::is_a`].
+pub trait ObjectClasses {
+    /// The SBOL classes this object's RDF types resolve to.
+    fn classes(&self) -> BTreeSet<SbolClass>;
+
+    /// Whether the object is an instance of `class` or any of its subclasses.
+    fn has_class(&self, class: SbolClass) -> bool;
 }
 
-impl Object {
-    pub fn identity(&self) -> &Resource {
-        &self.identity
+impl ObjectClasses for Object {
+    fn classes(&self) -> BTreeSet<SbolClass> {
+        self.rdf_types()
+            .iter()
+            .filter_map(SbolClass::from_iri)
+            .collect()
     }
 
-    pub fn rdf_types(&self) -> &BTreeSet<Iri> {
-        &self.rdf_types
-    }
-
-    pub fn classes(&self) -> &BTreeSet<SbolClass> {
-        &self.classes
-    }
-
-    pub fn properties(&self) -> &BTreeMap<Iri, Vec<Term>> {
-        &self.properties
-    }
-
-    pub fn identified(&self) -> &Identified {
-        &self.identified
-    }
-
-    pub fn top_level(&self) -> Option<&TopLevel> {
-        self.top_level.as_ref()
-    }
-
-    pub fn is_top_level(&self) -> bool {
-        self.top_level.is_some()
-    }
-
-    pub fn has_class(&self, class: SbolClass) -> bool {
-        self.classes.iter().any(|candidate| candidate.is_a(class))
-    }
-
-    pub fn values(&self, predicate: &str) -> &[Term] {
-        terms_for(&self.properties, predicate)
-    }
-
-    pub fn resources(&self, predicate: &str) -> impl Iterator<Item = &Resource> {
-        self.values(predicate).iter().filter_map(Term::as_resource)
-    }
-
-    pub fn iris(&self, predicate: &str) -> impl Iterator<Item = &Iri> {
-        self.values(predicate).iter().filter_map(Term::as_iri)
-    }
-
-    pub fn literals(&self, predicate: &str) -> impl Iterator<Item = &Literal> {
-        self.values(predicate).iter().filter_map(Term::as_literal)
-    }
-
-    pub fn first_resource(&self, predicate: &str) -> Option<&Resource> {
-        self.resources(predicate).next()
-    }
-
-    pub fn first_iri(&self, predicate: &str) -> Option<&Iri> {
-        self.iris(predicate).next()
-    }
-
-    pub fn first_literal_value(&self, predicate: &str) -> Option<&str> {
-        self.literals(predicate).next().map(Literal::value)
+    fn has_class(&self, class: SbolClass) -> bool {
+        self.rdf_types()
+            .iter()
+            .filter_map(SbolClass::from_iri)
+            .any(|candidate| candidate.is_a(class))
     }
 }
 
@@ -123,14 +80,7 @@ pub(crate) fn collect_objects(graph: &RdfGraph) -> BTreeMap<Resource, Object> {
 
             Some((
                 identity.clone(),
-                Object {
-                    identity,
-                    rdf_types,
-                    classes,
-                    properties,
-                    identified,
-                    top_level,
-                },
+                Object::from_parts(identity, rdf_types, properties, identified, top_level),
             ))
         })
         .collect()

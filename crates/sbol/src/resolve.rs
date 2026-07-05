@@ -34,6 +34,7 @@
 //! [`crate::validation::ResolutionError`], which signals failure to fetch
 //! an *external* resource (HTTP, IO, parse). The two never overlap.
 
+use crate::object::ObjectClasses;
 use std::collections::BTreeSet;
 use std::fmt;
 

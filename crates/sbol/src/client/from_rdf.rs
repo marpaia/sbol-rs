@@ -1,3 +1,4 @@
+use crate::object::ObjectClasses;
 use crate::client::{
     Activity, Agent, Association, Attachment, BinaryPrefix, Collection, CombinatorialDerivation,
     Component, ComponentReference, CompoundUnit, Constraint, Cut, EntireSequence, Experiment,
