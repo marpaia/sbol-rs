@@ -8,6 +8,7 @@ pub mod coverage;
 pub mod options;
 pub mod output;
 pub mod report;
+pub mod resolver;
 pub mod rule_status;
 
 pub use blocker::Blocker;
@@ -20,5 +21,8 @@ pub use output::{VALIDATION_OUTPUT_SCHEMA_VERSION, to_json};
 pub use report::{
     AppliedOptions, CoverageKind, Hint, NotApplied, NotAppliedReason, PartialApplication,
     RuleCoverage, Severity, ValidationIssue, ValidationReport,
+};
+pub use resolver::{
+    ContentResolver, DocumentResolver, ResolutionError, ResolutionErrorKind, ResolvedContent,
 };
 pub use rule_status::{NormativeSeverity, RuleStatus, ValidationRuleStatus};

@@ -1,18 +1,21 @@
-use std::collections::BTreeMap;
-use std::fmt;
-use std::io;
-
 use sbol_ontology::{Ontology, OntologyRegistry};
 
 use crate::validation::options::ValidationOptions;
-use crate::{Document, Iri, Object, Resource};
+use crate::Document;
 
 mod resolvers;
 
 pub use resolvers::FileResolver;
 #[cfg(feature = "http-resolver")]
 pub use resolvers::{CachingHttpResolver, HttpResolver};
+pub use sbol_core::document::DocumentSetError;
 pub use sbol_core::validation::options::ExternalValidationMode;
+pub use sbol_core::validation::resolver::{
+    ContentResolver, DocumentResolver, ResolutionError, ResolutionErrorKind, ResolvedContent,
+};
+
+/// A set of in-memory SBOL documents indexed by object identity.
+pub type DocumentSet<'a> = sbol_core::document::DocumentSet<'a, Document>;
 
 /// Resolver-aware validation inputs.
 #[derive(Default)]
@@ -96,156 +99,4 @@ impl<'a> ValidationContext<'a> {
         self.content_resolvers.push(resolver);
         self
     }
-}
-
-/// A set of in-memory SBOL documents indexed by object identity.
-#[derive(Debug, Default)]
-#[non_exhaustive]
-pub struct DocumentSet<'a> {
-    documents: Vec<&'a Document>,
-    objects: BTreeMap<Resource, &'a Object>,
-}
-
-impl<'a> DocumentSet<'a> {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn from_documents(
-        documents: impl IntoIterator<Item = &'a Document>,
-    ) -> Result<Self, DocumentSetError> {
-        let mut set = Self::new();
-        for document in documents {
-            set.add_document(document)?;
-        }
-        Ok(set)
-    }
-
-    pub fn add_document(&mut self, document: &'a Document) -> Result<(), DocumentSetError> {
-        for identity in document.objects().keys() {
-            if self.objects.contains_key(identity) {
-                return Err(DocumentSetError::duplicate(identity.clone()));
-            }
-        }
-
-        for (identity, object) in document.objects() {
-            self.objects.insert(identity.clone(), object);
-        }
-        self.documents.push(document);
-        Ok(())
-    }
-
-    pub fn documents(&self) -> &[&'a Document] {
-        &self.documents
-    }
-
-    pub fn get(&self, identity: &Resource) -> Option<&'a Object> {
-        self.objects.get(identity).copied()
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-pub struct DocumentSetError {
-    identity: Resource,
-}
-
-impl DocumentSetError {
-    fn duplicate(identity: Resource) -> Self {
-        Self { identity }
-    }
-
-    pub fn identity(&self) -> &Resource {
-        &self.identity
-    }
-}
-
-impl fmt::Display for DocumentSetError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            formatter,
-            "duplicate SBOL object identity `{}` in document set",
-            self.identity
-        )
-    }
-}
-
-impl std::error::Error for DocumentSetError {}
-
-/// Resolved byte content for an Attachment or Model source.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-pub struct ResolvedContent {
-    pub bytes: Vec<u8>,
-    pub media_type: Option<String>,
-}
-
-impl ResolvedContent {
-    pub fn new(bytes: impl Into<Vec<u8>>, media_type: Option<String>) -> Self {
-        Self {
-            bytes: bytes.into(),
-            media_type,
-        }
-    }
-}
-
-/// Coarse class of a resolution failure.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-pub enum ResolutionErrorKind {
-    UnsupportedScheme,
-    NotFound,
-    InvalidData,
-    Io,
-    Http,
-    Parse,
-}
-
-/// A resolver failure with a stable kind and human-readable context.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-pub struct ResolutionError {
-    kind: ResolutionErrorKind,
-    message: String,
-}
-
-impl ResolutionError {
-    pub fn new(kind: ResolutionErrorKind, message: impl Into<String>) -> Self {
-        Self {
-            kind,
-            message: message.into(),
-        }
-    }
-
-    pub fn kind(&self) -> ResolutionErrorKind {
-        self.kind
-    }
-
-    pub fn message(&self) -> &str {
-        &self.message
-    }
-}
-
-impl fmt::Display for ResolutionError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(&self.message)
-    }
-}
-
-impl std::error::Error for ResolutionError {}
-
-impl From<io::Error> for ResolutionError {
-    fn from(error: io::Error) -> Self {
-        Self::new(ResolutionErrorKind::Io, error.to_string())
-    }
-}
-
-/// Resolves an external resource into an SBOL document.
-pub trait DocumentResolver {
-    fn resolve_document(&self, resource: &Resource) -> Result<Document, ResolutionError>;
-}
-
-/// Resolves an Attachment or Model source into bytes.
-pub trait ContentResolver {
-    fn resolve_content(&self, source: &Iri) -> Result<ResolvedContent, ResolutionError>;
 }

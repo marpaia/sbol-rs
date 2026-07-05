@@ -3,6 +3,7 @@
 //! layers on top.
 
 use std::collections::BTreeMap;
+use std::fmt;
 use std::path::Path;
 
 use sbol_rdf::{Graph, RdfFormat, Resource};
@@ -84,3 +85,91 @@ impl ObjectStore for RawDocument {
         self.objects.get(identity)
     }
 }
+
+/// A set of in-memory documents indexed by object identity.
+///
+/// Objects across the member documents share one identity space; adding a
+/// document whose identities collide with an already-indexed one fails with
+/// a [`DocumentSetError`]. Generic over any [`ObjectStore`], so it composes
+/// documents from any SBOL version.
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct DocumentSet<'a, S: ObjectStore> {
+    documents: Vec<&'a S>,
+    objects: BTreeMap<Resource, &'a Object>,
+}
+
+impl<'a, S: ObjectStore> Default for DocumentSet<'a, S> {
+    fn default() -> Self {
+        Self {
+            documents: Vec::new(),
+            objects: BTreeMap::new(),
+        }
+    }
+}
+
+impl<'a, S: ObjectStore> DocumentSet<'a, S> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn from_documents(
+        documents: impl IntoIterator<Item = &'a S>,
+    ) -> Result<Self, DocumentSetError> {
+        let mut set = Self::new();
+        for document in documents {
+            set.add_document(document)?;
+        }
+        Ok(set)
+    }
+
+    pub fn add_document(&mut self, document: &'a S) -> Result<(), DocumentSetError> {
+        for identity in document.objects().keys() {
+            if self.objects.contains_key(identity) {
+                return Err(DocumentSetError::duplicate(identity.clone()));
+            }
+        }
+
+        for (identity, object) in document.objects() {
+            self.objects.insert(identity.clone(), object);
+        }
+        self.documents.push(document);
+        Ok(())
+    }
+
+    pub fn documents(&self) -> &[&'a S] {
+        &self.documents
+    }
+
+    pub fn get(&self, identity: &Resource) -> Option<&'a Object> {
+        self.objects.get(identity).copied()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub struct DocumentSetError {
+    identity: Resource,
+}
+
+impl DocumentSetError {
+    fn duplicate(identity: Resource) -> Self {
+        Self { identity }
+    }
+
+    pub fn identity(&self) -> &Resource {
+        &self.identity
+    }
+}
+
+impl fmt::Display for DocumentSetError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            formatter,
+            "duplicate SBOL object identity `{}` in document set",
+            self.identity
+        )
+    }
+}
+
+impl std::error::Error for DocumentSetError {}

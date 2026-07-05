@@ -10,6 +10,8 @@ use std::path::{Path, PathBuf};
 #[cfg(feature = "http-resolver")]
 use std::io::Read;
 
+use sbol_core::document::RawDocument;
+
 use super::{
     ContentResolver, DocumentResolver, ResolutionError, ResolutionErrorKind, ResolvedContent,
 };
@@ -104,7 +106,7 @@ impl ContentResolver for FileResolver {
 }
 
 impl DocumentResolver for FileResolver {
-    fn resolve_document(&self, resource: &Resource) -> Result<Document, ResolutionError> {
+    fn resolve_document(&self, resource: &Resource) -> Result<RawDocument, ResolutionError> {
         let Some(iri) = resource.as_iri() else {
             return Err(ResolutionError::new(
                 ResolutionErrorKind::UnsupportedScheme,
@@ -118,12 +120,14 @@ impl DocumentResolver for FileResolver {
                 format!("resolved document `{iri}` was not UTF-8: {error}"),
             )
         })?;
-        Document::read_turtle(&text).map_err(|error| {
-            ResolutionError::new(
-                ResolutionErrorKind::Parse,
-                format!("resolved document `{iri}` was not valid Turtle: {error}"),
-            )
-        })
+        Document::read_turtle(&text)
+            .map(Document::into_raw)
+            .map_err(|error| {
+                ResolutionError::new(
+                    ResolutionErrorKind::Parse,
+                    format!("resolved document `{iri}` was not valid Turtle: {error}"),
+                )
+            })
     }
 }
 
@@ -180,7 +184,7 @@ impl ContentResolver for HttpResolver {
 
 #[cfg(feature = "http-resolver")]
 impl DocumentResolver for HttpResolver {
-    fn resolve_document(&self, resource: &Resource) -> Result<Document, ResolutionError> {
+    fn resolve_document(&self, resource: &Resource) -> Result<RawDocument, ResolutionError> {
         let Some(iri) = resource.as_iri() else {
             return Err(ResolutionError::new(
                 ResolutionErrorKind::UnsupportedScheme,
@@ -194,12 +198,14 @@ impl DocumentResolver for HttpResolver {
                 format!("resolved document `{iri}` was not UTF-8: {error}"),
             )
         })?;
-        Document::read_turtle(&text).map_err(|error| {
-            ResolutionError::new(
-                ResolutionErrorKind::Parse,
-                format!("resolved document `{iri}` was not valid Turtle: {error}"),
-            )
-        })
+        Document::read_turtle(&text)
+            .map(Document::into_raw)
+            .map_err(|error| {
+                ResolutionError::new(
+                    ResolutionErrorKind::Parse,
+                    format!("resolved document `{iri}` was not valid Turtle: {error}"),
+                )
+            })
     }
 }
 
@@ -281,7 +287,7 @@ impl ContentResolver for CachingHttpResolver {
 
 #[cfg(feature = "http-resolver")]
 impl DocumentResolver for CachingHttpResolver {
-    fn resolve_document(&self, resource: &Resource) -> Result<Document, ResolutionError> {
+    fn resolve_document(&self, resource: &Resource) -> Result<RawDocument, ResolutionError> {
         let Some(iri) = resource.as_iri() else {
             return Err(ResolutionError::new(
                 ResolutionErrorKind::UnsupportedScheme,
@@ -295,12 +301,14 @@ impl DocumentResolver for CachingHttpResolver {
                 format!("resolved document `{iri}` was not UTF-8: {error}"),
             )
         })?;
-        Document::read_turtle(&text).map_err(|error| {
-            ResolutionError::new(
-                ResolutionErrorKind::Parse,
-                format!("resolved document `{iri}` was not valid Turtle: {error}"),
-            )
-        })
+        Document::read_turtle(&text)
+            .map(Document::into_raw)
+            .map_err(|error| {
+                ResolutionError::new(
+                    ResolutionErrorKind::Parse,
+                    format!("resolved document `{iri}` was not valid Turtle: {error}"),
+                )
+            })
     }
 }
 

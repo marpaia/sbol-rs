@@ -3,7 +3,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use sbol::{
     ContentResolver, Document, DocumentResolver, DocumentSet, ExternalValidationMode, Iri,
-    ResolutionError, ResolutionErrorKind, ResolvedContent, Resource, Severity, ValidationContext,
+    RawDocument, ResolutionError, ResolutionErrorKind, ResolvedContent, Resource, Severity,
+    ValidationContext,
 };
 use sha3::{Digest, Sha3_256};
 
@@ -16,11 +17,11 @@ PREFIX sbol: <http://sbols.org/v3#>
 
 #[derive(Clone)]
 struct StaticDocumentResolver {
-    result: Result<Document, ResolutionError>,
+    result: Result<RawDocument, ResolutionError>,
 }
 
 impl DocumentResolver for StaticDocumentResolver {
-    fn resolve_document(&self, _resource: &Resource) -> Result<Document, ResolutionError> {
+    fn resolve_document(&self, _resource: &Resource) -> Result<RawDocument, ResolutionError> {
         self.result.clone()
     }
 }
@@ -145,7 +146,7 @@ fn mock_document_resolver_can_dereference_external_document() {
 "#,
     );
     let resolver = StaticDocumentResolver {
-        result: Ok(external),
+        result: Ok(external.into_raw()),
     };
     let context = ValidationContext::new()
         .with_external_mode(ExternalValidationMode::ExternalAllowed)

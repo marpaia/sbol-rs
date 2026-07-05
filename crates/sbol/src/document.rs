@@ -139,6 +139,13 @@ impl Document {
         }
     }
 
+    /// Consumes the document and returns its version-neutral
+    /// [`RawDocument`] core: the RDF graph and its identity-indexed objects,
+    /// without the typed surface.
+    pub fn into_raw(self) -> RawDocument {
+        self.raw
+    }
+
     /// Serializes the document in the given RDF format.
     pub fn write(&self, format: RdfFormat) -> Result<String, WriteError> {
         self.raw.write(format)
