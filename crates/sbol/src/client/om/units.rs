@@ -12,6 +12,7 @@ use crate::client::builder::{
 use crate::client::to_rdf::{Emitter, emit_identified, emit_top_level, seed_triples};
 use crate::client::{IdentifiedData, ToRdf, TopLevelData, TryFromObject};
 use crate::error::BuildError;
+use sbol_core::error::BuildError as LexError;
 use crate::identity::{DisplayId, Namespace};
 use crate::vocab::*;
 use crate::{Object, Resource, SbolClass, Triple};
@@ -27,8 +28,8 @@ pub struct Unit {
 
 impl Unit {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         label: impl Into<String>,
         symbol: impl Into<String>,
     ) -> Result<Self, BuildError> {
@@ -39,8 +40,8 @@ impl Unit {
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<UnitBuilder, BuildError> {
         Ok(UnitBuilder::seed(
             namespace.try_into()?,
@@ -85,8 +86,8 @@ pub struct SingularUnit {
 
 impl SingularUnit {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         label: impl Into<String>,
         symbol: impl Into<String>,
     ) -> Result<Self, BuildError> {
@@ -97,8 +98,8 @@ impl SingularUnit {
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<SingularUnitBuilder, BuildError> {
         Ok(SingularUnitBuilder::seed(
             namespace.try_into()?,
@@ -147,8 +148,8 @@ pub struct CompoundUnit {
 
 impl CompoundUnit {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         label: impl Into<String>,
         symbol: impl Into<String>,
     ) -> Result<Self, BuildError> {
@@ -159,8 +160,8 @@ impl CompoundUnit {
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<CompoundUnitBuilder, BuildError> {
         Ok(CompoundUnitBuilder::seed(
             namespace.try_into()?,
@@ -205,8 +206,8 @@ pub struct UnitDivision {
 
 impl UnitDivision {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         label: impl Into<String>,
         symbol: impl Into<String>,
         has_numerator: Resource,
@@ -221,8 +222,8 @@ impl UnitDivision {
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<UnitDivisionBuilder, BuildError> {
         Ok(UnitDivisionBuilder::seed(
             namespace.try_into()?,
@@ -271,8 +272,8 @@ pub struct UnitExponentiation {
 
 impl UnitExponentiation {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         label: impl Into<String>,
         symbol: impl Into<String>,
         has_base: Resource,
@@ -287,8 +288,8 @@ impl UnitExponentiation {
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<UnitExponentiationBuilder, BuildError> {
         Ok(UnitExponentiationBuilder::seed(
             namespace.try_into()?,
@@ -343,8 +344,8 @@ pub struct UnitMultiplication {
 
 impl UnitMultiplication {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         label: impl Into<String>,
         symbol: impl Into<String>,
         has_term1: Resource,
@@ -359,8 +360,8 @@ impl UnitMultiplication {
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<UnitMultiplicationBuilder, BuildError> {
         Ok(UnitMultiplicationBuilder::seed(
             namespace.try_into()?,
@@ -413,8 +414,8 @@ pub struct PrefixedUnit {
 
 impl PrefixedUnit {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         label: impl Into<String>,
         symbol: impl Into<String>,
         has_unit: Resource,
@@ -429,8 +430,8 @@ impl PrefixedUnit {
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<PrefixedUnitBuilder, BuildError> {
         Ok(PrefixedUnitBuilder::seed(
             namespace.try_into()?,

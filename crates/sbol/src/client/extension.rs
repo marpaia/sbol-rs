@@ -12,6 +12,7 @@ use crate::client::accessors::impl_sbol_identified;
 use crate::client::builder::IdentifiedExtensionBuilder;
 use crate::client::{IdentifiedData, ToRdf, TopLevelData, TryFromObject};
 use crate::error::BuildError;
+use sbol_core::error::BuildError as LexError;
 use crate::identity::DisplayId;
 use crate::vocab::*;
 use crate::{Iri, Literal, Object, Resource, Term, Triple};
@@ -35,7 +36,7 @@ pub struct IdentifiedExtension {
 impl IdentifiedExtension {
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<IdentifiedExtensionBuilder, BuildError> {
         IdentifiedExtensionBuilder::seed(parent, display_id.try_into()?)
     }

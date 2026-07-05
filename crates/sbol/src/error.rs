@@ -32,3 +32,14 @@ pub enum BuildError {
     )]
     InvalidHashAlgorithm(String),
 }
+
+impl From<sbol_core::error::BuildError> for BuildError {
+    fn from(error: sbol_core::error::BuildError) -> Self {
+        use sbol_core::error::BuildError as Lex;
+        match error {
+            Lex::InvalidDisplayId(value) => BuildError::InvalidDisplayId(value),
+            Lex::InvalidNamespace(value) => BuildError::InvalidNamespace(value),
+            Lex::InvalidHashAlgorithm(value) => BuildError::InvalidHashAlgorithm(value),
+        }
+    }
+}

@@ -9,6 +9,7 @@ use crate::client::to_rdf::{Emitter, emit_identified, seed_triples};
 use crate::client::{ToRdf, TryFromObject};
 use crate::document::Document;
 use crate::error::BuildError;
+use sbol_core::error::BuildError as LexError;
 use crate::identity::DisplayId;
 use crate::vocab::*;
 use crate::{Iri, Object, Resource, SbolClass, Triple};
@@ -26,7 +27,7 @@ pub struct Constraint {
 impl Constraint {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         subject: Resource,
         constrained_object: Resource,
         restriction: Iri,
@@ -40,7 +41,7 @@ impl Constraint {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<ConstraintBuilder, BuildError> {
         ConstraintBuilder::seed(parent, display_id.try_into()?)
     }
@@ -83,7 +84,7 @@ pub struct Interaction {
 impl Interaction {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         types: impl IntoIterator<Item = Iri>,
     ) -> Result<Self, BuildError> {
         Self::builder(parent, display_id)?.types(types).build()
@@ -91,7 +92,7 @@ impl Interaction {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<InteractionBuilder, BuildError> {
         InteractionBuilder::seed(parent, display_id.try_into()?)
     }
@@ -133,14 +134,14 @@ pub struct Interface {
 impl Interface {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<Self, BuildError> {
         Self::builder(parent, display_id)?.build()
     }
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<InterfaceBuilder, BuildError> {
         InterfaceBuilder::seed(parent, display_id.try_into()?)
     }
@@ -184,7 +185,7 @@ pub struct Participation {
 impl Participation {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         roles: impl IntoIterator<Item = Iri>,
     ) -> Result<Self, BuildError> {
         Self::builder(parent, display_id)?.roles(roles).build()
@@ -192,7 +193,7 @@ impl Participation {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<ParticipationBuilder, BuildError> {
         ParticipationBuilder::seed(parent, display_id.try_into()?)
     }
@@ -244,7 +245,7 @@ pub struct VariableFeature {
 impl VariableFeature {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         cardinality: Iri,
         variable: Resource,
     ) -> Result<Self, BuildError> {
@@ -256,7 +257,7 @@ impl VariableFeature {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<VariableFeatureBuilder, BuildError> {
         VariableFeatureBuilder::seed(parent, display_id.try_into()?)
     }

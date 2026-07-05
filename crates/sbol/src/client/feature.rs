@@ -9,6 +9,7 @@ use crate::client::top_level::Component;
 use crate::client::{FeatureData, IdentifiedData, ToRdf, TryFromObject};
 use crate::document::Document;
 use crate::error::BuildError;
+use sbol_core::error::BuildError as LexError;
 use crate::identity::DisplayId;
 use crate::vocab::*;
 use crate::{Iri, Object, Resource, SbolClass, Triple};
@@ -37,7 +38,7 @@ pub struct ComponentReference {
 impl ComponentReference {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         in_child_of: Resource,
         refers_to: Resource,
     ) -> Result<Self, BuildError> {
@@ -49,7 +50,7 @@ impl ComponentReference {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<ComponentReferenceBuilder, BuildError> {
         ComponentReferenceBuilder::seed(parent, display_id.try_into()?)
     }
@@ -93,7 +94,7 @@ pub struct ExternallyDefined {
 impl ExternallyDefined {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         definition: Resource,
         types: impl IntoIterator<Item = Iri>,
     ) -> Result<Self, BuildError> {
@@ -105,7 +106,7 @@ impl ExternallyDefined {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<ExternallyDefinedBuilder, BuildError> {
         ExternallyDefinedBuilder::seed(parent, display_id.try_into()?)
     }
@@ -149,7 +150,7 @@ pub struct LocalSubComponent {
 impl LocalSubComponent {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         types: impl IntoIterator<Item = Iri>,
     ) -> Result<Self, BuildError> {
         Self::builder(parent, display_id)?.types(types).build()
@@ -157,7 +158,7 @@ impl LocalSubComponent {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<LocalSubComponentBuilder, BuildError> {
         LocalSubComponentBuilder::seed(parent, display_id.try_into()?)
     }
@@ -200,7 +201,7 @@ pub struct SequenceFeature {
 impl SequenceFeature {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         locations: impl IntoIterator<Item = Resource>,
     ) -> Result<Self, BuildError> {
         Self::builder(parent, display_id)?
@@ -210,7 +211,7 @@ impl SequenceFeature {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<SequenceFeatureBuilder, BuildError> {
         SequenceFeatureBuilder::seed(parent, display_id.try_into()?)
     }
@@ -254,7 +255,7 @@ pub struct SubComponent {
 impl SubComponent {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         instance_of: Resource,
     ) -> Result<Self, BuildError> {
         Self::builder(parent, display_id)?
@@ -264,7 +265,7 @@ impl SubComponent {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<SubComponentBuilder, BuildError> {
         SubComponentBuilder::seed(parent, display_id.try_into()?)
     }

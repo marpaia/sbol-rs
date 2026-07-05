@@ -32,6 +32,5 @@ pub use spec::{
     validation_rule_statuses,
 };
 
-pub(crate) use helpers::is_valid_display_id;
 pub(crate) use spec::class_spec;
 pub(crate) use validator::Validator;

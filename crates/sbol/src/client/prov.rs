@@ -16,6 +16,7 @@ use crate::client::shared::{iris, resources};
 use crate::client::to_rdf::{Emitter, emit_identified, emit_top_level, seed_triples};
 use crate::client::{IdentifiedData, ToRdf, TopLevelData, TryFromObject};
 use crate::error::BuildError;
+use sbol_core::error::BuildError as LexError;
 use crate::identity::{DisplayId, Namespace};
 use crate::vocab::*;
 use crate::{Iri, Object, Resource, SbolClass, Triple};
@@ -36,15 +37,15 @@ pub struct Activity {
 
 impl Activity {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<Self, BuildError> {
         Self::builder(namespace, display_id)?.build()
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<ActivityBuilder, BuildError> {
         Ok(ActivityBuilder::seed(
             namespace.try_into()?,
@@ -100,15 +101,15 @@ pub struct Agent {
 
 impl Agent {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<Self, BuildError> {
         Self::builder(namespace, display_id)?.build()
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<AgentBuilder, BuildError> {
         Ok(AgentBuilder::seed(
             namespace.try_into()?,
@@ -148,15 +149,15 @@ pub struct Plan {
 
 impl Plan {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<Self, BuildError> {
         Self::builder(namespace, display_id)?.build()
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<PlanBuilder, BuildError> {
         Ok(PlanBuilder::seed(
             namespace.try_into()?,
@@ -199,7 +200,7 @@ pub struct Association {
 impl Association {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         agent: Resource,
     ) -> Result<Self, BuildError> {
         Self::builder(parent, display_id)?.agent(agent).build()
@@ -207,7 +208,7 @@ impl Association {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<AssociationBuilder, BuildError> {
         AssociationBuilder::seed(parent, display_id.try_into()?)
     }
@@ -250,7 +251,7 @@ pub struct Usage {
 impl Usage {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         entity: Resource,
     ) -> Result<Self, BuildError> {
         Self::builder(parent, display_id)?.entity(entity).build()
@@ -258,7 +259,7 @@ impl Usage {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<UsageBuilder, BuildError> {
         UsageBuilder::seed(parent, display_id.try_into()?)
     }

@@ -9,6 +9,7 @@ use crate::client::to_rdf::{Emitter, emit_identified, emit_top_level, seed_tripl
 use crate::client::{IdentifiedData, ToRdf, TopLevelData, TryFromObject};
 use crate::document::Document;
 use crate::error::BuildError;
+use sbol_core::error::BuildError as LexError;
 use crate::identity::{DisplayId, Namespace};
 use crate::vocab::*;
 use crate::{Iri, Object, Resource, SbolClass, Triple};
@@ -28,16 +29,16 @@ pub struct Attachment {
 
 impl Attachment {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         source: Resource,
     ) -> Result<Self, BuildError> {
         Self::builder(namespace, display_id)?.source(source).build()
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<AttachmentBuilder, BuildError> {
         Ok(AttachmentBuilder::seed(
             namespace.try_into()?,
@@ -90,15 +91,15 @@ pub struct Collection {
 
 impl Collection {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<Self, BuildError> {
         Self::builder(namespace, display_id)?.build()
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<CollectionBuilder, BuildError> {
         Ok(CollectionBuilder::seed(
             namespace.try_into()?,
@@ -143,8 +144,8 @@ pub struct CombinatorialDerivation {
 
 impl CombinatorialDerivation {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         template: Resource,
     ) -> Result<Self, BuildError> {
         Self::builder(namespace, display_id)?
@@ -153,8 +154,8 @@ impl CombinatorialDerivation {
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<CombinatorialDerivationBuilder, BuildError> {
         Ok(CombinatorialDerivationBuilder::seed(
             namespace.try_into()?,
@@ -212,16 +213,16 @@ pub struct Component {
 
 impl Component {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         types: impl IntoIterator<Item = Iri>,
     ) -> Result<Self, BuildError> {
         Self::builder(namespace, display_id)?.types(types).build()
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<ComponentBuilder, BuildError> {
         Ok(ComponentBuilder::seed(
             namespace.try_into()?,
@@ -278,15 +279,15 @@ pub struct Experiment {
 
 impl Experiment {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<Self, BuildError> {
         Self::builder(namespace, display_id)?.build()
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<ExperimentBuilder, BuildError> {
         Ok(ExperimentBuilder::seed(
             namespace.try_into()?,
@@ -328,15 +329,15 @@ pub struct ExperimentalData {
 
 impl ExperimentalData {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<Self, BuildError> {
         Self::builder(namespace, display_id)?.build()
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<ExperimentalDataBuilder, BuildError> {
         Ok(ExperimentalDataBuilder::seed(
             namespace.try_into()?,
@@ -377,15 +378,15 @@ pub struct Implementation {
 
 impl Implementation {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<Self, BuildError> {
         Self::builder(namespace, display_id)?.build()
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<ImplementationBuilder, BuildError> {
         Ok(ImplementationBuilder::seed(
             namespace.try_into()?,
@@ -430,8 +431,8 @@ pub struct Model {
 
 impl Model {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         source: Resource,
         language: Iri,
         framework: Iri,
@@ -444,8 +445,8 @@ impl Model {
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<ModelBuilder, BuildError> {
         Ok(ModelBuilder::seed(
             namespace.try_into()?,
@@ -493,15 +494,15 @@ pub struct Sequence {
 
 impl Sequence {
     pub fn new(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<Self, BuildError> {
         Self::builder(namespace, display_id)?.build()
     }
 
     pub fn builder(
-        namespace: impl TryInto<Namespace, Error = BuildError>,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        namespace: impl TryInto<Namespace, Error = LexError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<SequenceBuilder, BuildError> {
         Ok(SequenceBuilder::seed(
             namespace.try_into()?,

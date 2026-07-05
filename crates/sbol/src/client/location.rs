@@ -4,6 +4,7 @@ use crate::client::shared::first_i64;
 use crate::client::to_rdf::{Emitter, emit_identified, emit_location, seed_triples};
 use crate::client::{IdentifiedData, LocationData, ToRdf, TryFromObject};
 use crate::error::BuildError;
+use sbol_core::error::BuildError as LexError;
 use crate::identity::DisplayId;
 use crate::vocab::*;
 use crate::{Object, Resource, SbolClass, Triple};
@@ -20,7 +21,7 @@ pub struct Cut {
 impl Cut {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         at: i64,
     ) -> Result<Self, BuildError> {
         Self::builder(parent, display_id)?.at(at).build()
@@ -28,7 +29,7 @@ impl Cut {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<CutBuilder, BuildError> {
         CutBuilder::seed(parent, display_id.try_into()?)
     }
@@ -68,14 +69,14 @@ pub struct EntireSequence {
 impl EntireSequence {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<Self, BuildError> {
         Self::builder(parent, display_id)?.build()
     }
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<EntireSequenceBuilder, BuildError> {
         EntireSequenceBuilder::seed(parent, display_id.try_into()?)
     }
@@ -115,7 +116,7 @@ pub struct Range {
 impl Range {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         start: i64,
         end: i64,
     ) -> Result<Self, BuildError> {
@@ -127,7 +128,7 @@ impl Range {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<RangeBuilder, BuildError> {
         RangeBuilder::seed(parent, display_id.try_into()?)
     }

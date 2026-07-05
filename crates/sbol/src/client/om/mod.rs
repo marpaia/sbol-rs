@@ -25,6 +25,7 @@ use crate::client::shared::{iris, literals};
 use crate::client::to_rdf::{Emitter, emit_identified, seed_triples};
 use crate::client::{IdentifiedData, ToRdf, TryFromObject};
 use crate::error::BuildError;
+use sbol_core::error::BuildError as LexError;
 use crate::identity::DisplayId;
 use crate::vocab::*;
 use crate::{Iri, Object, Resource, SbolClass, Triple};
@@ -42,7 +43,7 @@ pub struct Measure {
 impl Measure {
     pub fn new(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
         has_unit: Resource,
         has_numerical_value: f64,
     ) -> Result<Self, BuildError> {
@@ -54,7 +55,7 @@ impl Measure {
 
     pub fn builder(
         parent: &Resource,
-        display_id: impl TryInto<DisplayId, Error = BuildError>,
+        display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<MeasureBuilder, BuildError> {
         MeasureBuilder::seed(parent, display_id.try_into()?)
     }

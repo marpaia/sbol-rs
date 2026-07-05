@@ -9,6 +9,7 @@
 //! rule catalogs on top of these shared primitives.
 
 pub mod error;
+pub mod identity;
 pub mod iri;
 pub mod object;
 pub mod prelude;
