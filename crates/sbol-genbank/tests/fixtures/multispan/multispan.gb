@@ -1,0 +1,21 @@
+LOCUS       MULTISPAN               60 bp    DNA     linear       01-JAN-2026
+DEFINITION  synthetic multi-span location coverage (join/order/complement).
+ACCESSION   MULTISPAN
+FEATURES             Location/Qualifiers
+     source          1..60
+                     /organism="synthetic construct"
+     CDS             join(1..6,16..24)
+                     /label="exon_join"
+     gene            complement(1..6)
+                     /label="rev_gene"
+     CDS             complement(join(1..6,16..24))
+                     /label="rev_join"
+     CDS             join(complement(1..6),16..24)
+                     /label="mixed_join"
+     misc_feature    order(1..6,16..24)
+                     /label="ordered"
+     misc_feature    7^8
+                     /label="between_site"
+ORIGIN
+        1 atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc
+//

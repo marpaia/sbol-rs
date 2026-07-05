@@ -1,0 +1,15 @@
+LOCUS       LOSSY                   60 bp    DNA     linear       01-JAN-2026
+DEFINITION  synthetic record exercising lossy location shapes.
+ACCESSION   LOSSY
+FEATURES             Location/Qualifiers
+     source          1..60
+                     /organism="synthetic construct"
+     misc_feature    gap(20)
+                     /label="gap_site"
+     misc_feature    J00194.1:1..10
+                     /label="external_ref"
+     CDS             1..6
+                     /label="ok_control"
+ORIGIN
+        1 atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc
+//
