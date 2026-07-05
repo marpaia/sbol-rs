@@ -2,7 +2,7 @@
 //! committed report drifts from what
 //! `generate-sbol-owl3-conformance-report` would produce against the
 //! current pinned OWL fixture and `vocab.rs`. Run
-//! `cargo run -p sbol --bin generate-sbol-owl3-conformance-report` to
+//! `cargo run -p sbol3 --bin generate-sbol-owl3-conformance-report` to
 //! refresh.
 
 use std::path::PathBuf;
@@ -60,7 +60,7 @@ fn sbol_owl3_conformance_report_matches_committed_file() {
     assert_eq!(
         committed, rendered,
         "docs/sbol-owl3-conformance.md is stale. Run \
-         `cargo run -p sbol --bin generate-sbol-owl3-conformance-report` \
+         `cargo run -p sbol3 --bin generate-sbol-owl3-conformance-report` \
          to refresh."
     );
 }
