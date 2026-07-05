@@ -7,7 +7,9 @@
 // decide to print INFO lines on startup.
 //
 // Invoked from inside the Docker container built by the sibling
-// Dockerfile.
+// Dockerfile. The optional trailing `validate` flag (`1`/`0`) turns on
+// a timed `SBOLValidator.getValidator().validate(doc)` phase whose
+// per-iteration timings are emitted under `validate_ns`.
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -21,6 +23,7 @@ import java.util.Properties;
 import org.sbolstandard.core3.entity.SBOLDocument;
 import org.sbolstandard.core3.io.SBOLFormat;
 import org.sbolstandard.core3.io.SBOLIO;
+import org.sbolstandard.core3.validation.SBOLValidator;
 
 public class Bench {
 
@@ -37,17 +40,22 @@ public class Bench {
         int warmup = Integer.parseInt(args[3]);
         int iters = Integer.parseInt(args[4]);
         Path outputJson = Paths.get(args[5]);
+        boolean validate = args.length > 6 && args[6].equals("1");
 
         byte[] rdfBytes = Files.readAllBytes(inputPath);
 
         long[] parseNs = new long[iters];
         long[] serializeNs = new long[iters];
+        long[] validateNs = validate ? new long[iters] : new long[0];
         long lastSerializedBytes = 0L;
 
         for (int i = 0; i < warmup; i++) {
             SBOLDocument doc = SBOLIO.read(new ByteArrayInputStream(rdfBytes), parseFormat);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             SBOLIO.write(doc, out, serializeFormat);
+            if (validate) {
+                SBOLValidator.getValidator().validate(doc);
+            }
         }
 
         for (int i = 0; i < iters; i++) {
@@ -60,6 +68,12 @@ public class Bench {
             parseNs[i] = t1 - t0;
             serializeNs[i] = t2 - t1;
             lastSerializedBytes = out.size();
+            if (validate) {
+                long v0 = System.nanoTime();
+                SBOLValidator.getValidator().validate(doc);
+                long v1 = System.nanoTime();
+                validateNs[i] = v1 - v0;
+            }
         }
 
         String impl = "libsbolj3";
@@ -76,6 +90,10 @@ public class Bench {
         appendLongField(json, "serialized_bytes", lastSerializedBytes).append(",");
         appendLongArrayField(json, "parse_ns", parseNs).append(",");
         appendLongArrayField(json, "serialize_ns", serializeNs);
+        if (validate) {
+            json.append(",");
+            appendLongArrayField(json, "validate_ns", validateNs);
+        }
         json.append("}");
 
         try (FileWriter writer = new FileWriter(outputJson.toFile(), StandardCharsets.UTF_8)) {

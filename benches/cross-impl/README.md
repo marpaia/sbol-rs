@@ -1,6 +1,6 @@
 # Cross-implementation performance benchmarks
 
-Times `(parse, serialize)` round trips against four SBOL 3.1.0
+Times `parse`, `serialize`, and `validate` against four SBOL 3.1.0
 implementations, each pinned in its own Docker image so every row pays
 the same Linux container overhead and the comparison is
 apples-to-apples:
@@ -19,6 +19,23 @@ by `<measured>` timed iterations of `parse(in) -> serialize(out)` for
 each `(impl, parse_format, serialize_format)` combination it knows
 about. Per-iteration nanosecond timings come back as JSON and are
 aggregated into a table.
+
+The matrix covers two kinds of row. A **round-trip** row parses and
+serializes the same format (`turtle -> turtle`). A **conversion** row
+parses one format and serializes another (`turtle -> rdfxml`,
+`rdfxml -> turtle`, `turtle -> jsonld`), so the serialize phase
+captures true format-conversion cost rather than a same-format
+re-emit. The report labels each row's `kind` accordingly.
+
+Every implementation that ships a validator — sbol-rs, pySBOL3,
+libSBOLj3 — also runs a **validation** phase on the canonical
+`turtle -> turtle` row (`Document::validate()`,
+`sbol3.Document.validate()`, and
+`SBOLValidator.getValidator().validate(doc)` respectively). Validation
+operates on the parsed in-memory model, which is format-independent,
+so one validation row per implementation is enough. sboljs ships no
+validator, so its rows never run this phase and the `val.` columns
+show `—`.
 
 The sbol-rs row also runs inside Docker by default. Running it natively
 on the host (no container) would give sbol-rs an unfair single-digit
@@ -69,7 +86,8 @@ fixture, where rare allocation or scheduling spikes inflate it.
 
 ## Format support matrix
 
-`(parse_format -> serialize_format)` pairs the bench drives, by impl:
+Round-trip `(parse_format -> serialize_format)` pairs the bench drives,
+by impl:
 
 | Impl       | turtle→turtle | rdfxml→rdfxml | jsonld→jsonld | ntriples→ntriples |
 | ---------- | :-----------: | :-----------: | :-----------: | :---------------: |
@@ -77,6 +95,19 @@ fixture, where rare allocation or scheduling spikes inflate it.
 | pySBOL3    | yes           | yes           | yes           | yes               |
 | libSBOLj3  | yes           | yes           | yes           | yes               |
 | sboljs     | (n/a)         | yes           | (n/a)         | (n/a)             |
+
+Conversion (cross-format) and validation rows, by impl:
+
+| Impl       | turtle→rdfxml | rdfxml→turtle | turtle→jsonld | validate |
+| ---------- | :-----------: | :-----------: | :-----------: | :------: |
+| sbol-rs    | yes           | yes           | yes           | yes      |
+| pySBOL3    | yes           | yes           | yes           | yes      |
+| libSBOLj3  | yes           | yes           | yes           | yes      |
+| sboljs     | (n/a)         | (n/a)         | (n/a)         | (n/a)    |
+
+sboljs is absent from every conversion and the validation column: it
+only serializes RDF/XML (so no cross-format serialize target) and
+ships no validator.
 
 sboljs's underlying `rdfoo` only emits RDF/XML and only parses RDF/XML
 or N-Triples, so Turtle and JSON-LD never had a chance. The N-Triples
@@ -131,12 +162,16 @@ still come from sbol-rs).
   The RDF/XML input is taken from libSBOLj3's reference output in
   `tests/fixtures/cross-impl/` (see Format support matrix above for
   why).
+- **Measured**: parse, serialize (same-format round trips and
+  cross-format conversions), and validation cost for the three impls
+  that ship a validator.
 - **Not measured**: memory residency, GC pause distribution,
-  cold-start latency (warmup is inside the same process per impl),
-  validation cost, or correctness. The cross-impl conformance suite
-  (`crates/sbol/tests/cross_impl*.rs`) gates correctness; this
-  harness assumes the implementations already agree at the triple-set
-  level and asks how fast each one round-trips the same bytes.
+  cold-start latency (warmup is inside the same process per impl), or
+  correctness. The cross-impl conformance suite
+  (`crates/sbol3/tests/cross_impl*.rs`, `crates/sbol2/tests/cross_impl.rs`)
+  gates correctness; this harness assumes the implementations already
+  agree at the triple-set level and asks how fast each one processes
+  the same bytes.
 
 ## Captured results
 

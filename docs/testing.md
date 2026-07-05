@@ -142,29 +142,33 @@ the `libsbolj3_format_name` mapping in the regenerate binary.
 
 `tests/fixtures/cross-impl-pysbol3/` mirrors the libSBOLj3 layout for
 pySBOL3 references. File suffix is `.pySBOL3.expected.*` and the test
-file is `crates/sbol/tests/cross_impl_pysbol3.rs`. Building references
-on a contributor machine:
+file is `crates/sbol3/tests/cross_impl_pysbol3.rs`. The committed
+references cover the same 33 fixtures in all four formats (132
+combinations), generated from pySBOL3 1.2, and `cross_impl_pysbol3`
+diffs sbol-rs's serialization against them exactly as the libSBOLj3
+harness does. Refresh the references on a contributor machine:
 
 ```sh
 docker build -t pysbol3-pinned tests/fixtures/cross-impl-pysbol3/
-cargo run -p sbol --bin regenerate-cross-impl-pysbol3-expectations
+cargo run -p sbol3 --bin regenerate-cross-impl-pysbol3-expectations
 ```
 
-The harness scaffolding (Dockerfile, `roundtrip.py`, regenerate binary,
-test, allowlist) ships in the repo, but reference files are not yet
-committed. `cross_impl_pysbol3` runs as a zero-comparison passing
-test until the first regeneration. The first Docker-equipped
-contributor to run the regenerate binary should commit the resulting
-files alongside any allowlist entries needed for known-compliant
-divergences.
+Commit the regenerated `*.pySBOL3.expected.*` files alongside any
+allowlist entries needed for known-compliant divergences and bump the
+`PYSBOL3_VERSION` arg in the Dockerfile in the same commit.
 
 See [`rdf-io.md`](rdf-io.md) for the user-facing I/O subsystem reference.
 
 ## Cross-implementation performance benchmarks
 
-Separate from the correctness harness, `crates/sbol-bench` times
-`parse + serialize` round trips against pySBOL3, libSBOLj3, and sboljs
-(each pinned in Docker, see `benches/cross-impl/`). This is not a CI
+Separate from the correctness harness, `crates/sbol-bench` times three
+phases — `parse`, `serialize`, and `validate` — against pySBOL3,
+libSBOLj3, and sboljs (each pinned in Docker, see `benches/cross-impl/`).
+The serialize phase covers both same-format round trips
+(`turtle -> turtle`) and cross-format conversions (`turtle -> rdfxml`),
+so conversion cost is measured directly. The validate phase runs for
+the three implementations that ship a validator (sbol-rs, pySBOL3,
+libSBOLj3); sboljs has none and is excluded from it. This is not a CI
 gate — there is no perf-regression check — but it gives contributors a
 reproducible way to compare implementations head-to-head on the same
 fixtures. Run `cargo run --release -p sbol-bench`; see

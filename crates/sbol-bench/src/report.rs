@@ -61,53 +61,71 @@ pub(crate) fn print_report(outcomes: &[CaseOutcome]) {
         println!();
         println!("=== fixture: {fixture_stem} ===");
         println!(
-            "{:<11} {:<9} -> {:<9} {:>14} {:>14} {:>14} {:>14} {:>10}",
+            "{:<11} {:<20} {:<9} {:>13} {:>13} {:>13} {:>13} {:>13} {:>13} {:>10}",
             "impl",
-            "parse",
-            "serialize",
+            "conversion",
+            "kind",
             "parse p50 (μs)",
             "parse p99 (μs)",
             "ser. p50 (μs)",
             "ser. p99 (μs)",
+            "val. p50 (μs)",
+            "val. p99 (μs)",
             "bytes"
         );
         for outcome in fixture_outcomes {
             let parse_label = format_name(outcome.case.parse_format);
             let serialize_label = format_name(outcome.case.serialize_format);
+            let conversion = format!("{parse_label} -> {serialize_label}");
+            let kind = if outcome.case.is_conversion() {
+                "convert"
+            } else {
+                "round-trip"
+            };
             match &outcome.state {
                 CaseState::Ok { samples, .. } => {
                     let parse = stats(&samples.parse_ns);
                     let ser = stats(&samples.serialize_ns);
+                    let val = stats(&samples.validate_ns);
                     match (parse, ser) {
                         (Some(parse), Some(ser)) => {
+                            let (val_p50, val_p99) = match val {
+                                Some(val) => (
+                                    format!("{:.2}", val.median_ns as f64 / 1_000.0),
+                                    format!("{:.2}", val.p99_ns as f64 / 1_000.0),
+                                ),
+                                None => ("—".to_owned(), "—".to_owned()),
+                            };
                             println!(
-                                "{:<11} {:<9} -> {:<9} {:>14.2} {:>14.2} {:>14.2} {:>14.2} {:>10}",
+                                "{:<11} {:<20} {:<9} {:>13.2} {:>13.2} {:>13.2} {:>13.2} {:>13} {:>13} {:>10}",
                                 outcome.case.implementation.id(),
-                                parse_label,
-                                serialize_label,
+                                conversion,
+                                kind,
                                 parse.median_ns as f64 / 1_000.0,
                                 parse.p99_ns as f64 / 1_000.0,
                                 ser.median_ns as f64 / 1_000.0,
                                 ser.p99_ns as f64 / 1_000.0,
+                                val_p50,
+                                val_p99,
                                 samples.serialized_bytes
                             );
                         }
                         _ => {
                             println!(
-                                "{:<11} {:<9} -> {:<9} (no samples)",
+                                "{:<11} {:<20} {:<9} (no samples)",
                                 outcome.case.implementation.id(),
-                                parse_label,
-                                serialize_label
+                                conversion,
+                                kind
                             );
                         }
                     }
                 }
                 CaseState::Skipped { reason } => {
                     println!(
-                        "{:<11} {:<9} -> {:<9} skipped: {}",
+                        "{:<11} {:<20} {:<9} skipped: {}",
                         outcome.case.implementation.id(),
-                        parse_label,
-                        serialize_label,
+                        conversion,
+                        kind,
                         reason
                     );
                 }
@@ -115,7 +133,11 @@ pub(crate) fn print_report(outcomes: &[CaseOutcome]) {
         }
     }
     println!();
-    println!("p50 = median across measured iters; p99 picked from same set. Lower is better.");
+    println!(
+        "p50 = median across measured iters; p99 picked from same set. Lower is better. \
+         `val.` columns show `validate` timing where the impl ships a validator; \
+         `—` marks rows that don't run the validation phase."
+    );
 }
 
 #[derive(serde::Serialize)]
@@ -132,6 +154,9 @@ pub(crate) struct ReportCase<'a> {
     pub(crate) implementation: &'a str,
     pub(crate) parse_format: &'a str,
     pub(crate) serialize_format: &'a str,
+    /// `true` when the parse and serialize formats differ, i.e. the row
+    /// measures format-conversion cost rather than a same-format round trip.
+    pub(crate) conversion: bool,
     pub(crate) state: ReportState<'a>,
 }
 
@@ -143,8 +168,13 @@ pub(crate) enum ReportState<'a> {
         serialized_bytes: u64,
         parse_stats: Stats,
         serialize_stats: Stats,
+        // Present only when the row ran the validation phase.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        validate_stats: Option<Stats>,
         parse_ns: &'a [u64],
         serialize_ns: &'a [u64],
+        #[serde(skip_serializing_if = "<[u64]>::is_empty")]
+        validate_ns: &'a [u64],
     },
     Skipped {
         reason: &'a str,
@@ -176,8 +206,10 @@ pub(crate) fn write_json_report(
                         serialized_bytes: samples.serialized_bytes,
                         parse_stats: stats(&samples.parse_ns).unwrap_or(zero),
                         serialize_stats: stats(&samples.serialize_ns).unwrap_or(zero),
+                        validate_stats: stats(&samples.validate_ns),
                         parse_ns: &samples.parse_ns,
                         serialize_ns: &samples.serialize_ns,
+                        validate_ns: &samples.validate_ns,
                     }
                 }
                 CaseState::Skipped { reason } => ReportState::Skipped {
@@ -189,6 +221,7 @@ pub(crate) fn write_json_report(
                 implementation: outcome.case.implementation.id(),
                 parse_format: format_name(outcome.case.parse_format),
                 serialize_format: format_name(outcome.case.serialize_format),
+                conversion: outcome.case.is_conversion(),
                 state,
             }
         })

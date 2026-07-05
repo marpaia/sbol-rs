@@ -21,6 +21,11 @@ pub(crate) struct BenchSamples {
     pub(crate) version: Option<String>,
     pub(crate) parse_ns: Vec<u64>,
     pub(crate) serialize_ns: Vec<u64>,
+    // Per-iteration validation timings. Empty for cases that don't run
+    // the validation phase (every conversion row, plus sboljs, which
+    // ships no validator).
+    #[serde(default)]
+    pub(crate) validate_ns: Vec<u64>,
     #[serde(default)]
     pub(crate) serialized_bytes: u64,
 }
@@ -28,13 +33,16 @@ pub(crate) struct BenchSamples {
 // Deserialization surface for whatever the bench scripts emit. The
 // `impl` field is read by serde to ignore it (we already know which
 // implementation produced the JSON from the case we dispatched);
-// `version` is what shows up in the report.
+// `version` is what shows up in the report. `validate_ns` is absent
+// unless the driver ran the validation phase.
 #[derive(Deserialize)]
 pub(crate) struct ForeignSamples {
     #[serde(default)]
     pub(crate) version: Option<String>,
     pub(crate) parse_ns: Vec<u64>,
     pub(crate) serialize_ns: Vec<u64>,
+    #[serde(default)]
+    pub(crate) validate_ns: Vec<u64>,
     #[serde(default)]
     pub(crate) serialized_bytes: u64,
 }
@@ -123,10 +131,14 @@ pub(crate) fn run_native(
         let _ = doc
             .write(case.serialize_format)
             .map_err(|error| format!("warmup serialize: {error}"))?;
+        if case.validate {
+            let _ = doc.validate();
+        }
     }
 
     let mut parse_ns = Vec::with_capacity(config.iters);
     let mut serialize_ns = Vec::with_capacity(config.iters);
+    let mut validate_ns = Vec::with_capacity(if case.validate { config.iters } else { 0 });
     let mut last_bytes = 0u64;
     for _ in 0..config.iters {
         let t0 = Instant::now();
@@ -140,12 +152,20 @@ pub(crate) fn run_native(
         parse_ns.push(t1.duration_since(t0).as_nanos() as u64);
         serialize_ns.push(t2.duration_since(t1).as_nanos() as u64);
         last_bytes = out.len() as u64;
+
+        if case.validate {
+            let v0 = Instant::now();
+            let _ = doc.validate();
+            let v1 = Instant::now();
+            validate_ns.push(v1.duration_since(v0).as_nanos() as u64);
+        }
     }
 
     Ok(BenchSamples {
         version: Some(rust_impl_version().to_owned()),
         parse_ns,
         serialize_ns,
+        validate_ns,
         serialized_bytes: last_bytes,
     })
 }
@@ -181,6 +201,11 @@ pub(crate) fn run_docker(
     let iters_arg = config.iters.to_string();
     let parse_arg = format_name(case.parse_format);
     let serialize_arg = format_name(case.serialize_format);
+    // Trailing positional flag telling the driver whether to run and
+    // time the validation phase. Drivers whose implementation has no
+    // validator ignore it; the harness only sets it on cases marked
+    // `validate` in the matrix.
+    let validate_arg = if case.validate { "1" } else { "0" };
 
     let result = Command::new("docker")
         .args([
@@ -195,6 +220,7 @@ pub(crate) fn run_docker(
             &warmup_arg,
             &iters_arg,
             &container_output,
+            validate_arg,
         ])
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
@@ -216,10 +242,18 @@ pub(crate) fn run_docker(
             config.iters
         ));
     }
+    if case.validate && raw.validate_ns.len() != config.iters {
+        return Err(format!(
+            "bench marked for validation produced {} validate samples; expected {}",
+            raw.validate_ns.len(),
+            config.iters
+        ));
+    }
     Ok(BenchSamples {
         version: raw.version,
         parse_ns: raw.parse_ns,
         serialize_ns: raw.serialize_ns,
+        validate_ns: raw.validate_ns,
         serialized_bytes: raw.serialized_bytes,
     })
 }

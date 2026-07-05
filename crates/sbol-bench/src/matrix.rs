@@ -76,80 +76,169 @@ pub(crate) struct BenchCase {
     pub(crate) implementation: Implementation,
     pub(crate) parse_format: RdfFormat,
     pub(crate) serialize_format: RdfFormat,
+    /// Whether this case also times a `validate` phase. Set on the
+    /// canonical Turtle round-trip row for every implementation that
+    /// ships a validator (sbol-rs, pySBOL3, libSBOLj3). Validation runs
+    /// on the parsed in-memory model, which is format-independent, so
+    /// one row per implementation is enough. sboljs has no validator,
+    /// so none of its rows set this.
+    pub(crate) validate: bool,
+}
+
+impl BenchCase {
+    /// A case whose parse and serialize formats differ measures true
+    /// format-conversion cost rather than a same-format round trip.
+    pub(crate) fn is_conversion(self) -> bool {
+        self.parse_format != self.serialize_format
+    }
 }
 
 pub(crate) const BENCH_CASES: &[BenchCase] = &[
+    // Same-format round trips. The Turtle row for each implementation
+    // with a validator also carries the validation phase.
     BenchCase {
         implementation: Implementation::SbolRs,
         parse_format: RdfFormat::Turtle,
         serialize_format: RdfFormat::Turtle,
+        validate: true,
     },
     BenchCase {
         implementation: Implementation::SbolRs,
         parse_format: RdfFormat::RdfXml,
         serialize_format: RdfFormat::RdfXml,
+        validate: false,
     },
     BenchCase {
         implementation: Implementation::SbolRs,
         parse_format: RdfFormat::JsonLd,
         serialize_format: RdfFormat::JsonLd,
+        validate: false,
     },
     BenchCase {
         implementation: Implementation::SbolRs,
         parse_format: RdfFormat::NTriples,
         serialize_format: RdfFormat::NTriples,
+        validate: false,
+    },
+    // Cross-format conversions exercise the parse-one-format,
+    // serialize-another path so the serialize phase captures real
+    // conversion cost. Every RDF format is supported by sbol-rs,
+    // pySBOL3, and libSBOLj3.
+    BenchCase {
+        implementation: Implementation::SbolRs,
+        parse_format: RdfFormat::Turtle,
+        serialize_format: RdfFormat::RdfXml,
+        validate: false,
+    },
+    BenchCase {
+        implementation: Implementation::SbolRs,
+        parse_format: RdfFormat::RdfXml,
+        serialize_format: RdfFormat::Turtle,
+        validate: false,
+    },
+    BenchCase {
+        implementation: Implementation::SbolRs,
+        parse_format: RdfFormat::Turtle,
+        serialize_format: RdfFormat::JsonLd,
+        validate: false,
     },
     BenchCase {
         implementation: Implementation::Pysbol3,
         parse_format: RdfFormat::Turtle,
         serialize_format: RdfFormat::Turtle,
+        validate: true,
     },
     BenchCase {
         implementation: Implementation::Pysbol3,
         parse_format: RdfFormat::RdfXml,
         serialize_format: RdfFormat::RdfXml,
+        validate: false,
     },
     BenchCase {
         implementation: Implementation::Pysbol3,
         parse_format: RdfFormat::JsonLd,
         serialize_format: RdfFormat::JsonLd,
+        validate: false,
     },
     BenchCase {
         implementation: Implementation::Pysbol3,
         parse_format: RdfFormat::NTriples,
         serialize_format: RdfFormat::NTriples,
+        validate: false,
+    },
+    BenchCase {
+        implementation: Implementation::Pysbol3,
+        parse_format: RdfFormat::Turtle,
+        serialize_format: RdfFormat::RdfXml,
+        validate: false,
+    },
+    BenchCase {
+        implementation: Implementation::Pysbol3,
+        parse_format: RdfFormat::RdfXml,
+        serialize_format: RdfFormat::Turtle,
+        validate: false,
+    },
+    BenchCase {
+        implementation: Implementation::Pysbol3,
+        parse_format: RdfFormat::Turtle,
+        serialize_format: RdfFormat::JsonLd,
+        validate: false,
     },
     BenchCase {
         implementation: Implementation::Libsbolj3,
         parse_format: RdfFormat::Turtle,
         serialize_format: RdfFormat::Turtle,
+        validate: true,
     },
     BenchCase {
         implementation: Implementation::Libsbolj3,
         parse_format: RdfFormat::RdfXml,
         serialize_format: RdfFormat::RdfXml,
+        validate: false,
     },
     BenchCase {
         implementation: Implementation::Libsbolj3,
         parse_format: RdfFormat::JsonLd,
         serialize_format: RdfFormat::JsonLd,
+        validate: false,
     },
     BenchCase {
         implementation: Implementation::Libsbolj3,
         parse_format: RdfFormat::NTriples,
         serialize_format: RdfFormat::NTriples,
+        validate: false,
+    },
+    BenchCase {
+        implementation: Implementation::Libsbolj3,
+        parse_format: RdfFormat::Turtle,
+        serialize_format: RdfFormat::RdfXml,
+        validate: false,
+    },
+    BenchCase {
+        implementation: Implementation::Libsbolj3,
+        parse_format: RdfFormat::RdfXml,
+        serialize_format: RdfFormat::Turtle,
+        validate: false,
+    },
+    BenchCase {
+        implementation: Implementation::Libsbolj3,
+        parse_format: RdfFormat::Turtle,
+        serialize_format: RdfFormat::JsonLd,
+        validate: false,
     },
     // sboljs only: rdfoo's N-Triples parser stack is broken (an
     // `@rdfjs/sink-map` version skew that throws "parser.import is not
     // a function" before any triple is even produced), so sboljs's
-    // only working path is RDF/XML in, RDF/XML out. The RDF/XML row
-    // uses libSBOLj3's committed reference output as input (see
+    // only working path is RDF/XML in, RDF/XML out. It ships no
+    // validator, so it never runs the validation phase. The RDF/XML
+    // row uses libSBOLj3's committed reference output as input (see
     // prepare_fixture_in_every_format) so every impl parses the same
     // bytes.
     BenchCase {
         implementation: Implementation::Sboljs,
         parse_format: RdfFormat::RdfXml,
         serialize_format: RdfFormat::RdfXml,
+        validate: false,
     },
 ];
 
