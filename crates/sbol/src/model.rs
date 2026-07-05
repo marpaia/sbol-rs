@@ -1,23 +1,7 @@
+use crate::Iri;
 use crate::vocab::*;
-use crate::{Iri, Resource};
 
-/// Shared fields on SBOL Identified objects.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Identified {
-    pub display_id: Option<String>,
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub derived_from: Vec<Resource>,
-    pub generated_by: Vec<Resource>,
-    pub measures: Vec<Resource>,
-    pub attachments: Vec<Resource>,
-}
-
-/// Shared fields on SBOL TopLevel objects.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct TopLevel {
-    pub namespace: Option<Iri>,
-}
+pub use sbol_core::object::{Identified, TopLevel};
 
 /// SBOL RDF classes handled by this crate.
 ///

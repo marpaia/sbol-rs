@@ -10,6 +10,7 @@
 
 pub mod error;
 pub mod iri;
+pub mod object;
 pub mod schema;
 pub mod syntax;
 pub mod validation;
