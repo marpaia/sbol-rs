@@ -1,25 +1,42 @@
 // Rule ids whose dedicated InvalidFiles fixture the validator does not reject
-// as an error. Two cases: the check is not yet implemented in the local
-// subset, or the rule is a best-practice recommendation (SHOULD) that emits at
-// warning severity, so the fixture is not an error-match even though the check
-// runs. The best-practice ontology rules (10511, 10528, 10529, 10706, 10707,
-// 11905, 11907, 12007, 13505) are of the second kind; the conformance suite
-// asserts their fail direction against the SBOL2_bp corpus instead. Kept
-// explicit so the strict/loose match set is auditable and grows over time.
+// as an error under the all-flags-on config. Each remaining entry is one of:
+//
+//   - Best-practice recommendation (SHOULD): the check runs but emits at
+//     warning severity, so the fixture is not an error-match. The conformance
+//     suite asserts these against the SBOL2_bp corpus as warnings. This covers
+//     the ontology rules (10511, 10528, 10529, 10706, 10707, 11905, 12007,
+//     13505) and the sequence/component/combinatorial best-practice rules
+//     (10518, 10520, 10523, 10711, 10712, 10903, 11907, 12909, 12910, 12911,
+//     12912, 12913, 13006, 13018, 13019, 13020, 13021, 13022).
+//
+//   - Cross-document / resolver-dependent: detecting the violation needs
+//     objects outside this document. 10808, 10811 (a MapsTo remote resolved in
+//     another document), and the cross-document CombinatorialDerivation rules
+//     12908, 13005, 13011, 13012, 13016, 13017. The in-document portions of
+//     10526 and 11609 are checked strictly; only their cross-document remote
+//     resolution stays deferred.
+//
+//   - Reader-scope: 12301, 12303 require the reader to synthesize a
+//     GenericTopLevel from an unknown SBOL-namespace top-level type; 10106
+//     requires the reader to retain the declared XML namespace bindings, which
+//     the RDF graph discards after parsing. These are reader changes outside
+//     the validator's scope.
+//
+//   - 10302 compares wasDerivedFrom version ordering, outside the local
+//     structural subset implemented here.
+//
+//   - 13403 has no dedicated catalog rule (absent from the 268-rule set).
+//
+// Kept explicit so the strict/loose match set is auditable and grows over time.
 [
-    "sbol2-10101",
     "sbol2-10106",
     "sbol2-10302",
-    "sbol2-10405",
     "sbol2-10511",
-    "sbol2-10516",
     "sbol2-10518",
     "sbol2-10520",
     "sbol2-10523",
-    "sbol2-10526",
     "sbol2-10528",
     "sbol2-10529",
-    "sbol2-10605",
     "sbol2-10706",
     "sbol2-10707",
     "sbol2-10711",
@@ -27,12 +44,6 @@
     "sbol2-10808",
     "sbol2-10811",
     "sbol2-10903",
-    "sbol2-11409",
-    "sbol2-11410",
-    "sbol2-11411",
-    "sbol2-11414",
-    "sbol2-11609",
-    "sbol2-11705",
     "sbol2-11905",
     "sbol2-11907",
     "sbol2-12007",
@@ -48,7 +59,6 @@
     "sbol2-13006",
     "sbol2-13011",
     "sbol2-13012",
-    "sbol2-13015",
     "sbol2-13016",
     "sbol2-13017",
     "sbol2-13018",

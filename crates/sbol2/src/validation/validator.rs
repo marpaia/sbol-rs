@@ -16,7 +16,7 @@ use crate::validation::options::ValidationOptions;
 use crate::validation::spec::{is_catalog_rule, validation_rule_statuses};
 use crate::validation::{Severity, ValidationIssue, ValidationReport};
 use crate::vocab::*;
-use crate::{Document, Object, Resource, Sbol2Class};
+use crate::{Document, Iri, Object, Resource, Sbol2Class};
 
 use sbol_core::validation::report::AppliedOptions;
 use sbol_core::validation::rule_status::ValidationGate;
@@ -53,11 +53,15 @@ impl<'a> Validator<'a> {
             self.validate_derivation_cycles(object);
             self.validate_containment(object);
             self.validate_child_semantics(object);
+            self.validate_sequence_encoding(object);
         }
 
         // Always: whole-document checks.
         self.validate_uri_uniqueness();
         self.validate_persistent_identity_uniqueness();
+        self.validate_document_namespace();
+        self.validate_instance_graph_cycles();
+        self.validate_maps_to_use_remote_uniqueness();
 
         // Gated families, dispatched exactly as SBOLValidate does.
         if config.compliant {
@@ -677,10 +681,11 @@ impl<'a> Validator<'a> {
             obj.map(|o| !self.lists(cd, SBOL2_COMPONENT, o.as_str())).unwrap_or(false);
         // 11413: under differentFrom, subject and object Components must not
         // resolve to the same ComponentDefinition.
-        let is_different_from = object
+        let restriction = object
             .first_resource(SBOL2_RESTRICTION)
             .and_then(Resource::as_iri)
-            .is_some_and(|iri| iri.as_str() == SBOL2_DIFFERENT_FROM);
+            .map(|iri| iri.as_str().to_owned());
+        let is_different_from = restriction.as_deref() == Some(SBOL2_DIFFERENT_FROM);
         let same_definition = is_different_from
             && match (subject, obj) {
                 (Some(s), Some(o)) => {
@@ -691,6 +696,32 @@ impl<'a> Validator<'a> {
                 }
                 _ => false,
             };
+        // 11414: under differentFrom, the subject and object Components must not
+        // resolve to the same ComponentDefinition. Distinct from 11413, which
+        // compares the Components' definition URIs literally; 11414 compares the
+        // ComponentDefinitions the URIs resolve to, catching identity/
+        // persistentIdentity aliases of one definition.
+        let same_resolved_definition = is_different_from
+            && match (subject, obj) {
+                (Some(s), Some(o)) => match (
+                    self.definition_of(s.as_str()).and_then(|d| self.resolved_identity(&d)),
+                    self.definition_of(o.as_str()).and_then(|d| self.resolved_identity(&d)),
+                ) {
+                    (Some(sd), Some(od)) => sd == od,
+                    _ => false,
+                },
+                _ => false,
+            };
+        let cd_id = cd.identity().as_iri().map(|iri| iri.as_str().to_owned());
+        if let Some(cd_id) = cd_id {
+            self.check_sequence_constraint_positions(
+                object,
+                &cd_id,
+                restriction.as_deref(),
+                subject,
+                obj,
+            );
+        }
         if subject_missing {
             self.error(
                 "sbol2-11403",
@@ -713,6 +744,14 @@ impl<'a> Validator<'a> {
                 object,
                 None,
                 "a differentFrom SequenceConstraint must relate Components with different definitions",
+            );
+        }
+        if same_resolved_definition {
+            self.error(
+                "sbol2-11414",
+                object,
+                None,
+                "a differentFrom SequenceConstraint must relate Components resolving to different ComponentDefinitions",
             );
         }
     }
@@ -1240,6 +1279,479 @@ impl<'a> Validator<'a> {
         // TopLevel type.
         self.validate_activity_role_usage(object);
         self.validate_ontology_usage(object);
+        self.validate_cd_sequences(object);
+        self.validate_sequence_annotation_overlaps(object);
+        self.validate_component_source_lengths(object);
+        self.validate_interaction_participation_roles(object);
+        self.validate_combinatorial_best_practices(object);
+    }
+
+    /// ComponentDefinition sequence best practices. 10516 (an error gated with
+    /// the best-practice family): a definition whose type requires a sequence
+    /// category must carry a sequence of that encoding. 10518: sequences of one
+    /// category should share a length. 10523: a nucleic annotation's Range/Cut
+    /// positions should lie within the sequence. (10520, the implied-sequence
+    /// consistency check, requires assembling the definition's nucleic sequence
+    /// from its annotations and stays deferred.)
+    fn validate_cd_sequences(&mut self, object: &Object) {
+        if !object.has_class(Sbol2Class::ComponentDefinition) {
+            return;
+        }
+        let mut sequences: Vec<(String, usize)> = Vec::new();
+        for sequence_ref in object.resources(SBOL2_SEQUENCE) {
+            let Some(iri) = sequence_ref.as_iri() else {
+                continue;
+            };
+            let Some(sequence) = self.resolve(iri.as_str()) else {
+                continue;
+            };
+            let Some(encoding) = sequence
+                .first_resource(SBOL2_ENCODING)
+                .and_then(Resource::as_iri)
+                .map(|iri| iri.as_str().to_owned())
+            else {
+                continue;
+            };
+            let length = self
+                .literal(sequence, SBOL2_ELEMENTS)
+                .map(|elements| elements.chars().count())
+                .unwrap_or(0);
+            sequences.push((encoding, length));
+        }
+        if sequences.is_empty() {
+            return;
+        }
+
+        let mut nucleic_length: Option<usize> = None;
+        let mut protein_length: Option<usize> = None;
+        let mut smiles_length: Option<usize> = None;
+        let mut length_mismatch = false;
+        for (encoding, length) in &sequences {
+            let slot = match encoding.as_str() {
+                IUPAC_NUCLEIC_ENCODING => &mut nucleic_length,
+                IUPAC_PROTEIN_ENCODING => &mut protein_length,
+                SMILES_ENCODING => &mut smiles_length,
+                _ => continue,
+            };
+            match slot {
+                Some(first) if *first != *length => length_mismatch = true,
+                Some(_) => {}
+                None => *slot = Some(*length),
+            }
+        }
+
+        let types: Vec<&str> = object.iris(SBOL2_TYPE).map(|iri| iri.as_str()).collect();
+        let wants_nucleic = types.contains(&BIOPAX_DNA_REGION) || types.contains(&BIOPAX_RNA_REGION);
+        let missing_category = (wants_nucleic && nucleic_length.is_none())
+            || (types.contains(&BIOPAX_PROTEIN) && protein_length.is_none())
+            || (types.contains(&BIOPAX_SMALL_MOLECULE) && smiles_length.is_none());
+
+        let mut out_of_bounds = false;
+        if let Some(length) = nucleic_length {
+            let length = length as i64;
+            for sa_ref in object.resources(SBOL2_SEQUENCE_ANNOTATION) {
+                let Some(sa) = self.document.get(sa_ref) else {
+                    continue;
+                };
+                for location_ref in sa.resources(SBOL2_LOCATION) {
+                    let Some(location) = self.document.get(location_ref) else {
+                        continue;
+                    };
+                    if location.has_class(Sbol2Class::Range) {
+                        let start = self.integer(location, SBOL2_START).unwrap_or(1);
+                        let end = self.integer(location, SBOL2_END).unwrap_or(0);
+                        if start <= 0 || end > length {
+                            out_of_bounds = true;
+                        }
+                    } else if location.has_class(Sbol2Class::Cut) {
+                        let at = self.integer(location, SBOL2_AT).unwrap_or(0);
+                        if at < 0 || at > length {
+                            out_of_bounds = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if missing_category {
+            self.error(
+                "sbol2-10516",
+                object,
+                Some(SBOL2_SEQUENCE),
+                "a ComponentDefinition must carry a Sequence whose encoding matches its type",
+            );
+        }
+        if length_mismatch {
+            self.warning(
+                "sbol2-10518",
+                object,
+                Some(SBOL2_SEQUENCE),
+                "a ComponentDefinition's Sequences of one encoding should share a length",
+            );
+        }
+        if out_of_bounds {
+            self.warning(
+                "sbol2-10523",
+                object,
+                Some(SBOL2_SEQUENCE_ANNOTATION),
+                "a SequenceAnnotation position should lie within the ComponentDefinition's sequence",
+            );
+        }
+    }
+
+    /// 10903: two Locations of one SequenceAnnotation should not overlap.
+    fn validate_sequence_annotation_overlaps(&mut self, object: &Object) {
+        if !object.has_class(Sbol2Class::SequenceAnnotation) {
+            return;
+        }
+        let locations = self.location_extents(object);
+        if regions_overlap(&locations) {
+            self.warning(
+                "sbol2-10903",
+                object,
+                Some(SBOL2_LOCATION),
+                "the Locations of a SequenceAnnotation should not overlap",
+            );
+        }
+    }
+
+    /// 10711: a Component's source Locations should not overlap. 10712: the total
+    /// length of a Component's source Ranges should equal the total length of the
+    /// Ranges annotating it.
+    fn validate_component_source_lengths(&mut self, object: &Object) {
+        if !object.has_class(Sbol2Class::Component) {
+            return;
+        }
+        let source = self.location_extents_of(object, SBOL2_SOURCE_LOCATION);
+        if regions_overlap(&source) {
+            self.warning(
+                "sbol2-10711",
+                object,
+                Some(SBOL2_SOURCE_LOCATION),
+                "the source Locations of a Component should not overlap",
+            );
+        }
+        let Some(component_id) = object.identity().as_iri().map(|iri| iri.as_str().to_owned())
+        else {
+            return;
+        };
+        let annotation = self
+            .document
+            .objects()
+            .values()
+            .find(|candidate| {
+                candidate.has_class(Sbol2Class::SequenceAnnotation)
+                    && candidate
+                        .first_resource(SBOL2_COMPONENT)
+                        .and_then(Resource::as_iri)
+                        .is_some_and(|iri| iri.as_str() == component_id)
+            });
+        let Some(annotation) = annotation else {
+            return;
+        };
+        let target = self.location_extents(annotation);
+        let source_len = range_span(&source);
+        let target_len = range_span(&target);
+        if let (Some(source_len), Some(target_len)) = (source_len, target_len)
+            && source_len != target_len
+        {
+            self.warning(
+                "sbol2-10712",
+                object,
+                Some(SBOL2_SOURCE_LOCATION),
+                "a Component's source Range length should equal its annotation Range length",
+            );
+        }
+    }
+
+    /// The Range/Cut extents of the Locations named by `object`'s `location`
+    /// property.
+    fn location_extents(&self, object: &Object) -> Vec<Region> {
+        self.location_extents_of(object, SBOL2_LOCATION)
+    }
+
+    fn location_extents_of(&self, object: &Object, predicate: &str) -> Vec<Region> {
+        let mut regions = Vec::new();
+        for location_ref in object.resources(predicate) {
+            let Some(location) = self.document.get(location_ref) else {
+                continue;
+            };
+            if location.has_class(Sbol2Class::Range) {
+                if let (Some(start), Some(end)) =
+                    (self.integer(location, SBOL2_START), self.integer(location, SBOL2_END))
+                {
+                    regions.push(Region::Range(start, end));
+                }
+            } else if location.has_class(Sbol2Class::Cut)
+                && let Some(at) = self.integer(location, SBOL2_AT)
+            {
+                regions.push(Region::Cut(at));
+            }
+        }
+        regions
+    }
+
+    /// 11907: an Interaction's type must be compatible with the roles of its
+    /// Participations, per the SBO interaction/participant table.
+    fn validate_interaction_participation_roles(&mut self, object: &Object) {
+        if !object.has_class(Sbol2Class::Interaction) {
+            return;
+        }
+        let ontology = sbol_ontology::Ontology::bundled();
+        // The Interaction's single occurring-entity SBO type; 11905 governs the
+        // "exactly one" case, so a lone type is used here.
+        let types: Vec<String> = object
+            .iris(SBOL2_TYPE)
+            .filter(|iri| {
+                ontology.is_in_branch(ontology_curie(iri.as_str()), SBO_OCCURRING_ENTITY_REPRESENTATION)
+            })
+            .map(|iri| ontology_curie(iri.as_str()).to_owned())
+            .collect();
+        let [interaction_type] = types.as_slice() else {
+            return;
+        };
+        let Some(allowed) = participant_roles_for_interaction(interaction_type) else {
+            return;
+        };
+        // Each Participation's single participant-role SBO term.
+        let mut offending = false;
+        for participation_ref in object.resources(SBOL2_PARTICIPATION) {
+            let Some(participation) = self.document.get(participation_ref) else {
+                continue;
+            };
+            let roles: Vec<String> = participation
+                .iris(SBOL2_ROLE)
+                .filter(|iri| ontology.is_in_branch(ontology_curie(iri.as_str()), SBO_PARTICIPANT_ROLE))
+                .map(|iri| ontology_curie(iri.as_str()).to_owned())
+                .collect();
+            if let [role] = roles.as_slice()
+                && !allowed.contains(&role.as_str())
+            {
+                offending = true;
+            }
+        }
+        if offending {
+            self.warning(
+                "sbol2-11907",
+                object,
+                Some(SBOL2_TYPE),
+                "an Interaction's participant roles should be compatible with its SBO type",
+            );
+        }
+    }
+
+    /// CombinatorialDerivation best practices, all computed over in-document
+    /// references. 12909/13006 flag empty templates and variable components;
+    /// 12910/12911/13018-13022 flag a ComponentDefinition derived from a
+    /// CombinatorialDerivation that departs from its template; 12912/12913 flag
+    /// a Collection whose wasDerivedFrom set disagrees with its members'.
+    fn validate_combinatorial_best_practices(&mut self, object: &Object) {
+        let mut findings: Vec<(&'static str, Resource, &'static str)> = Vec::new();
+        if object.has_class(Sbol2Class::CombinatorialDerivation) {
+            // 12909: the template ComponentDefinition should have Components.
+            if let Some(template) = object
+                .first_resource(SBOL2_TEMPLATE)
+                .and_then(Resource::as_iri)
+                .and_then(|iri| self.resolve(iri.as_str()))
+                && template.resources(SBOL2_COMPONENT).next().is_none()
+            {
+                findings.push((
+                    "sbol2-12909",
+                    object.identity().clone(),
+                    SBOL2_TEMPLATE,
+                ));
+            }
+            // 13006: a VariableComponent should offer at least one variant source.
+            for variable_ref in object.resources(SBOL2_VARIABLE_COMPONENT) {
+                let Some(variable) = self.document.get(variable_ref) else {
+                    continue;
+                };
+                let empty = variable.resources(SBOL2_VARIANT).next().is_none()
+                    && variable.resources(SBOL2_VARIANT_COLLECTION).next().is_none()
+                    && variable.resources(SBOL2_VARIANT_DERIVATION).next().is_none();
+                if empty {
+                    findings.push(("sbol2-13006", variable.identity().clone(), SBOL2_VARIANT));
+                }
+            }
+        }
+        if object.has_class(Sbol2Class::ComponentDefinition) {
+            self.collect_derived_component_findings(object, &mut findings);
+        }
+        if object.has_class(Sbol2Class::Collection) {
+            self.collect_collection_findings(object, &mut findings);
+        }
+        for (rule, identity, property) in findings {
+            self.warning_at(rule, &identity, Some(property), combinatorial_message(rule));
+        }
+    }
+
+    /// Findings for a ComponentDefinition derived from a CombinatorialDerivation:
+    /// type/role agreement with the template (12910/12911/13018) and the
+    /// per-variable-component realization counts (13019-13022).
+    fn collect_derived_component_findings(
+        &self,
+        object: &Object,
+        findings: &mut Vec<(&'static str, Resource, &'static str)>,
+    ) {
+        for derived_ref in object.resources(PROV_WAS_DERIVED_FROM) {
+            let Some(iri) = derived_ref.as_iri() else {
+                continue;
+            };
+            let Some(derivation) = self.resolve(iri.as_str()) else {
+                continue;
+            };
+            if !derivation.has_class(Sbol2Class::CombinatorialDerivation) {
+                continue;
+            }
+            let Some(template) = derivation
+                .first_resource(SBOL2_TEMPLATE)
+                .and_then(Resource::as_iri)
+                .and_then(|iri| self.resolve(iri.as_str()))
+            else {
+                continue;
+            };
+            let identity = object.identity().clone();
+            // 12910 / 12911: derived definition should keep the template's types
+            // and roles.
+            if set_of(object, SBOL2_TYPE) != set_of(template, SBOL2_TYPE) {
+                findings.push(("sbol2-12910", identity.clone(), SBOL2_TYPE));
+            }
+            if set_of(object, SBOL2_ROLE) != set_of(template, SBOL2_ROLE) {
+                findings.push(("sbol2-12911", identity.clone(), SBOL2_ROLE));
+            }
+            // 13018: a derived Component should keep its template Component's roles.
+            for component_ref in object.resources(SBOL2_COMPONENT) {
+                let Some(component) = self.document.get(component_ref) else {
+                    continue;
+                };
+                for source in component.resources(PROV_WAS_DERIVED_FROM) {
+                    let Some(source_iri) = source.as_iri() else {
+                        continue;
+                    };
+                    let Some(template_component) =
+                        self.child_by_identity(template, SBOL2_COMPONENT, source_iri.as_str())
+                    else {
+                        continue;
+                    };
+                    if set_of(component, SBOL2_ROLE) != set_of(template_component, SBOL2_ROLE) {
+                        findings.push(("sbol2-13018", identity.clone(), SBOL2_ROLE));
+                    }
+                }
+            }
+            // 13022: each non-replaced template Component should be realized once.
+            let replaced: std::collections::BTreeSet<String> = derivation
+                .resources(SBOL2_VARIABLE_COMPONENT)
+                .filter_map(|vc_ref| self.document.get(vc_ref))
+                .filter_map(|vc| vc.first_resource(SBOL2_VARIABLE).and_then(Resource::as_iri))
+                .map(|iri| iri.as_str().to_owned())
+                .collect();
+            for template_component_ref in template.resources(SBOL2_COMPONENT) {
+                let Some(template_component_id) = template_component_ref.as_iri() else {
+                    continue;
+                };
+                if replaced.contains(template_component_id.as_str()) {
+                    continue;
+                }
+                let count = self.count_derived_from(object, template_component_id.as_str());
+                if count != 1 {
+                    findings.push(("sbol2-13022", identity.clone(), SBOL2_COMPONENT));
+                }
+            }
+            // 13019 / 13020 / 13021: realization counts by operator.
+            for vc_ref in derivation.resources(SBOL2_VARIABLE_COMPONENT) {
+                let Some(vc) = self.document.get(vc_ref) else {
+                    continue;
+                };
+                let Some(variable) =
+                    vc.first_resource(SBOL2_VARIABLE).and_then(Resource::as_iri)
+                else {
+                    continue;
+                };
+                let operator = vc
+                    .first_resource(SBOL2_OPERATOR)
+                    .and_then(Resource::as_iri)
+                    .map(|iri| iri.as_str().to_owned());
+                let count = self.count_derived_from(object, variable.as_str());
+                match operator.as_deref() {
+                    Some(SBOL2_OP_ZERO_OR_ONE) if count > 1 => {
+                        findings.push(("sbol2-13019", identity.clone(), SBOL2_COMPONENT));
+                    }
+                    Some(SBOL2_OP_ONE) if count != 1 => {
+                        findings.push(("sbol2-13020", identity.clone(), SBOL2_COMPONENT));
+                    }
+                    Some(SBOL2_OP_ONE_OR_MORE) if count == 0 => {
+                        findings.push(("sbol2-13021", identity.clone(), SBOL2_COMPONENT));
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    /// Findings for a Collection whose members derive from a
+    /// CombinatorialDerivation: the Collection and its members should share the
+    /// deriving wasDerivedFrom URIs (12912/12913).
+    fn collect_collection_findings(
+        &self,
+        object: &Object,
+        findings: &mut Vec<(&'static str, Resource, &'static str)>,
+    ) {
+        let members: Vec<&Object> = object
+            .resources(SBOL2_MEMBER)
+            .filter_map(|member_ref| member_ref.as_iri())
+            .filter_map(|iri| self.resolve(iri.as_str()))
+            .collect();
+        let identity = object.identity().clone();
+        // 12913: when the Collection derives from a CombinatorialDerivation, each
+        // member should record the same derivation.
+        for derived in object.resources(PROV_WAS_DERIVED_FROM) {
+            let Some(iri) = derived.as_iri() else {
+                continue;
+            };
+            let is_combinatorial = self
+                .resolve(iri.as_str())
+                .is_some_and(|target| target.has_class(Sbol2Class::CombinatorialDerivation));
+            if !is_combinatorial {
+                continue;
+            }
+            for member in &members {
+                if !self.lists(member, PROV_WAS_DERIVED_FROM, iri.as_str()) {
+                    findings.push(("sbol2-12913", identity.clone(), SBOL2_MEMBER));
+                }
+            }
+        }
+        // 12912: when a member derives from a CombinatorialDerivation, the
+        // Collection should record the same derivation.
+        for member in &members {
+            for derived in member.resources(PROV_WAS_DERIVED_FROM) {
+                let Some(iri) = derived.as_iri() else {
+                    continue;
+                };
+                let is_combinatorial = self
+                    .resolve(iri.as_str())
+                    .is_some_and(|target| target.has_class(Sbol2Class::CombinatorialDerivation));
+                if is_combinatorial && !self.lists(object, PROV_WAS_DERIVED_FROM, iri.as_str()) {
+                    findings.push(("sbol2-12912", identity.clone(), SBOL2_MEMBER));
+                }
+            }
+        }
+    }
+
+    /// The child of `parent` listed under `predicate` whose identity is `id`.
+    fn child_by_identity(&self, parent: &Object, predicate: &str, id: &str) -> Option<&Object> {
+        parent
+            .resources(predicate)
+            .find(|r| r.as_iri().is_some_and(|iri| iri.as_str() == id))
+            .and_then(|r| self.document.get(r))
+    }
+
+    /// How many Components of `object` carry `derived_from` in wasDerivedFrom.
+    fn count_derived_from(&self, object: &Object, derived_from: &str) -> usize {
+        object
+            .resources(SBOL2_COMPONENT)
+            .filter_map(|component_ref| self.document.get(component_ref))
+            .filter(|component| self.lists(component, PROV_WAS_DERIVED_FROM, derived_from))
+            .count()
     }
 
     /// Ontology-recommendation checks: whether the SO/SBO terms a
@@ -1469,6 +1981,363 @@ impl<'a> Validator<'a> {
         }
     }
 
+    // --- document namespace (Always) ----------------------------------
+
+    /// 10101: an SBOL document must use the SBOL 2 namespace. After parsing the
+    /// declared namespaces are not retained, but a conforming document names at
+    /// least one term in the SBOL 2 namespace; a document whose SBOL prefix is
+    /// misbound (so every term lands in a look-alike namespace) uses none.
+    fn validate_document_namespace(&mut self) {
+        let triples = self.document.rdf_graph().triples();
+        // An empty document declares but does not exercise the namespace; only a
+        // document with content that never touches the SBOL 2 namespace has
+        // misbound its SBOL prefix.
+        if triples.is_empty() {
+            return;
+        }
+        // A conforming document names SBOL 2 properties (predicates) or declares
+        // SBOL 2 classes (rdf:type objects). Enumerated *values* in the SBOL 2
+        // namespace (access, orientation, restriction) do not count: a document
+        // with a misbound SBOL prefix still writes those value IRIs literally.
+        let uses_sbol2 = triples.iter().any(|triple| {
+            triple.predicate.as_str().starts_with(SBOL2_NS)
+                || (triple.predicate.as_str() == RDF_TYPE
+                    && triple.object.as_iri().is_some_and(|iri| iri.as_str().starts_with(SBOL2_NS)))
+        });
+        if !uses_sbol2 {
+            let identity = Resource::Iri(Iri::new_unchecked(SBOL2_NS));
+            self.error_at(
+                "sbol2-10101",
+                &identity,
+                None,
+                "an SBOL document must declare and use the SBOL 2 namespace \
+                 `http://sbols.org/v2#`",
+            );
+        }
+    }
+
+    // --- instance-graph cycles (Always) --------------------------------
+
+    /// 10605 / 11705 / 13015: the in-document reference graph among definitions
+    /// must be acyclic. A ComponentDefinition reaches others through its
+    /// Components' definitions, a ModuleDefinition through its Modules'
+    /// definitions, and a CombinatorialDerivation through its VariableComponents'
+    /// variantDerivations. Each mirrors libSBOLj's per-definition cycle walk.
+    fn validate_instance_graph_cycles(&mut self) {
+        let cd = self.cycle_offenders(Sbol2Class::ComponentDefinition, SBOL2_COMPONENT, SBOL2_DEFINITION);
+        let md = self.cycle_offenders(Sbol2Class::ModuleDefinition, SBOL2_MODULE, SBOL2_DEFINITION);
+        let combo = self.cycle_offenders(
+            Sbol2Class::CombinatorialDerivation,
+            SBOL2_VARIABLE_COMPONENT,
+            SBOL2_VARIANT_DERIVATION,
+        );
+        for identity in cd {
+            self.error_at("sbol2-10605", &identity, Some(SBOL2_COMPONENT),
+                "a ComponentDefinition must not form a cycle through its Components' definitions");
+        }
+        for identity in md {
+            self.error_at("sbol2-11705", &identity, Some(SBOL2_MODULE),
+                "a ModuleDefinition must not form a cycle through its Modules' definitions");
+        }
+        for identity in combo {
+            self.error_at("sbol2-13015", &identity, Some(SBOL2_VARIABLE_COMPONENT),
+                "a CombinatorialDerivation must not form a cycle through its variantDerivations");
+        }
+    }
+
+    /// Identities of `class` definitions whose reference graph reaches a cycle.
+    /// `instance_pred` names the definition's child instances, and each instance's
+    /// `link_pred` names the definition it points at (resolved in-document).
+    fn cycle_offenders(
+        &self,
+        class: Sbol2Class,
+        instance_pred: &str,
+        link_pred: &str,
+    ) -> Vec<Resource> {
+        let mut graph: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        for object in self.document.objects().values() {
+            if !object.has_class(class) {
+                continue;
+            }
+            let Some(id) = object.identity().as_iri() else {
+                continue;
+            };
+            let mut successors = Vec::new();
+            for instance_ref in object.resources(instance_pred) {
+                let Some(instance) = self.document.get(instance_ref) else {
+                    continue;
+                };
+                let Some(link) = instance.first_resource(link_pred).and_then(Resource::as_iri) else {
+                    continue;
+                };
+                if let Some(target) = self.resolve(link.as_str())
+                    && let Some(target_id) = target.identity().as_iri()
+                {
+                    successors.push(target_id.as_str().to_owned());
+                }
+            }
+            graph.insert(id.as_str().to_owned(), successors);
+        }
+        let mut offenders = Vec::new();
+        for object in self.document.objects().values() {
+            if !object.has_class(class) {
+                continue;
+            }
+            let Some(id) = object.identity().as_iri() else {
+                continue;
+            };
+            let mut path = std::collections::BTreeSet::new();
+            if reaches_cycle(id.as_str(), &graph, &mut path) {
+                offenders.push(object.identity().clone());
+            }
+        }
+        offenders
+    }
+
+    // --- MapsTo useRemote uniqueness (Always) --------------------------
+
+    /// 10526 / 11609: within one definition, two useRemote MapsTos must not
+    /// share a local. A ComponentDefinition collects its Components' MapsTos
+    /// (10526); a ModuleDefinition its Modules' and FunctionalComponents' MapsTos
+    /// (11609). The comparison is in-document; the cross-document remote-
+    /// resolution portion stays deferred.
+    fn validate_maps_to_use_remote_uniqueness(&mut self) {
+        let cd = self.use_remote_collisions(Sbol2Class::ComponentDefinition, &[SBOL2_COMPONENT]);
+        let md = self.use_remote_collisions(
+            Sbol2Class::ModuleDefinition,
+            &[SBOL2_MODULE, SBOL2_FUNCTIONAL_COMPONENT],
+        );
+        for identity in cd {
+            self.error_at("sbol2-10526", &identity, Some(SBOL2_MAPS_TO),
+                "two useRemote MapsTos of a ComponentDefinition must not share a local");
+        }
+        for identity in md {
+            self.error_at("sbol2-11609", &identity, Some(SBOL2_MAPS_TO),
+                "two useRemote MapsTos of a ModuleDefinition must not share a local");
+        }
+    }
+
+    /// Definitions of `class` in which two distinct useRemote MapsTos, gathered
+    /// from the instances named by `instance_preds`, reference the same local.
+    fn use_remote_collisions(&self, class: Sbol2Class, instance_preds: &[&str]) -> Vec<Resource> {
+        let mut offenders = Vec::new();
+        for object in self.document.objects().values() {
+            if !object.has_class(class) {
+                continue;
+            }
+            let mut locals: Vec<String> = Vec::new();
+            for pred in instance_preds {
+                for instance_ref in object.resources(pred) {
+                    let Some(instance) = self.document.get(instance_ref) else {
+                        continue;
+                    };
+                    for maps_to_ref in instance.resources(SBOL2_MAPS_TO) {
+                        let Some(maps_to) = self.document.get(maps_to_ref) else {
+                            continue;
+                        };
+                        let use_remote = maps_to
+                            .first_resource(SBOL2_REFINEMENT)
+                            .and_then(Resource::as_iri)
+                            .is_some_and(|iri| iri.as_str() == SBOL2_USE_REMOTE);
+                        if !use_remote {
+                            continue;
+                        }
+                        if let Some(local) =
+                            maps_to.first_resource(SBOL2_LOCAL).and_then(Resource::as_iri)
+                        {
+                            locals.push(local.as_str().to_owned());
+                        }
+                    }
+                }
+            }
+            let mut seen = std::collections::BTreeSet::new();
+            if locals.iter().any(|local| !seen.insert(local.clone())) {
+                offenders.push(object.identity().clone());
+            }
+        }
+        offenders
+    }
+
+    // --- sequence encoding (Always) ------------------------------------
+
+    /// 10405: a Sequence's elements must be consistent with its encoding. The
+    /// IUPAC nucleic-acid and protein alphabets are checked locally; SMILES and
+    /// unrecognized encodings are accepted (no in-crate parser).
+    fn validate_sequence_encoding(&mut self, object: &Object) {
+        if !object.has_class(Sbol2Class::Sequence) {
+            return;
+        }
+        let Some(encoding) =
+            object.first_resource(SBOL2_ENCODING).and_then(Resource::as_iri).map(|iri| iri.as_str().to_owned())
+        else {
+            return;
+        };
+        let Some(elements) = self.literal(object, SBOL2_ELEMENTS) else {
+            return;
+        };
+        let consistent = match encoding.as_str() {
+            IUPAC_NUCLEIC_ENCODING => elements
+                .to_ascii_uppercase()
+                .chars()
+                .all(|c| IUPAC_NUCLEIC_ALPHABET.contains(c)),
+            IUPAC_PROTEIN_ENCODING => elements.chars().all(|c| c.is_ascii_alphabetic()),
+            _ => true,
+        };
+        if !consistent {
+            self.error(
+                "sbol2-10405",
+                object,
+                Some(SBOL2_ELEMENTS),
+                "the elements of a Sequence must be consistent with its encoding",
+            );
+        }
+    }
+
+    // --- sequence-constraint positions (Always) ------------------------
+
+    /// 11409 / 11410 / 11411: a SequenceConstraint's restriction must agree with
+    /// the positions and orientations of the SequenceAnnotations that annotate
+    /// its subject and object Components, all within the same ComponentDefinition.
+    fn check_sequence_constraint_positions(
+        &mut self,
+        constraint: &Object,
+        cd_id: &str,
+        restriction: Option<&str>,
+        subject: Option<&Iri>,
+        object: Option<&Iri>,
+    ) {
+        let (Some(subject), Some(object)) = (subject, object) else {
+            return;
+        };
+        let Some(cd) = self.resolve(cd_id) else {
+            return;
+        };
+        let Some(sa_subject) = self.annotation_for_component(cd, subject.as_str()) else {
+            return;
+        };
+        let Some(sa_object) = self.annotation_for_component(cd, object.as_str()) else {
+            return;
+        };
+        // Resolve all positional and orientation data before emitting; the
+        // annotation borrows tie to `&self` and must end before `emit_at`.
+        let subject_position = self.annotation_position(sa_subject);
+        let object_position = self.annotation_position(sa_object);
+        let subject_orientations = self.annotation_orientations(sa_subject);
+        let object_orientations = self.annotation_orientations(sa_object);
+        let identity = constraint.identity().clone();
+        match restriction {
+            Some(SBOL2_PRECEDES) => {
+                if let (Some(subject_pos), Some(object_pos)) = (subject_position, object_position)
+                    && object_pos < subject_pos
+                {
+                    self.error_at(
+                        "sbol2-11409",
+                        &identity,
+                        Some(SBOL2_RESTRICTION),
+                        "a precedes SequenceConstraint requires the subject to be positioned before the object",
+                    );
+                }
+            }
+            Some(SBOL2_SAME_ORIENTATION_AS) => {
+                let differs = subject_orientations
+                    .iter()
+                    .any(|s| object_orientations.iter().any(|o| s != o));
+                if differs {
+                    self.error_at(
+                        "sbol2-11410",
+                        &identity,
+                        Some(SBOL2_RESTRICTION),
+                        "a sameOrientationAs SequenceConstraint requires matching orientations",
+                    );
+                }
+            }
+            Some(SBOL2_OPPOSITE_ORIENTATION_AS) => {
+                let matches = subject_orientations
+                    .iter()
+                    .any(|s| object_orientations.iter().any(|o| s == o));
+                if matches {
+                    self.error_at(
+                        "sbol2-11411",
+                        &identity,
+                        Some(SBOL2_RESTRICTION),
+                        "an oppositeOrientationAs SequenceConstraint requires differing orientations",
+                    );
+                }
+            }
+            _ => {}
+        }
+    }
+
+    /// The SequenceAnnotation of `cd` whose component is `component`.
+    fn annotation_for_component(&self, cd: &Object, component: &str) -> Option<&Object> {
+        for sa_ref in cd.resources(SBOL2_SEQUENCE_ANNOTATION) {
+            let Some(sa) = self.document.get(sa_ref) else {
+                continue;
+            };
+            if sa
+                .first_resource(SBOL2_COMPONENT)
+                .and_then(Resource::as_iri)
+                .is_some_and(|iri| iri.as_str() == component)
+            {
+                return Some(sa);
+            }
+        }
+        None
+    }
+
+    /// The `(start, end)` of a SequenceAnnotation's lowest Range/Cut location,
+    /// mirroring libSBOLj's sorted-location comparison. `None` when the
+    /// annotation carries no positionally comparable location.
+    fn annotation_position(&self, sa: &Object) -> Option<(i64, i64)> {
+        let mut best: Option<(i64, i64)> = None;
+        for location_ref in sa.resources(SBOL2_LOCATION) {
+            let Some(location) = self.document.get(location_ref) else {
+                continue;
+            };
+            let position = if location.has_class(Sbol2Class::Range) {
+                match (self.integer(location, SBOL2_START), self.integer(location, SBOL2_END)) {
+                    (Some(start), Some(end)) => Some((start, end)),
+                    _ => None,
+                }
+            } else if location.has_class(Sbol2Class::Cut) {
+                self.integer(location, SBOL2_AT).map(|at| (at, at))
+            } else {
+                None
+            };
+            if let Some(position) = position
+                && best.is_none_or(|current| position < current)
+            {
+                best = Some(position);
+            }
+        }
+        best
+    }
+
+    /// The orientation of each of a SequenceAnnotation's locations, defaulting to
+    /// inline when unset (the SBOL 2 default).
+    fn annotation_orientations(&self, sa: &Object) -> Vec<String> {
+        let mut orientations = Vec::new();
+        for location_ref in sa.resources(SBOL2_LOCATION) {
+            let Some(location) = self.document.get(location_ref) else {
+                continue;
+            };
+            let orientation = location
+                .first_resource(SBOL2_ORIENTATION)
+                .and_then(Resource::as_iri)
+                .map(|iri| iri.as_str().to_owned())
+                .unwrap_or_else(|| SBOL2_INLINE.to_owned());
+            orientations.push(orientation);
+        }
+        orientations
+    }
+
+    /// The identity URI of the object `uri` resolves to in-document.
+    fn resolved_identity(&self, uri: &str) -> Option<String> {
+        self.resolve(uri)
+            .and_then(|object| object.identity().as_iri())
+            .map(|iri| iri.as_str().to_owned())
+    }
+
     // --- emission ------------------------------------------------------
 
     fn error(
@@ -1500,6 +2369,39 @@ impl<'a> Validator<'a> {
         message: impl Into<String>,
         catalog_default: Severity,
     ) {
+        self.emit_at(rule, object.identity(), property, message, catalog_default);
+    }
+
+    /// Emit against an object identity directly. Whole-document checks report
+    /// on the offending object by identity, without a borrow of the object.
+    fn error_at(
+        &mut self,
+        rule: &'static str,
+        identity: &Resource,
+        property: Option<&'static str>,
+        message: impl Into<String>,
+    ) {
+        self.emit_at(rule, identity, property, message, Severity::Error);
+    }
+
+    fn warning_at(
+        &mut self,
+        rule: &'static str,
+        identity: &Resource,
+        property: Option<&'static str>,
+        message: impl Into<String>,
+    ) {
+        self.emit_at(rule, identity, property, message, Severity::Warning);
+    }
+
+    fn emit_at(
+        &mut self,
+        rule: &'static str,
+        identity: &Resource,
+        property: Option<&'static str>,
+        message: impl Into<String>,
+        catalog_default: Severity,
+    ) {
         // A rule only fires when its family is enabled by the run config, and
         // an unknown (non-catalog) rule never fires.
         let Some(gate) = rule_gate(rule) else {
@@ -1513,9 +2415,9 @@ impl<'a> Validator<'a> {
         };
         let issue = match severity {
             Severity::Warning => {
-                ValidationIssue::warning(rule, object.identity().clone(), property, message)
+                ValidationIssue::warning(rule, identity.clone(), property, message)
             }
-            _ => ValidationIssue::error(rule, object.identity().clone(), property, message),
+            _ => ValidationIssue::error(rule, identity.clone(), property, message),
         };
         self.issues.push(issue);
     }
@@ -1626,6 +2528,126 @@ const SBO_PARTICIPANT_ROLE: &str = "SBO:0000003";
 const SBO_SYSTEMS_DESCRIPTION_PARAMETER: &str = "SBO:0000545";
 
 const SBOL2_DIFFERENT_FROM: &str = "http://sbols.org/v2#differentFrom";
+const SBOL2_PRECEDES: &str = "http://sbols.org/v2#precedes";
+const SBOL2_SAME_ORIENTATION_AS: &str = "http://sbols.org/v2#sameOrientationAs";
+const SBOL2_OPPOSITE_ORIENTATION_AS: &str = "http://sbols.org/v2#oppositeOrientationAs";
+
+/// The IUPAC nucleic-acid encoding IRI (shared by DNA and RNA), the IUPAC
+/// protein encoding IRI, and the alphabets their elements must draw from.
+const IUPAC_NUCLEIC_ENCODING: &str = "http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html";
+const IUPAC_PROTEIN_ENCODING: &str = "http://www.chem.qmul.ac.uk/iupac/AminoAcid/";
+const SMILES_ENCODING: &str = "http://www.opensmiles.org/opensmiles.html";
+const IUPAC_NUCLEIC_ALPHABET: &str = "ACGTURYSWKMBDHVN-.";
+
+/// A positionally comparable Location: a Range spanning `[start, end]` or a Cut
+/// between bases at `at`.
+#[derive(Clone, Copy)]
+enum Region {
+    Range(i64, i64),
+    Cut(i64),
+}
+
+/// Whether any two distinct regions overlap, mirroring libSBOLj's pairwise
+/// overlap test across Range/Cut combinations.
+fn regions_overlap(regions: &[Region]) -> bool {
+    for (i, a) in regions.iter().enumerate() {
+        for b in &regions[i + 1..] {
+            let overlap = match (a, b) {
+                (Region::Range(s1, e1), Region::Range(s2, e2)) => {
+                    (s1 >= s2 && s1 <= e2) || (s2 >= s1 && s2 <= e1)
+                }
+                (Region::Range(s, e), Region::Cut(at)) | (Region::Cut(at), Region::Range(s, e)) => {
+                    e > at && at >= s
+                }
+                (Region::Cut(a), Region::Cut(b)) => a == b,
+            };
+            if overlap {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// The summed inclusive length of the Range regions, or `None` when there are
+/// none. Cut regions contribute no length.
+fn range_span(regions: &[Region]) -> Option<i64> {
+    let mut total = 0;
+    let mut any = false;
+    for region in regions {
+        if let Region::Range(start, end) = region {
+            total += end - start + 1;
+            any = true;
+        }
+    }
+    any.then_some(total)
+}
+
+/// The permitted participant-role SBO terms for an interaction-type SBO term,
+/// keyed by trailing CURIE, per SBOL 2 Table 11. `None` for types the table
+/// does not constrain.
+fn participant_roles_for_interaction(interaction_type: &str) -> Option<&'static [&'static str]> {
+    // SBO CURIEs: inhibition 0000169, stimulation 0000170, non-covalent binding
+    // 0000177, degradation 0000179, biochemical reaction 0000176, genetic
+    // production 0000589, control 0000168. Roles: inhibitor 0000020, inhibited
+    // 0000642, promoter 0000598, stimulator 0000459, stimulated 0000643,
+    // reactant 0000010, product 0000011, modifier 0000019, modified 0000644,
+    // template 0000645.
+    match interaction_type {
+        "SBO:0000169" => Some(&["SBO:0000020", "SBO:0000642", "SBO:0000598"]),
+        "SBO:0000170" => Some(&["SBO:0000459", "SBO:0000643", "SBO:0000598"]),
+        "SBO:0000177" => Some(&["SBO:0000010", "SBO:0000011"]),
+        "SBO:0000179" => Some(&["SBO:0000010"]),
+        "SBO:0000176" => Some(&["SBO:0000010", "SBO:0000011", "SBO:0000019"]),
+        "SBO:0000589" => Some(&["SBO:0000598", "SBO:0000645", "SBO:0000011"]),
+        "SBO:0000168" => Some(&["SBO:0000019", "SBO:0000644"]),
+        _ => None,
+    }
+}
+
+/// The set of IRI values `object` carries under `predicate`.
+fn set_of(object: &Object, predicate: &str) -> std::collections::BTreeSet<String> {
+    object.iris(predicate).map(|iri| iri.as_str().to_owned()).collect()
+}
+
+/// The diagnostic message for a CombinatorialDerivation best-practice finding.
+fn combinatorial_message(rule: &str) -> &'static str {
+    match rule {
+        "sbol2-12909" => "a CombinatorialDerivation template should contain Components",
+        "sbol2-13006" => "a VariableComponent should specify at least one variant source",
+        "sbol2-12910" => "a derived ComponentDefinition should keep its template's types",
+        "sbol2-12911" => "a derived ComponentDefinition should keep its template's roles",
+        "sbol2-13018" => "a derived Component should keep its template Component's roles",
+        "sbol2-13019" => "a zeroOrOne VariableComponent should be realized at most once",
+        "sbol2-13020" => "a one VariableComponent should be realized exactly once",
+        "sbol2-13021" => "a oneOrMore VariableComponent should be realized at least once",
+        "sbol2-13022" => "a non-replaced template Component should be realized exactly once",
+        "sbol2-12912" => "a Collection should record the CombinatorialDerivation its members derive from",
+        "sbol2-12913" => "a Collection's members should derive from the same CombinatorialDerivation",
+        _ => "combinatorial derivation best practice",
+    }
+}
+
+/// Whether `node` reaches a cycle in `graph`: a directed walk from `node` that
+/// revisits a node already on the current path. `path` is the recursion stack.
+fn reaches_cycle(
+    node: &str,
+    graph: &BTreeMap<String, Vec<String>>,
+    path: &mut std::collections::BTreeSet<String>,
+) -> bool {
+    if !path.insert(node.to_owned()) {
+        return true;
+    }
+    if let Some(successors) = graph.get(node) {
+        for successor in successors {
+            if reaches_cycle(successor, graph, path) {
+                return true;
+            }
+        }
+    }
+    path.remove(node);
+    false
+}
 const SBOL2_MERGE_ROLES: &str = "http://sbols.org/v2#mergeRoles";
 const SBOL2_OVERRIDE_ROLES: &str = "http://sbols.org/v2#overrideRoles";
 const SBOL2_VERIFY_IDENTICAL: &str = "http://sbols.org/v2#verifyIdentical";
