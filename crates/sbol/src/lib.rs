@@ -1,9 +1,11 @@
 //! Umbrella facade for the sbol-rs ecosystem.
 //!
-//! This crate re-exports the SBOL 3 implementation as [`v3`] and the SBOL
-//! version conversion API as [`convert`], both behind cargo features, and
-//! adds version detection plus a version-neutral [`AnyDocument`] handle over
-//! the underlying RDF layer.
+//! This crate re-exports the SBOL 2 implementation as [`v2`], the SBOL 3
+//! implementation as [`v3`], and the SBOL 2 ⇄ SBOL 3 conversion API as
+//! [`convert`], each behind a cargo feature (`v3` and `convert` are on by
+//! default; enable `v2` for the SBOL 2 surface). It also adds version
+//! detection plus a version-neutral [`AnyDocument`] handle over the
+//! underlying RDF layer.
 #![forbid(unsafe_code)]
 
 pub use sbol_core;
@@ -65,9 +67,10 @@ pub fn detect_version(input: &str, format: RdfFormat) -> Option<SbolVersion> {
         .and_then(|g| detect_version_in_graph(&g))
 }
 
-/// A version-neutral handle over a parsed SBOL document. Today it wraps an
-/// SBOL 3 [`Document`](v3::Document); the SBOL 2 arm is added when the SBOL 2
-/// implementation lands.
+/// A version-neutral handle over a parsed SBOL document. It wraps an SBOL 3
+/// [`Document`](v3::Document); SBOL 2 documents are handled directly through
+/// `v2::Document`. The enum is `#[non_exhaustive]` so further arms can be
+/// added without a breaking change.
 #[cfg(feature = "v3")]
 #[non_exhaustive]
 pub enum AnyDocument {

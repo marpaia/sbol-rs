@@ -1,11 +1,13 @@
 ![sbol-rs: a Rust implementation of SBOL](docs/images/sbol-rs.png)
 
-`sbol-rs` is a Rust implementation of the Synthetic Biology Open Language
-(SBOL 3.1.0). SBOL is the community standard for the exchange of
-synthetic biology designs across registries, design-automation tools,
-and laboratory automation pipelines. `sbol-rs` exposes a typed API for
-reading, building, and rewriting SBOL documents, plus a validator that
-covers the 109 machine-checkable rules from SBOL 3.1.0 Appendix B.
+`sbol-rs` is a native dual-version Rust implementation of the Synthetic
+Biology Open Language: both SBOL 2.3.0 and SBOL 3.1.0, first-class. SBOL
+is the community standard for the exchange of synthetic biology designs
+across registries, design-automation tools, and laboratory automation
+pipelines. `sbol-rs` exposes a typed SDK and a CLI for both versions —
+read, build, rewrite, validate, and losslessly convert SBOL 2 ⇄ SBOL 3 —
+plus validators covering the 109 machine-checkable rules of SBOL 3.1.0
+Appendix B and the 239 machine-checkable rules of the SBOL 2.3.0 catalog.
 
 New to the codebase? Start with the [**crate guide**](docs/crate-guide.md).
 
@@ -35,7 +37,7 @@ sbol validate design.ttl
 ## Example
 
 ```rust
-use sbol::constants::{EDAM_IUPAC_DNA, SBO_DNA, SO_PROMOTER};
+use sbol::v3::constants::{EDAM_IUPAC_DNA, SBO_DNA, SO_PROMOTER};
 use sbol::prelude::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -66,20 +68,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 Reading documents, traversing references across documents, expanding
 combinatorial derivations, and inspecting validation reports are covered
-in [`crates/sbol/examples/`](crates/sbol/examples/). Run any of them with
-`cargo run -p sbol --example <name>`.
+in [`crates/sbol3/examples/`](crates/sbol3/examples/). Run any of them
+with `cargo run -p sbol3 --example <name>`.
+
+## Crates
+
+`sbol-rs` is a Cargo workspace. Most users depend on the `sbol` umbrella;
+the version crates are usable directly.
+
+| Crate | Role |
+|---|---|
+| [`sbol`](crates/sbol/) | Umbrella facade. Re-exports SBOL 3 as `sbol::v3` and conversion as `sbol::convert` by default; SBOL 2 as `sbol::v2` behind the `v2` feature. Adds version detection and a version-neutral document handle. |
+| [`sbol3`](crates/sbol3/) | SBOL 3.1.0 typed data model, RDF I/O, and validator. |
+| [`sbol2`](crates/sbol2/) | SBOL 2.3.0 typed data model, RDF I/O, and validator. |
+| [`sbol-core`](crates/sbol-core/) | Version-neutral machinery both versions build on: field-metadata descriptors, identity newtypes, the RDF-backed document store, and the shared validation reporting and configuration types. |
+| [`sbol-convert`](crates/sbol-convert/) | SBOL 2 ⇄ SBOL 3 conversion at the RDF triple level (`upgrade_from_sbol2`, `downgrade`). |
+| [`sbol-cli`](crates/sbol-cli/) | The `sbol` command-line tool: validate, convert, and import for both versions. |
+| [`sbol-rulegen`](crates/sbol-rulegen/) | Generates each version's validation rule catalog from its `rules.toml`. |
+| [`sbol-fasta`](crates/sbol-fasta/) / [`sbol-genbank`](crates/sbol-genbank/) | FASTA and GenBank importers to native SBOL 3. |
+| [`sbol-ontology`](crates/sbol-ontology/) / [`sbol-rdf`](crates/sbol-rdf/) | Bundled ontology snapshots and the RDF serialization layer. |
 
 ## Validation
 
+`sbol-rs` validates both SBOL versions through one shared
+`ValidationConfig` and one diagnostic surface (text / JSON / SARIF
+output), with configurable scope (offline by default, or resolver-backed
+for cross-document references) and per-rule severity overrides.
+
 SBOL 3.1.0 [Appendix B](spec/SBOL3.1.0.md#b-validation-rules) defines
-149 validation rules; 40 are marked as not-to-be-machine-reported.
-`sbol` implements an algorithm for each of the remaining 109, with
-configurable scope (offline by default, or resolver-backed for
-cross-document references), per-rule severity overrides, and text /
-JSON / SARIF output. [`docs/validation.md`](docs/validation.md) covers
-what's checked and the trust boundaries;
-[`docs/conformance.md`](docs/conformance.md) carries the per-rule
-status grid.
+149 validation rules; 40 are marked as not-to-be-machine-reported, and
+`sbol3` implements an algorithm for each of the remaining 109. The SBOL
+2.3.0 catalog carries 268 rules, 239 of them machine-checkable, all
+implemented by `sbol2`. [`docs/validation.md`](docs/validation.md)
+covers what's checked and the trust boundaries;
+[`docs/conformance.md`](docs/conformance.md) and
+[`docs/sbol2-conformance.md`](docs/sbol2-conformance.md) carry the
+per-rule status grids.
 
 ## Ontology Extensions
 
