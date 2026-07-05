@@ -10,9 +10,9 @@ The catalog is the libSBOLj machine ruleset: the 268 numbered SBOL 2 validation 
 
 ## Headline coverage
 
-**Every one of the 222 machine-checkable rules is backed by a firing negative fixture and a non-firing positive fixture.** Each rule has a hermetic, minimal SBOL 2 document that violates exactly that rule and is asserted to report it at the catalog severity (MUST rules as errors, SHOULD rules as warnings), plus a valid instance of the same construct asserted not to report it — all evaluated under `ValidationConfig::all_on()`. The suite fails at build time if any machine-checkable rule lacks either fixture, so the 222/222 coverage is enforced, not asserted. The per-rule matrix is committed at [`sbol2-negative-coverage.md`](sbol2-negative-coverage.md) and the fixtures live in `crates/sbol2/tests/rule_cases/`; this matches the SBOL 3 validator's standard in [`negative-coverage.md`](negative-coverage.md).
+**Every one of the 222 machine-checkable rules is backed by a firing negative fixture and a non-firing positive fixture.** Each rule has a hermetic, minimal SBOL 2 document that violates exactly that rule and is asserted to report it at the catalog severity (MUST rules as errors, SHOULD rules as warnings), plus a valid instance of the same construct asserted not to report it, all evaluated under `ValidationConfig::all_on()`. The suite fails at build time if any machine-checkable rule lacks either fixture, so the 222/222 coverage is enforced, not asserted. The per-rule matrix is committed at [`sbol2-negative-coverage.md`](sbol2-negative-coverage.md) and the fixtures live in `crates/sbol2/tests/rule_cases/`; this matches the SBOL 3 validator's standard in [`negative-coverage.md`](negative-coverage.md).
 
-All 222 of the 222 machine-checkable rules carry validation logic — none are marked `Unimplemented` (100.0%). The empirical SBOLTestSuite negative corpus is reported separately under [InvalidFiles](#invalidfiles--per-rule-negative-corpus) below; its `Deferred` rows record downloaded corpus fixtures not yet strictly error-rejected (SHOULD-level warnings, reader-scope cases, and the ▲ rules that require cross-document resolution), each of which nonetheless has a firing hermetic negative in the per-rule corpus above.
+All 222 of the 222 machine-checkable rules carry validation logic. None are marked `Unimplemented` (100.0%). The empirical SBOLTestSuite negative corpus is reported separately under [InvalidFiles](#invalidfiles-per-rule-negative-corpus) below; its `Deferred` rows record downloaded corpus fixtures not yet strictly error-rejected (SHOULD-level warnings, reader-scope cases, and the ▲ rules that require cross-document resolution), each of which nonetheless has a firing hermetic negative in the per-rule corpus above.
 
 The catalog tracks all 268 SBOL 2.3.0 validation rules. 46 carry the ▲ status: conditions the spec does not expect a tool to machine-report (they depend on ontology membership, external resolution, or human judgement). Those are tracked separately from the headline percentage: the runtime signals them as `RuleCoverage::not_applied { MachineUncheckable }`, and the validator emits at most warnings (never errors) when its local subset can decide a sub-case.
 
@@ -46,13 +46,13 @@ Every rule classifies into one of five statuses shared with the SBOL 3 catalog. 
 
 ## Validation gate model
 
-libSBOLj dispatches rule families from distinct passes controlled by four validation-mode flags. Each rule declares the gate — the pass — that runs it. `Always` rules run in every configuration; the other gates run only when their `ValidationConfig` flag is set.
+libSBOLj dispatches rule families from distinct passes controlled by four validation-mode flags. Each rule declares the gate (the pass) that runs it. `Always` rules run in every configuration; the other gates run only when their `ValidationConfig` flag is set.
 
 | Gate | `ValidationConfig` flag | Count | Runs when |
 | --- | --- | ---: | --- |
 | `Always` | (always) | 198 | Every validation configuration. |
 | `Compliant` | `compliant` | 5 | The compliant-URI structural family (default on). |
-| `Complete` | `complete` | 17 | The document-completeness family — every referenced object present (default on). |
+| `Complete` | `complete` | 17 | The document-completeness family: every referenced object present (default on). |
 | `BestPractice` | `best_practice` | 48 | The SHOULD-level recommendation family (default off). |
 
 `ValidationConfig` is the same type the SBOL 3 validator uses. The SBOL 2 validator reads its `compliant`, `complete`, and `best_practice` flags to select gates, plus `types_in_uri` (compliant-URI type-token expectations) and `keep_going` (collect every issue rather than stopping at the first). `ValidationConfig::all_on()` enables every gate; `ValidationConfig::default()` runs `compliant` + `complete` and leaves `best_practice` off, matching libSBOLj's default.
@@ -179,9 +179,9 @@ Every file in each corpus parses with **0 parse failures**, and each corpus isol
 | `SBOL2_nc` | 30 | Non-compliant: pass with `compliant` off; the compliant-URI family flags them when `compliant` is on. |
 | `SBOL2_bp` | 11 | Best-practice: error-free under the default; the ontology-usage family flags them at warning severity when `best_practice` is on. |
 
-### InvalidFiles — per-rule negative corpus
+### InvalidFiles: per-rule negative corpus
 
-`InvalidFiles/sbol-NNNNN.xml` each violate rule `sbol2-NNNNN`. Under `ValidationConfig::all_on()` the validator must reject every file — either the reader fails to parse it (a structural violation caught at read time) or validation reports an error (`crates/sbol2/tests/invalid_files.rs`):
+`InvalidFiles/sbol-NNNNN.xml` each violate rule `sbol2-NNNNN`. Under `ValidationConfig::all_on()` the validator must reject every file: either the reader fails to parse it (a structural violation caught at read time) or validation reports an error (`crates/sbol2/tests/invalid_files.rs`):
 
 | Outcome | Count | Meaning |
 | --- | ---: | --- |

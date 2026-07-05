@@ -81,7 +81,7 @@ fn render_headline_coverage(out: &mut String, statuses: &[ValidationRuleStatus])
          negative fixture and a non-firing positive fixture.** Each rule has a hermetic, minimal \
          SBOL 2 document that violates exactly that rule and is asserted to report it at the \
          catalog severity (MUST rules as errors, SHOULD rules as warnings), plus a valid instance \
-         of the same construct asserted not to report it — all evaluated under \
+         of the same construct asserted not to report it, all evaluated under \
          `ValidationConfig::all_on()`. The suite fails at build time if any machine-checkable \
          rule lacks either fixture, so the {machine_checkable}/{machine_checkable} coverage is \
          enforced, not asserted. The per-rule matrix is committed at \
@@ -91,9 +91,9 @@ fn render_headline_coverage(out: &mut String, statuses: &[ValidationRuleStatus])
     ));
     out.push_str(&format!(
         "All {implemented} of the {machine_checkable} machine-checkable rules carry validation \
-         logic — none are marked `Unimplemented` ({pct:.1}%). The empirical SBOLTestSuite \
+         logic. None are marked `Unimplemented` ({pct:.1}%). The empirical SBOLTestSuite \
          negative corpus is reported separately under \
-         [InvalidFiles](#invalidfiles--per-rule-negative-corpus) below; its `Deferred` rows \
+         [InvalidFiles](#invalidfiles-per-rule-negative-corpus) below; its `Deferred` rows \
          record downloaded corpus fixtures not yet strictly error-rejected (SHOULD-level \
          warnings, reader-scope cases, and the \u{25B2} rules that require cross-document \
          resolution), each of which nonetheless has a firing hermetic negative in the per-rule \
@@ -182,7 +182,7 @@ fn render_gate_model(out: &mut String, statuses: &[ValidationRuleStatus]) {
     out.push_str("## Validation gate model\n\n");
     out.push_str(
         "libSBOLj dispatches rule families from distinct passes controlled by four \
-         validation-mode flags. Each rule declares the gate — the pass — that runs it. \
+         validation-mode flags. Each rule declares the gate (the pass) that runs it. \
          `Always` rules run in every configuration; the other gates run only when their \
          `ValidationConfig` flag is set.\n\n",
     );
@@ -202,7 +202,7 @@ fn render_gate_model(out: &mut String, statuses: &[ValidationRuleStatus]) {
         (
             ValidationGate::Complete,
             "`complete`",
-            "The document-completeness family — every referenced object present (default on).",
+            "The document-completeness family: every referenced object present (default on).",
         ),
         (
             ValidationGate::BestPractice,
@@ -338,10 +338,10 @@ fn render_corpus_results(out: &mut String) {
          ontology-usage family flags them at warning severity when `best_practice` is on. |\n\n",
     );
 
-    out.push_str("### InvalidFiles — per-rule negative corpus\n\n");
+    out.push_str("### InvalidFiles: per-rule negative corpus\n\n");
     out.push_str(
         "`InvalidFiles/sbol-NNNNN.xml` each violate rule `sbol2-NNNNN`. Under \
-         `ValidationConfig::all_on()` the validator must reject every file — either the \
+         `ValidationConfig::all_on()` the validator must reject every file: either the \
          reader fails to parse it (a structural violation caught at read time) or \
          validation reports an error (`crates/sbol2/tests/invalid_files.rs`):\n\n",
     );

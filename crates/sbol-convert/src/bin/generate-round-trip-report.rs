@@ -6,7 +6,7 @@
 //! SBOL 3 representations, and writes a committed Markdown report to
 //! `docs/sbol3-round-trip-report.md`.
 //!
-//! The point is not regression gating — that lives in
+//! The point is not regression gating; that lives in
 //! [`crates/sbol-convert/tests/upgrade_conformance.rs`] and
 //! [`crates/sbol-convert/tests/downgrade.rs`]. The point is empirical
 //! discovery: turning the question "which deferred enhancements
@@ -81,7 +81,7 @@ enum Outcome {
         /// Validation errors on the round-tripped SBOL 3 that were NOT
         /// already present on the upgrade output. The SBOLTestSuite
         /// corpus contains intentionally non-compliant fixtures, so
-        /// preserved errors are not a round-trip failure — only newly
+        /// preserved errors are not a round-trip failure; only newly
         /// introduced ones are.
         new_validation_errors: usize,
     },
@@ -230,8 +230,8 @@ fn render_report(results: &[FixtureResult]) -> String {
          **Scope:** verifies that SBOL 2 → SBOL 3 → SBOL 2 → SBOL 3 round-trips \
          preserve every triple across the committed SBOL 2 fixture corpus under \
          `tests/fixtures/sbol2/real/` (SBOLTestSuite, SynBioHub, and the \
-         GenBank-derived intermediates). Native-SBOL-3 → SBOL 2 behavior — in \
-         particular the dual-role Component split — is covered by unit tests \
+         GenBank-derived intermediates). Native-SBOL-3 → SBOL 2 behavior (in \
+         particular the dual-role Component split) is covered by unit tests \
          in [`crates/sbol-convert/tests/downgrade.rs`](../crates/sbol-convert/tests/downgrade.rs) \
          rather than this report, because doing so would require inventing \
          SBOL 3 fixtures from scratch.\n\n\
@@ -248,8 +248,8 @@ fn render_report(results: &[FixtureResult]) -> String {
          The report is informational. Conformance gating lives in \
          [`crates/sbol-convert/tests/upgrade_conformance.rs`](../crates/sbol-convert/tests/upgrade_conformance.rs) \
          and [`crates/sbol-convert/tests/downgrade.rs`](../crates/sbol-convert/tests/downgrade.rs). \
-         The conversion model itself — the backport namespace, dual-role splits, \
-         known divergences — is documented in [`conversion.md`](conversion.md).\n\n",
+         The conversion model itself (the backport namespace, dual-role splits, \
+         known divergences) is documented in [`conversion.md`](conversion.md).\n\n",
     );
 
     let n = results.len();

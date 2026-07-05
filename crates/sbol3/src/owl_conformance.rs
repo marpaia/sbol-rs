@@ -15,10 +15,10 @@
 //!
 //! Two allowlists document every intentional divergence:
 //!
-//! - [`OWL_ONLY_ALLOWLIST`] — IRIs the OWL declares that `vocab.rs`
+//! - [`OWL_ONLY_ALLOWLIST`]: IRIs the OWL declares that `vocab.rs`
 //!   deliberately ignores (abstract OWL super-properties, umbrella
 //!   enumeration classes).
-//! - [`RUST_ONLY_ALLOWLIST`] — IRIs `vocab.rs` declares that the OWL
+//! - [`RUST_ONLY_ALLOWLIST`]: IRIs `vocab.rs` declares that the OWL
 //!   omits. Every entry cites the SBOL 3.1.0 spec section that
 //!   legitimizes it.
 //!
@@ -167,7 +167,7 @@ pub const OWL_ONLY_ALLOWLIST: &[(&str, &str)] = &[
     ),
     // Component biological subclasses (OWL groups Components by type and
     // role; SBOL documents instantiate `sbol:Component` and set
-    // `sbol:type`/`sbol:role` instead — verified against the SBOLTestSuite
+    // `sbol:type`/`sbol:role` instead. Verified against the SBOLTestSuite
     // fixture corpus).
     (
         "http://sbols.org/v3#CDSDNAComponent",
@@ -332,8 +332,8 @@ pub const OWL_ONLY_ALLOWLIST: &[(&str, &str)] = &[
         "Sequence modeling subclass; SBOL documents use sbol:Sequence directly",
     ),
     // SBOL-namespaced PROV/OM subclasses (the OWL declares replacements for
-    // upstream PROV and OM types, but SBOL 3.1.0 documents — and the
-    // libSBOLj3 / pySBOL3 reference implementations — use the upstream
+    // upstream PROV and OM types, but SBOL 3.1.0 documents, and the
+    // libSBOLj3 / pySBOL3 reference implementations, use the upstream
     // IRIs directly).
     (
         "http://sbols.org/v3#SBOLActivity",
@@ -647,7 +647,7 @@ pub fn render_owl_conformance_report(
          `cargo run -p sbol3 --bin generate-sbol-owl3-conformance-report`.\n\
          It is committed and CI runs `git diff --exit-code \
          docs/sbol-owl3-conformance.md` to enforce freshness after every \
-         change that affects the IRI surface — either the pinned OWL or \
+         change that affects the IRI surface: either the pinned OWL or \
          `crates/sbol3/src/vocab.rs`.\n\n",
     );
     out.push_str(
@@ -778,7 +778,7 @@ pub fn render_owl_conformance_report(
         "Entries from [`OWL_ONLY_ALLOWLIST`](../crates/sbol3/src/owl_conformance.rs). \
          These are IRIs the upstream \
          OWL declares for modeling purposes that `vocab.rs` deliberately \
-         does not surface — abstract OWL super-properties whose subclasses \
+         does not surface: abstract OWL super-properties whose subclasses \
          carry the wire-level semantics, and umbrella enumeration classes \
          whose leaf values are referenced directly. **Both sides agree**: \
          the omissions are intentional and aligned with how SBOL documents \
@@ -802,7 +802,7 @@ pub fn render_owl_conformance_report(
     out.push_str(
         "Entries from [`RUST_ONLY_ALLOWLIST`](../crates/sbol3/src/owl_conformance.rs). \
          Each IRI is enumerated in a specific table of the SBOL 3.1.0 PDF \
-         — which is the authoritative source — but the pinned OWL does not \
+         (the authoritative source), but the pinned OWL does not \
          declare it. These are likely upstream defects rather than \
          symmetric intentional differences: we track them here so the \
          regression test stays green while the OWL catches up, and the \
@@ -811,7 +811,7 @@ pub fn render_owl_conformance_report(
          If an entry below ever shows up in the OWL, the Status section \
          will flag it as ready to remove from the allowlist. Conversely, \
          a new constant that cannot be backed by a spec table is almost \
-         certainly a bug in `vocab.rs` — see the `#zero` and `#none` \
+         certainly a bug in `vocab.rs`. See the `#zero` and `#none` \
          removals in `CHANGELOG.md` for the reference cases.\n\n",
     );
     out.push_str("| IRI | Spec citation | Still absent from OWL |\n");
@@ -820,7 +820,7 @@ pub fn render_owl_conformance_report(
         let absent = if report.rust_only_in_use.contains(*iri) {
             "yes"
         } else {
-            "**now in OWL — remove from allowlist**"
+            "**now in OWL (remove from allowlist)**"
         };
         out.push_str(&format!("| `{iri}` | {citation} | {absent} |\n"));
     }
@@ -828,13 +828,13 @@ pub fn render_owl_conformance_report(
 
     out.push_str("## How to refresh\n\n");
     out.push_str(
-        "1. `cargo run -p sbol-ontology --bin update-sbol-owl3-fixture` — \
+        "1. `cargo run -p sbol-ontology --bin update-sbol-owl3-fixture`: \
          re-pin the OWL against the current `main` of \
          `SynBioDex/sbol-owl3`.\n\
-         2. `cargo run -p sbol3 --bin generate-sbol-owl3-conformance-report` \
-         — regenerate this file.\n\
+         2. `cargo run -p sbol3 --bin generate-sbol-owl3-conformance-report`: \
+         regenerate this file.\n\
          3. `cargo test -p sbol3 --test sbol_owl3_conformance --test \
-         sbol_owl3_conformance_report` — confirm the assertions and the \
+         sbol_owl3_conformance_report`: confirm the assertions and the \
          freshness gate pass.\n\
          4. Commit the pin, manifest, this report, and any allowlist \
          changes in one commit so the trail is auditable.\n",
