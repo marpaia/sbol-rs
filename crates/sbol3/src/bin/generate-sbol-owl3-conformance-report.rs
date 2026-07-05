@@ -1,10 +1,10 @@
 //! Generates `docs/sbol-owl3-conformance.md` from the pinned OWL fixture
-//! and `crates/sbol/src/vocab.rs`. The committed report must stay in
+//! and `crates/sbol3/src/vocab.rs`. The committed report must stay in
 //! sync with both sources; CI re-runs this binary via the freshness
-//! gate in `crates/sbol/tests/sbol_owl3_conformance_report.rs` and
+//! gate in `crates/sbol3/tests/sbol_owl3_conformance_report.rs` and
 //! `git diff --exit-code` flags drift.
 //!
-//! Usage: `cargo run -p sbol --bin generate-sbol-owl3-conformance-report`
+//! Usage: `cargo run -p sbol3 --bin generate-sbol-owl3-conformance-report`
 //!
 //! Pass `--check` to print the rendered report to stdout instead of
 //! writing to disk; useful for local diffing before committing.
@@ -22,7 +22,7 @@ fn main() -> ExitCode {
     let check_only = args.iter().any(|arg| arg == "--check");
 
     let workspace = workspace_root();
-    let fixture_dir = workspace.join("crates/sbol/tests/fixtures/sbol-owl3");
+    let fixture_dir = workspace.join("crates/sbol3/tests/fixtures/sbol-owl3");
     let fixture_path = fixture_dir.join("sbol3.rdf");
     let manifest_path = fixture_dir.join("manifest.toml");
 

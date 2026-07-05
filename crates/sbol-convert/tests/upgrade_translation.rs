@@ -7,7 +7,8 @@ use common::upgrade::*;
 
 use std::path::Path;
 
-use sbol3::{RdfFormat, SbolTopLevel, UpgradeError, UpgradeOptions, UpgradeWarning};
+use sbol3::{RdfFormat, SbolTopLevel};
+use sbol_convert::{UpgradeError, UpgradeOptions, UpgradeWarning};
 
 #[test]
 fn single_component_definition_upgrades() {
@@ -38,7 +39,7 @@ fn namespace_derives_from_display_id_when_persistent_identity_is_missing() {
     sbol:type biopax:Dna .
 "#;
     let (document, _report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     let component = document
         .components()
         .find(|c| c.identity.as_iri().map(|i| i.as_str()) == Some("https://example.org/lab/cd"))
@@ -115,7 +116,7 @@ fn sequence_annotation_with_component_emits_collapse_warning() {
     sbol:type biopax:Dna .
 "#;
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     document
         .check()
         .unwrap_or_else(|report| panic!("validation failed: {report:?}"));
@@ -156,7 +157,7 @@ fn experiment_experimental_data_maps_to_member() {
     sbol:version "1" .
 "#;
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     assert!(
         report.is_clean(),
         "unexpected warnings: {:?}",
@@ -233,7 +234,7 @@ fn variable_component_operator_maps_to_cardinality() {
     sbol:type biopax:Dna .
 "#;
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     assert!(
         report.is_clean(),
         "unexpected warnings: {:?}",
@@ -298,7 +299,7 @@ fn role_integration_values_move_to_sbol3_namespace() {
     sbol:type biopax:Dna .
 "#;
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     assert!(
         report.is_clean(),
         "unexpected warnings: {:?}",
@@ -384,7 +385,7 @@ fn sbol3_input_rejected_with_not_sbol2() {
     sbol:hasNamespace <https://example.org/lab> ;
     sbol:type <https://identifiers.org/SBO:0000251> .
 "#;
-    match sbol3::upgrade::upgrade_from_sbol2(sbol3_input, RdfFormat::Turtle) {
+    match sbol_convert::upgrade_from_sbol2(sbol3_input, RdfFormat::Turtle) {
         Err(UpgradeError::NotSbol2) => {}
         other => panic!("expected NotSbol2 error, got {other:?}"),
     }
@@ -395,7 +396,7 @@ fn upgrade_options_default_preserves_backport_triples() {
     let path = workspace_fixture("single_cd.ttl");
     let input = std::fs::read_to_string(&path).unwrap();
     let (document, _report) =
-        sbol3::upgrade::upgrade_from_sbol2(&input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(&input, RdfFormat::Turtle).expect("upgrade");
     let backport_triples: Vec<_> = document
         .rdf_graph()
         .triples()
@@ -419,7 +420,7 @@ fn upgrade_options_without_backport_drops_archived_triples() {
     let mut options = UpgradeOptions::default();
     options.preserve_backport = false;
     let (document, _report) =
-        sbol3::upgrade::upgrade_from_sbol2_with(&input, RdfFormat::Turtle, options).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2_with(&input, RdfFormat::Turtle, options).expect("upgrade");
     let backport_triples: Vec<_> = document
         .rdf_graph()
         .triples()
@@ -448,7 +449,7 @@ fn unknown_sbol2_type_is_archived_for_downgrade() {
     sbol:version "1" .
 "#;
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     assert!(
         report.warnings().iter().any(|w| matches!(
             w,
@@ -469,7 +470,7 @@ fn unknown_sbol2_type_is_archived_for_downgrade() {
         "unknown SBOL 2 rdf:type should be archived under backport:sbol2type"
     );
 
-    let (downgraded, _dreport) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (downgraded, _dreport) = sbol_convert::downgrade(&document).expect("downgrade");
     let restored_type = downgraded.triples().iter().any(|t| {
         t.subject.as_iri().map(|i| i.as_str()) == Some("https://example.org/lab/future/1")
             && t.predicate.as_str() == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
@@ -496,7 +497,7 @@ fn unknown_sbol2_extension_type_does_not_mask_known_type() {
     sbol:type biopax:Dna .
 "#;
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     assert!(
         report.warnings().iter().any(|w| matches!(
             w,
@@ -530,7 +531,7 @@ fn unknown_sbol2_extension_type_does_not_mask_known_type() {
         "only the recognized SBOL 2 class should become the authoritative backport type"
     );
 
-    let (downgraded, _dreport) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (downgraded, _dreport) = sbol_convert::downgrade(&document).expect("downgrade");
     let restored_component_definition = downgraded.triples().iter().any(|t| {
         t.subject.as_iri().map(|i| i.as_str()) == Some("https://example.org/lab/cd/1")
             && t.predicate.as_str() == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
@@ -556,14 +557,14 @@ fn unknown_sbol2_extension_type_does_not_mask_known_type() {
 fn path_helper_works_for_turtle_extension() {
     let _ = Path::new(""); // keep import live
     let path = workspace_fixture("single_cd.ttl");
-    let (document, _report) = sbol3::upgrade::upgrade_from_sbol2_path(&path).expect("upgrade by path");
+    let (document, _report) = sbol_convert::upgrade_from_sbol2_path(&path).expect("upgrade by path");
     assert_eq!(document.components().count(), 1);
 }
 
 #[test]
 fn path_helper_accepts_sbol2_rdfxml_xml_extension() {
     let path = workspace_fixture("real/implementation_example.xml");
-    let (document, _report) = sbol3::upgrade::upgrade_from_sbol2_path(&path).expect("upgrade .xml path");
+    let (document, _report) = sbol_convert::upgrade_from_sbol2_path(&path).expect("upgrade .xml path");
     assert!(
         document.implementations().count() >= 1 || document.components().count() >= 1,
         "expected .xml SBOL 2 fixture to upgrade into typed SBOL 3 objects"
@@ -594,7 +595,7 @@ fn attachment_properties_upgrade_to_native_sbol3() {
     sbol:hashAlgorithm "sha3-256" .
 "#;
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     assert!(report.is_clean(), "warnings: {:?}", report.warnings());
     let triples = document.rdf_graph().triples();
 

@@ -4,8 +4,8 @@
 //! Run with:
 //!
 //! ```sh
-//! cargo run -p sbol --example synbiohub_upgrade --features http-resolver
-//! cargo run -p sbol --example synbiohub_upgrade --features http-resolver -- BBa_F2620
+//! cargo run -p sbol-convert --example synbiohub_upgrade --features http-resolver
+//! cargo run -p sbol-convert --example synbiohub_upgrade --features http-resolver -- BBa_F2620
 //! ```
 //!
 //! ## Provenance pipeline
@@ -17,19 +17,20 @@
 //!    representations.
 //! 3. This example fetches the SBOL 2 representation via the public
 //!    SynBioHub REST API, then runs `sbol-rs`'s
-//!    `sbol3::upgrade::upgrade_from_sbol2` to produce a native SBOL 3
+//!    `sbol_convert::upgrade_from_sbol2` to produce a native SBOL 3
 //!    [`Document`].
 //! 4. The resulting SBOL 3 graph is validated and structurally summarized.
 //!
 //! This example demonstrates the SBOL 2 → SBOL 3 leg specifically.
 //! For the GenBank → SBOL 3 path (and the reverse), `sbol-rs` ships
 //! pure-Rust converters in [`sbol-genbank`](../../sbol-genbank/) and
-//! [`sbol3::downgrade`] — no external services or Docker required.
+//! `sbol_convert` — no external services or Docker required.
 
 use std::env;
 use std::time::Duration;
 
-use sbol3::{Document, RdfFormat, SbolIdentified, SbolTopLevel, UpgradeReport, UpgradeWarning};
+use sbol3::{Document, RdfFormat, SbolIdentified, SbolTopLevel};
+use sbol_convert::{UpgradeReport, UpgradeWarning};
 
 const SYNBIOHUB_BASE: &str = "https://synbiohub.org/public/igem";
 const USER_AGENT: &str = "sbol-rs synbiohub_upgrade example";
@@ -58,7 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("=== upgrading SBOL 2 → SBOL 3 ===");
-    let (document, report) = sbol3::upgrade::upgrade_from_sbol2(&sbol2_xml, RdfFormat::RdfXml)?;
+    let (document, report) = sbol_convert::upgrade_from_sbol2(&sbol2_xml, RdfFormat::RdfXml)?;
     print_upgrade_report(&report);
 
     println!("\n=== validating the converted SBOL 3 ===");

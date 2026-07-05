@@ -4,7 +4,7 @@
 //! [`crate::upgrade::values`]. Unknown inputs are returned unchanged.
 
 use crate::sbol2_vocab as v2;
-use crate::vocab as v3;
+use sbol3::vocab as v3;
 
 /// Maps an SBOL 3 orientation IRI back to its SBOL 2 equivalent.
 pub(super) fn map_orientation(iri: &str) -> Option<&'static str> {

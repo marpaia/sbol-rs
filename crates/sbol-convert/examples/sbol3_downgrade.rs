@@ -2,10 +2,10 @@
 //!
 //! ```sh
 //! # Defaults to a fixture + RDF/XML to stdout.
-//! cargo run -p sbol --example sbol3_downgrade
+//! cargo run -p sbol-convert --example sbol3_downgrade
 //!
 //! # Point at any local SBOL 3 file and write SBOL 2 RDF/XML alongside it.
-//! cargo run -p sbol --example sbol3_downgrade -- \
+//! cargo run -p sbol-convert --example sbol3_downgrade -- \
 //!     tests/fixtures/sbol2/real/expected/synbiohub/BBa_F2620.nt \
 //!     /tmp/BBa_F2620.xml
 //! ```
@@ -17,13 +17,13 @@
 //!         │   Document::read_path
 //!         ▼
 //!   sbol3::Document
-//!         │   sbol3::downgrade::downgrade(&document)
+//!         │   sbol_convert::downgrade(&document)
 //!         ▼
 //!   sbol_rdf::Graph (SBOL 2)
 //!         │   graph.write(RdfFormat::RdfXml)
 //!         ▼
 //!   serialized SBOL 2 RDF/XML on disk
-//!         │   sbol3::upgrade::upgrade_from_sbol2  (--validate)
+//!         │   sbol_convert::upgrade_from_sbol2  (--validate)
 //!         ▼
 //!   re-upgraded SBOL 3 + validation report
 //! ```
@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     println!("\n▸ stage 2: downgrade to SBOL 2");
-    let (sbol2_graph, report) = sbol3::downgrade::downgrade(&document)?;
+    let (sbol2_graph, report) = sbol_convert::downgrade(&document)?;
     let counts = report.counts();
     println!(
         "   {} CD, {} MD, {} SubComponent, {} SequenceFeature, {} backport-restored, {} synthesized",
@@ -110,7 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n▸ stage 4: round-trip validate");
     let turtle = sbol2_graph.write(RdfFormat::Turtle)?;
-    match sbol3::upgrade::upgrade_from_sbol2(&turtle, RdfFormat::Turtle) {
+    match sbol_convert::upgrade_from_sbol2(&turtle, RdfFormat::Turtle) {
         Ok((reupgraded, _)) => {
             let validation = reupgraded.validate();
             let errors = validation

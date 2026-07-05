@@ -3,6 +3,9 @@
 //! on-disk fixtures without racing each other during `cargo test --workspace`.
 #![allow(dead_code)]
 
+pub mod downgrade;
+pub mod upgrade;
+
 use std::env;
 use std::fs;
 use std::io;

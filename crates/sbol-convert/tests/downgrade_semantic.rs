@@ -21,7 +21,7 @@ fn experiment_member_downgrades_to_experimental_data() {
     sbol:member <https://example.org/lab/data> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
     assert!(
         has_triple(
             &graph,
@@ -82,7 +82,7 @@ fn variable_feature_cardinality_downgrades_to_operator() {
     sbol:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
     assert!(
         has_triple(
             &graph,
@@ -126,7 +126,7 @@ fn role_integration_values_downgrade_to_sbol2_namespace() {
     sbol:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
     assert!(
         has_triple(
             &graph,
@@ -177,7 +177,7 @@ fn structural_interface_feature_downgrades_to_public_access_not_direction() {
     sbol:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
     assert!(
         has_triple(
             &graph,
@@ -232,7 +232,7 @@ fn native_component_instances_receive_sbol2_defaults() {
     sbol:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
 
     assert!(
         has_triple(
@@ -298,7 +298,7 @@ fn downgrade_preserves_non_sbol_type_with_backport_type_hint() {
     backport:sbol2type <http://sbols.org/v2#ComponentDefinition> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
     let triples = graph.triples();
     let component_definition_type_count = triples
         .iter()
@@ -338,11 +338,11 @@ fn downgrade_does_not_apply_backport_type_to_unmatched_sbol3_type() {
     backport:sbol2type <http://sbols.org/v2#ComponentDefinition> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, report) = sbol_convert::downgrade(&document).expect("downgrade");
     assert!(
         report.warnings().iter().any(|w| matches!(
             w,
-            sbol3::DowngradeWarning::UnsupportedSbol3Type { subject, sbol3_type }
+            sbol_convert::DowngradeWarning::UnsupportedSbol3Type { subject, sbol3_type }
                 if subject == "https://lab/cd" && sbol3_type == "http://sbols.org/v3#FutureThing"
         )),
         "expected unmatched SBOL 3 type warning, got {:?}",
@@ -403,7 +403,7 @@ fn native_subcomponent_locations_emit_sequence_annotation_wrapper() {
     sbol3:displayId "design_seq" .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
 
     assert!(
         has_triple(
@@ -479,7 +479,7 @@ fn downgrade_merges_interface_input_and_output_as_inout() {
     sbol3:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
     let has_inout = graph.triples().iter().any(|t| {
         t.subject.as_iri().map(|i| i.as_str()) == Some("https://lab/module/fc")
             && t.predicate.as_str() == "http://sbols.org/v2#direction"
@@ -516,7 +516,7 @@ fn downgrade_does_not_version_external_annotation_objects_under_top_level() {
     ex:taxon <https://lab/design/taxon/511145> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
 
     let taxon_objects: Vec<&str> = graph
         .triples()
@@ -558,11 +558,11 @@ fn downgrade_drops_unsupported_sbol3_subjects() {
     sbol3:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, report) = sbol_convert::downgrade(&document).expect("downgrade");
     assert!(
         report.warnings().iter().any(|w| matches!(
             w,
-            sbol3::DowngradeWarning::UnsupportedSbol3Type { subject, sbol3_type }
+            sbol_convert::DowngradeWarning::UnsupportedSbol3Type { subject, sbol3_type }
                 if subject == "https://lab/design/local"
                     && sbol3_type == "http://sbols.org/v3#LocalSubComponent"
         )),
@@ -613,7 +613,7 @@ fn downgrade_uses_longest_top_level_prefix_for_child_versions() {
     sbol3:instanceOf <https://lab/root> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
     let saw_inner_child_version = graph
         .triples()
         .iter()
@@ -644,7 +644,7 @@ fn downgrade_component_shape_uses_all_rdf_types() {
     sbol3:type <https://identifiers.org/SBO:0000241> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
     let module_is_md = graph.triples().iter().any(|t| {
         t.subject.as_iri().map(|i| i.as_str()) == Some("https://lab/module")
             && t.predicate.as_str() == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
@@ -698,12 +698,12 @@ fn downgrade_mapsto_discovery_uses_all_rdf_types() {
     sbol3:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, report) = sbol_convert::downgrade(&document).expect("downgrade");
     assert!(
         !report.warnings().iter().any(|w| matches!(
             w,
-            sbol3::DowngradeWarning::OrphanComponentReference { .. }
-                | sbol3::DowngradeWarning::UnresolvableConstraintToMapsTo { .. }
+            sbol_convert::DowngradeWarning::OrphanComponentReference { .. }
+                | sbol_convert::DowngradeWarning::UnresolvableConstraintToMapsTo { .. }
         )),
         "MapsTo pair should be recognized despite extension rdf:types: {:?}",
         report.warnings()
@@ -738,7 +738,7 @@ fn native_attachment_properties_downgrade_to_sbol2_surface() {
     sbol:hashAlgorithm "sha3-256" .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
 
     assert!(
         has_triple(
@@ -786,7 +786,7 @@ fn functional_nondirectional_interface_downgrades_to_direction_none() {
     sbol:type <https://identifiers.org/SBO:0000251> .
 "#;
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
 
     assert!(
         has_triple(

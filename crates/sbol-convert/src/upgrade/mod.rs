@@ -12,7 +12,7 @@
 //! warnings.
 //!
 //! ```no_run
-//! use sbol3::upgrade::upgrade_from_sbol2_path;
+//! use sbol_convert::upgrade_from_sbol2_path;
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let (document, report) = upgrade_from_sbol2_path("design.xml")?;
@@ -35,18 +35,18 @@
 //! (SequenceAnnotation, MapsTo, Interface), known divergences, and known
 //! limitations — see the [conversion guide][conversion-md].
 //!
-//! [`Document`]: crate::Document
-//! [`Document::check`]: crate::Document::check
-//! [`RdfFormat`]: crate::RdfFormat
+//! [`Document`]: sbol3::Document
+//! [`Document::check`]: sbol3::Document::check
+//! [`RdfFormat`]: sbol3::RdfFormat
 //! [conversion-md]: https://github.com/marpaia/sbol-rs/blob/master/docs/conversion.md
 
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
-use crate::Document;
+use sbol3::Document;
 use crate::sbol2_vocab as v2;
-use crate::vocab as v3;
-use crate::{Iri, Resource, Term, Triple};
+use sbol3::vocab as v3;
+use sbol_rdf::{Iri, Resource, Term, Triple};
 use sbol_rdf::{Graph, ParseError, RdfFormat};
 
 mod emit;
@@ -569,7 +569,7 @@ fn is_known_sbol2_type(type_iri: &str) -> bool {
     )
 }
 
-use crate::iri_util::last_iri_segment as last_path_segment;
+use sbol_core::iri::last_iri_segment as last_path_segment;
 
 /// Returns a child `(display_id, iri)` under `parent` whose IRI is not
 /// already in `used`, inserting the chosen IRI. Disambiguates by appending

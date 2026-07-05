@@ -40,7 +40,7 @@ fn expected_dir() -> PathBuf {
 }
 
 fn format_triple(triple: &Triple) -> String {
-    sbol3::upgrade::canonical_nt_line(triple)
+    sbol_convert::canonical_nt_line(triple)
 }
 
 fn parse_snapshot(text: &str) -> Vec<String> {
@@ -107,7 +107,7 @@ fn run_upgrade(name: &str) -> Vec<String> {
     let input_path = input_path_for(name);
     let input = std::fs::read_to_string(&input_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", input_path.display()));
-    let (document, _report) = sbol3::upgrade::upgrade_from_sbol2(&input, RdfFormat::RdfXml)
+    let (document, _report) = sbol_convert::upgrade_from_sbol2(&input, RdfFormat::RdfXml)
         .unwrap_or_else(|err| panic!("upgrade {name}: {err}"));
     let mut actual: Vec<String> = document
         .rdf_graph()

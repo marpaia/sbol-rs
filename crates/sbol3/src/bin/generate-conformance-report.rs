@@ -2,7 +2,7 @@
 //! The committed report must stay in sync with `validation_rule_statuses()`;
 //! CI re-runs this binary and `git diff --exit-code` flags drift.
 //!
-//! Usage: `cargo run -p sbol --bin generate-conformance-report`
+//! Usage: `cargo run -p sbol3 --bin generate-conformance-report`
 //!
 //! Pass `--check` to print the rendered report to stdout instead of
 //! writing to disk; useful for local diffing before committing.

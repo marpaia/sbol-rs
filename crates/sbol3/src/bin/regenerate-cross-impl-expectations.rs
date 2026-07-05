@@ -8,7 +8,7 @@
 //! Usage:
 //!
 //!     docker build -t libsbolj3-pinned tests/fixtures/cross-impl/
-//!     cargo run -p sbol --bin regenerate-cross-impl-expectations
+//!     cargo run -p sbol3 --bin regenerate-cross-impl-expectations
 //!
 //! Prerequisites:
 //!   - Docker daemon reachable on the host

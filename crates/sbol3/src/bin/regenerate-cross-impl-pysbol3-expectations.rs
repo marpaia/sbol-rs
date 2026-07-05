@@ -8,7 +8,7 @@
 //! Usage:
 //!
 //!     docker build -t pysbol3-pinned tests/fixtures/cross-impl-pysbol3/
-//!     cargo run -p sbol --bin regenerate-cross-impl-pysbol3-expectations
+//!     cargo run -p sbol3 --bin regenerate-cross-impl-pysbol3-expectations
 //!
 //! Prerequisites:
 //!   - Docker daemon reachable on the host

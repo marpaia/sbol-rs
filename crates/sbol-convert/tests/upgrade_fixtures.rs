@@ -6,7 +6,8 @@ mod common;
 
 use common::upgrade::*;
 
-use sbol3::{RdfFormat, UpgradeWarning};
+use sbol3::RdfFormat;
+use sbol_convert::UpgradeWarning;
 
 #[test]
 fn real_implementation_example_validates_clean() {
@@ -131,7 +132,7 @@ fn unknown_sbol2_predicates_survive_as_backport_triples() {
     sbol:access <http://sbols.org/v2#public> .
 "#;
     let (document, _report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     let backport_access = document
         .rdf_graph()
         .triples()
@@ -161,7 +162,7 @@ fn upgrade_does_not_strip_numeric_external_annotation_iris() {
     ex:taxon <https://example.org/taxon/511145> .
 "#;
     let (document, _report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     let taxon_object = document.rdf_graph().triples().iter().find(|t| {
         t.predicate.as_str() == "https://example.org/annotation#taxon"
             && t.object.as_iri().map(|i| i.as_str()) == Some("https://example.org/taxon/511145")
@@ -206,7 +207,7 @@ fn colliding_canonical_identities_emit_warning() {
     sbol:elements "ACGT" .
 "#;
     let (_document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     let collision = report.warnings().iter().find_map(|w| match w {
         UpgradeWarning::IdentityCollision { canonical, sources } => {
             Some((canonical.clone(), sources.clone()))
@@ -290,7 +291,7 @@ fn sa_collapse_locations_with_same_display_id_round_trip_distinctly() {
     sbol:type biopax:DnaRegion .
 "#;
     let (document, _report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
 
     // Both source Ranges must survive as distinct subjects in the SBOL 3
     // output (rather than one merging into the other).

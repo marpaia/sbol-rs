@@ -16,8 +16,8 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::sbol2_vocab as v2;
-use crate::vocab as v3;
-use crate::{Iri, Literal, Resource, Term, Triple};
+use sbol3::vocab as v3;
+use sbol_rdf::{Iri, Literal, Resource, Term, Triple};
 use sbol_rdf::Graph;
 
 /// Result of pre-scanning the SBOL 2 graph for everything needed to compute

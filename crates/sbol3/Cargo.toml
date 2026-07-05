@@ -46,7 +46,3 @@ sbol-rulegen.workspace = true
 
 [features]
 http-resolver = ["dep:ureq"]
-
-[[example]]
-name = "synbiohub_upgrade"
-required-features = ["http-resolver"]

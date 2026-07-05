@@ -5,7 +5,8 @@ mod common;
 
 use common::upgrade::*;
 
-use sbol3::{RdfFormat, UpgradeWarning};
+use sbol3::RdfFormat;
+use sbol_convert::UpgradeWarning;
 
 #[test]
 fn public_component_in_component_definition_enters_interface() {
@@ -37,7 +38,7 @@ fn public_component_in_component_definition_enters_interface() {
     sbol:type biopax:Dna .
 "#;
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     assert!(
         report.is_clean(),
         "unexpected warnings: {:?}",
@@ -87,7 +88,7 @@ fn public_none_functional_component_synthesizes_nondirectional_interface() {
     sbol:type biopax:Dna .
 "#;
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     assert!(report.is_clean(), "warnings: {:?}", report.warnings());
 
     let upgraded = document.rdf_graph().triples();
@@ -101,7 +102,7 @@ fn public_none_functional_component_synthesizes_nondirectional_interface() {
         "public direction=none FunctionalComponent should become Interface.nondirectional"
     );
 
-    let (downgraded, dreport) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (downgraded, dreport) = sbol_convert::downgrade(&document).expect("downgrade");
     assert!(dreport.is_clean(), "warnings: {:?}", dreport.warnings());
     let has_none = downgraded.triples().iter().any(|t| {
         t.subject.as_iri().map(|i| i.as_str()) == Some("https://example.org/lab/md/fc/1")
@@ -150,7 +151,7 @@ fn synthesized_interface_avoids_existing_child_iri() {
     sbol:type biopax:Dna .
 "#;
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     assert!(report.is_clean(), "warnings: {:?}", report.warnings());
     let triples = document.rdf_graph().triples();
 
@@ -224,7 +225,7 @@ fn mapsto_synthesis_avoids_existing_child_iri_and_restores_display_id() {
     sbol:type biopax:Dna .
 "#;
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     assert!(report.is_clean(), "warnings: {:?}", report.warnings());
     let triples = document.rdf_graph().triples();
     let collision_is_cref = triples.iter().any(|t| {
@@ -257,7 +258,7 @@ fn mapsto_synthesis_avoids_existing_child_iri_and_restores_display_id() {
         "renamed MapsTo ComponentReference should preserve original displayId"
     );
 
-    let (downgraded, dreport) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (downgraded, dreport) = sbol_convert::downgrade(&document).expect("downgrade");
     assert!(dreport.is_clean(), "warnings: {:?}", dreport.warnings());
     let restored_display_id = downgraded.triples().iter().any(|t| {
         t.subject.as_iri().map(|i| i.as_str())
@@ -321,7 +322,7 @@ fn synthesized_interface_avoids_mapsto_component_reference_iri() {
     sbol:type biopax:Dna .
 "#;
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
     assert!(report.is_clean(), "warnings: {:?}", report.warnings());
     let triples = document.rdf_graph().triples();
 
@@ -356,7 +357,7 @@ fn mapsto_merge_refinement_round_trips_as_use_remote() {
     let path = workspace_fixture("mapsto_merge.ttl");
     let input = std::fs::read_to_string(&path).unwrap();
     let (document, report) =
-        sbol3::upgrade::upgrade_from_sbol2(&input, RdfFormat::Turtle).expect("upgrade");
+        sbol_convert::upgrade_from_sbol2(&input, RdfFormat::Turtle).expect("upgrade");
     assert!(
         !report
             .warnings()
@@ -376,7 +377,7 @@ fn mapsto_merge_refinement_round_trips_as_use_remote() {
 
     // Round-trip back to SBOL 2 and confirm the merge refinement is
     // restored verbatim, not silently coerced to useRemote.
-    let (downgraded, _dreport) = sbol3::downgrade::downgrade(&document).expect("downgrade");
+    let (downgraded, _dreport) = sbol_convert::downgrade(&document).expect("downgrade");
     let restored_merge = downgraded.triples().iter().any(|t| {
         t.predicate.as_str() == "http://sbols.org/v2#refinement"
             && t.object.as_iri().map(|i| i.as_str()) == Some("http://sbols.org/v2#merge")

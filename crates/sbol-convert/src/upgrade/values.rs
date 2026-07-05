@@ -6,7 +6,7 @@
 #![allow(dead_code)]
 
 use crate::sbol2_vocab as v2;
-use crate::vocab as v3;
+use sbol3::vocab as v3;
 
 /// Maps an SBOL 2 orientation IRI to its SBOL 3 equivalent. Returns `None` if
 /// the input is not a recognized SBOL 2 orientation.

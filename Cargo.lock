@@ -1135,6 +1135,7 @@ dependencies = [
 name = "sbol"
 version = "0.2.1"
 dependencies = [
+ "sbol-convert",
  "sbol3",
 ]
 
@@ -1163,6 +1164,16 @@ dependencies = [
  "serde_json",
  "tempfile",
  "terminal_size",
+]
+
+[[package]]
+name = "sbol-convert"
+version = "0.2.1"
+dependencies = [
+ "sbol-core",
+ "sbol-rdf",
+ "sbol3",
+ "ureq 2.12.1",
 ]
 
 [[package]]

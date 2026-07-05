@@ -3,14 +3,14 @@
 //! Most published synbio content (SynBioHub, iGEM Registry, JBEI ICE
 //! today) still consumes SBOL 2. This module is the write-direction
 //! counterpart to [`crate::upgrade`]: it takes an SBOL 3
-//! [`Document`](crate::Document) and produces an [`RdfGraph`] holding
+//! [`Document`](sbol3::Document) and produces an [`RdfGraph`] holding
 //! the equivalent SBOL 2 RDF, which the caller can serialize in any
 //! of the supported RDF formats.
 //!
 //! ```no_run
 //! use sbol3::Document;
 //! use sbol3::RdfFormat;
-//! use sbol3::downgrade::downgrade;
+//! use sbol_convert::downgrade;
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let document = Document::read_path("design.ttl")?;
@@ -57,15 +57,16 @@
 //! collapses, dual-role classification rules, known divergences,
 //! known limitations — see the [conversion guide][conversion-md].
 //!
-//! [`RdfGraph`]: crate::RdfGraph
+//! [`RdfGraph`]: sbol3::RdfGraph
 //! [conversion-md]: https://github.com/marpaia/sbol-rs/blob/master/docs/conversion.md
 
 use std::collections::{HashMap, HashSet};
 
-use crate::iri_util::last_iri_segment as last_segment;
+use sbol_core::iri::last_iri_segment as last_segment;
 use crate::sbol2_vocab as v2;
-use crate::vocab as v3;
-use crate::{Document, Iri, Resource, Term, Triple};
+use sbol3::vocab as v3;
+use sbol3::Document;
+use sbol_rdf::{Iri, Resource, Term, Triple};
 use sbol_rdf::Graph;
 
 mod analyze;
@@ -88,7 +89,7 @@ pub struct DowngradeOptions {
     /// always carrying a version segment.
     pub default_version: Option<String>,
 
-    /// When a [`Component`](crate::Component) carries both
+    /// When a [`Component`](sbol3::Component) carries both
     /// `hasSequence` and `hasInteraction`, the unified SBOL 3 view
     /// can't be represented as a single SBOL 2 object. With this
     /// option `true` (the default) the downgrade emits BOTH a
@@ -238,7 +239,7 @@ impl std::error::Error for DowngradeError {}
 /// The caller chooses how to serialize the resulting graph
 /// (`graph.write(RdfFormat::RdfXml)` / `Turtle` / …).
 ///
-/// [`RdfGraph`]: crate::RdfGraph
+/// [`RdfGraph`]: sbol3::RdfGraph
 pub fn sbol3_to_sbol2(
     document: &Document,
     options: DowngradeOptions,
@@ -256,7 +257,7 @@ pub fn sbol3_to_sbol2(
 
 /// Downgrades an SBOL 3 [`Document`] to SBOL 2 RDF, returning the
 /// resulting graph alongside a [`DowngradeReport`]. See
-/// [`sbol3::downgrade`](crate::downgrade) for the loss model.
+/// [`downgrade`](crate::downgrade) for the loss model.
 pub fn downgrade(document: &Document) -> Result<(Graph, DowngradeReport), DowngradeError> {
     sbol3_to_sbol2(document, DowngradeOptions::default())
 }

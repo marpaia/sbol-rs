@@ -114,19 +114,15 @@ mod client;
 mod conformance;
 pub mod constants;
 mod document;
-pub mod downgrade;
 mod error;
 pub mod identity;
-mod iri_util;
 mod model;
 mod object;
 pub mod owl_conformance;
 pub mod prelude;
 mod resolve;
-mod sbol2_vocab;
 pub mod schema;
 mod specification;
-pub mod upgrade;
 mod validation;
 #[doc(hidden)]
 pub mod vocab;
@@ -153,10 +149,6 @@ pub use client::{
 pub use conformance::render_conformance_report;
 pub use document::Document;
 pub use sbol_core::document::{ObjectStore, RawDocument};
-pub use downgrade::{
-    DowngradeCounts, DowngradeError, DowngradeOptions, DowngradeReport, DowngradeWarning, downgrade,
-    downgrade_with, sbol3_to_sbol2,
-};
 pub use error::{BuildError, ReadError, WriteError};
 pub use identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
 pub use model::{Identified, SbolClass, TopLevel};
@@ -171,11 +163,6 @@ pub use resolve::{FeatureTrace, ObjectGraph, ReferenceError, VariantSet};
 pub use sbol_ontology::{Ontology, OntologyRegistry};
 pub use sbol_rdf::{Graph as RdfGraph, Iri, Literal, RdfFormat, Resource, Term, Triple};
 pub use specification::{SPEC_VERSION, SPECIFICATION_URL};
-pub use upgrade::{
-    MapsToSide, NamespaceSource, UpgradeCounts, UpgradeError, UpgradeFromPathError, UpgradeOptions,
-    UpgradeReport, UpgradeWarning, parse_and_upgrade, sbol2_to_sbol3, upgrade_from_sbol2,
-    upgrade_from_sbol2_path, upgrade_from_sbol2_with,
-};
 #[cfg(feature = "http-resolver")]
 pub use validation::CachingHttpResolver;
 #[cfg(feature = "http-resolver")]
