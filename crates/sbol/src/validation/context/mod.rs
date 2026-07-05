@@ -12,19 +12,7 @@ mod resolvers;
 pub use resolvers::FileResolver;
 #[cfg(feature = "http-resolver")]
 pub use resolvers::{CachingHttpResolver, HttpResolver};
-
-/// Controls whether validation may inspect resources outside the primary document.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-#[non_exhaustive]
-pub enum ExternalValidationMode {
-    /// Do not perform external document or content resolution.
-    #[default]
-    Off,
-    /// Resolve only caller-provided documents and explicitly configured providers.
-    ProvidedOnly,
-    /// Resolve caller-provided data and configured external providers such as HTTP.
-    ExternalAllowed,
-}
+pub use sbol_core::validation::options::ExternalValidationMode;
 
 /// Resolver-aware validation inputs.
 #[derive(Default)]

@@ -155,6 +155,7 @@ fn render_machine_checkable_gaps(out: &mut String, statuses: &[ValidationRuleSta
             crate::NormativeSeverity::Must => "MUST",
             crate::NormativeSeverity::Should => "SHOULD",
             crate::NormativeSeverity::May => "MAY",
+            _ => "?",
         };
         let note = entry.note.replace('|', "\\|");
         out.push_str(&format!(
@@ -344,6 +345,7 @@ fn status_label(status: RuleStatus) -> &'static str {
         RuleStatus::Configurable => "`Configurable`",
         RuleStatus::MachineUncheckable => "`MachineUncheckable`",
         RuleStatus::Unimplemented => "`Unimplemented`",
+        _ => "`?`",
     }
 }
 

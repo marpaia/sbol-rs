@@ -186,43 +186,34 @@ fn write_rule_catalog(path: &Path, rules: &[RawRule]) {
             "MAY" => "May",
             other => panic!("rule {}: invalid severity `{other}`", rule.id),
         };
-        writeln!(buf, "    ValidationRuleStatus {{").unwrap();
-        writeln!(buf, "        rule: {},", rust_string_literal(&rule.id)).unwrap();
-        writeln!(buf, "        status: RuleStatus::{status},").unwrap();
+        writeln!(buf, "    ValidationRuleStatus::new(").unwrap();
+        writeln!(buf, "        {},", rust_string_literal(&rule.id)).unwrap();
+        writeln!(buf, "        RuleStatus::{status},").unwrap();
+        writeln!(buf, "        NormativeSeverity::{severity},").unwrap();
         writeln!(
             buf,
-            "        normative_severity: NormativeSeverity::{severity},"
-        )
-        .unwrap();
-        writeln!(
-            buf,
-            "        spec_section: {},",
+            "        {},",
             rust_string_literal(&rule.spec_section)
         )
         .unwrap();
-        writeln!(buf, "        note: {},", rust_string_literal(&rule.note)).unwrap();
+        writeln!(buf, "        {},", rust_string_literal(&rule.note)).unwrap();
         match rule.blocker.as_deref() {
-            Some(b) => writeln!(buf, "        blocker: Some(super::Blocker::{b}),").unwrap(),
-            None => writeln!(buf, "        blocker: None,").unwrap(),
+            Some(b) => writeln!(buf, "        Some(super::Blocker::{b}),").unwrap(),
+            None => writeln!(buf, "        None,").unwrap(),
         }
         match rule.validator_function.as_deref() {
-            Some(fn_name) => writeln!(
-                buf,
-                "        validator_function: Some({}),",
-                rust_string_literal(fn_name)
-            )
-            .unwrap(),
-            None => writeln!(buf, "        validator_function: None,").unwrap(),
+            Some(fn_name) => {
+                writeln!(buf, "        Some({}),", rust_string_literal(fn_name)).unwrap()
+            }
+            None => writeln!(buf, "        None,").unwrap(),
         }
         match rule.coverage_kind.as_deref() {
-            Some(kind) => writeln!(
-                buf,
-                "        coverage_kind: Some(super::CoverageKind::{kind}),"
-            )
-            .unwrap(),
-            None => writeln!(buf, "        coverage_kind: None,").unwrap(),
+            Some(kind) => {
+                writeln!(buf, "        Some(super::CoverageKind::{kind}),").unwrap()
+            }
+            None => writeln!(buf, "        None,").unwrap(),
         }
-        writeln!(buf, "    }},").unwrap();
+        writeln!(buf, "    ),").unwrap();
     }
     buf.push_str("];\n");
     fs::write(path, buf).unwrap_or_else(|err| panic!("write {}: {err}", path.display()));

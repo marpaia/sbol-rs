@@ -177,6 +177,7 @@ impl<'a> Validator<'a> {
                         continue;
                     }
                 }
+                _ => {}
             }
             if algorithm.value() != "sha3-256" {
                 self.warning(

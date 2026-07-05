@@ -4,112 +4,13 @@ use crate::Object;
 use crate::schema::{ClassDescriptor, FieldDescriptor};
 use crate::vocab::*;
 
+pub use sbol_core::validation::{NormativeSeverity, RuleStatus, ValidationRuleStatus};
+
 mod properties;
 use properties::*;
 
 pub(crate) type PropertySpec = FieldDescriptor;
 pub(crate) type ClassSpec = ClassDescriptor;
-
-/// Per-rule classification. Five categories, each capturing one
-/// meaningful axis: algorithm complete with Error severity, algorithm
-/// complete with Warning severity, configurable (behavior depends on
-/// resolver / ontology snapshot / policy / external context), spec-▲
-/// (not to be machine-reported), or unimplemented.
-///
-/// The `blocker` field carries the secondary axis: for `Configurable`,
-/// it names *which* configuration knob (Resolver, Ontology, Policy,
-/// External); for `Unimplemented`, it names *what's needed*
-/// (Ontology data, Resolver protocol, Policy decision, OWL reasoning).
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-pub enum RuleStatus {
-    /// Algorithm complete; MUST violations emit as `Severity::Error`.
-    Error,
-    /// Algorithm complete; SHOULD violations emit as `Severity::Warning`.
-    Warning,
-    /// Behavior varies with configuration. The `blocker` field names
-    /// the axis: `Resolver` (algorithm needs a resolver for full
-    /// scope), `Ontology` (algorithm correct for every snapshot-known
-    /// term; out-of-snapshot terms undecided by design), `Policy`
-    /// (algorithm runs at the `Conservative` ADR default; `Strict`/
-    /// `Lenient` modes change emit behavior), or `External` (local-only
-    /// mode is the implementation; the spec scope is structurally
-    /// unreachable without external infrastructure like a global
-    /// registry).
-    Configurable,
-    /// Spec ▲: violations are NOT to be machine-reported. The validator
-    /// may run a local subset that emits **warnings only** on
-    /// positively-decidable cases (e.g. a term that's known to be in
-    /// the wrong ontology branch); the broader spec rule is recorded
-    /// in coverage as `MachineUncheckable`.
-    MachineUncheckable,
-    /// No local algorithm. The `blocker` field names what's needed
-    /// (Ontology data, Resolver protocol design, OWL axiom reasoning,
-    /// Policy decision).
-    Unimplemented,
-}
-
-/// RFC2119-style normative force of a spec rule. Distinguishes
-/// "Partial-but-MUST" rules (gaps that block strict-mode compliance)
-/// from "Partial-but-SHOULD" rules (gaps in recommended-but-optional
-/// behavior).
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-pub enum NormativeSeverity {
-    Must,
-    Should,
-    May,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-pub struct ValidationRuleStatus {
-    pub rule: &'static str,
-    pub status: RuleStatus,
-    pub normative_severity: NormativeSeverity,
-    pub spec_section: &'static str,
-    pub note: &'static str,
-    /// Reason this rule is not fully implemented. Always `Some` for
-    /// `Partial` / `Deferred` rules, always `None` for `Implemented*`
-    /// rules. The invariant is enforced by
-    /// `every_partial_or_deferred_rule_has_blocker` in
-    /// `crates/sbol/tests/validation_rules.rs`.
-    pub blocker: Option<super::Blocker>,
-    /// Name of the function in `crates/sbol/src/validation/rules/`
-    /// that enforces this rule. `Some` for `Implemented*` rules and
-    /// any `Partial` rule that has a concrete emission site; `None`
-    /// for `Deferred` rules and the rare `Partial` rule whose local
-    /// check is entirely data-table driven without a named function.
-    pub validator_function: Option<&'static str>,
-    /// Per-rule coverage tag for Partial rules. When set, overrides the
-    /// default inferred from `blocker`. Used by the coverage signal to
-    /// give callers a precise machine-grep-able tag for what the local
-    /// subset covered.
-    pub coverage_kind: Option<super::CoverageKind>,
-}
-
-impl ValidationRuleStatus {
-    /// True iff Appendix B marks this rule with ▲ (status
-    /// `MachineUncheckable`).
-    pub fn is_machine_uncheckable(&self) -> bool {
-        matches!(self.status, RuleStatus::MachineUncheckable)
-    }
-
-    /// True iff the algorithm is complete and will fully evaluate the
-    /// rule for at least one configuration.
-    pub fn is_implemented(&self) -> bool {
-        matches!(
-            self.status,
-            RuleStatus::Error | RuleStatus::Warning | RuleStatus::Configurable
-        )
-    }
-
-    /// True iff the spec expects tools to machine-check this rule
-    /// (Appendix B symbols ☑ ○ ⋆). Excludes ▲ rules.
-    pub fn is_machine_checkable(&self) -> bool {
-        !matches!(self.status, RuleStatus::MachineUncheckable)
-    }
-}
 
 include!(concat!(env!("OUT_DIR"), "/rule_spec_meta.rs"));
 pub fn validation_rule_statuses() -> &'static [ValidationRuleStatus] {

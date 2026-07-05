@@ -1,15 +1,13 @@
 use sbol_ontology::Ontology;
 
-use crate::validation::blocker::Blocker;
-use crate::validation::context::{ExternalValidationMode, ValidationContext};
+use crate::validation::context::ValidationContext;
 use crate::validation::options::ValidationOptions;
-use crate::validation::report::{
-    AppliedOptions, CoverageKind, NotApplied, NotAppliedReason, PartialApplication, RuleCoverage,
-    ValidationIssue, ValidationReport,
-};
+use crate::validation::report::{AppliedOptions, ValidationIssue, ValidationReport};
 use crate::validation::resolver::OwnershipIndex;
-use crate::validation::spec::{RuleStatus, ValidationRuleStatus, validation_rule_statuses};
+use crate::validation::spec::validation_rule_statuses;
 use crate::{Document, Object};
+
+use sbol_core::validation::compute_coverage;
 
 pub(crate) struct Validator<'a> {
     pub(crate) document: &'a Document,
@@ -58,23 +56,18 @@ impl<'a> Validator<'a> {
     }
 
     pub(crate) fn finish(self) -> ValidationReport {
-        let coverage = compute_coverage(self.context.external_mode());
+        let coverage = compute_coverage(validation_rule_statuses(), self.context.external_mode());
         let options = self.context.options();
-        let options_summary = AppliedOptions {
-            topology_completeness: options.topology_completeness,
-            external_mode: self.context.external_mode(),
-            document_resolvers: self.context.document_resolvers().len()
-                + self.context.documents().len(),
-            content_resolvers: self.context.content_resolvers().len(),
-            overridden_rules: options.overrides().collect(),
-            severity_floor: options.severity_floor(),
-            severity_ceiling: options.severity_ceiling(),
-        };
-        ValidationReport {
-            issues: self.issues,
-            coverage,
-            options_summary,
-        }
+        let mut options_summary = AppliedOptions::default();
+        options_summary.topology_completeness = options.topology_completeness;
+        options_summary.external_mode = self.context.external_mode();
+        options_summary.document_resolvers =
+            self.context.document_resolvers().len() + self.context.documents().len();
+        options_summary.content_resolvers = self.context.content_resolvers().len();
+        options_summary.overridden_rules = options.overrides().collect();
+        options_summary.severity_floor = options.severity_floor();
+        options_summary.severity_ceiling = options.severity_ceiling();
+        ValidationReport::from_parts(self.issues, coverage, options_summary)
     }
 
     pub(crate) fn error(
@@ -113,12 +106,10 @@ impl<'a> Validator<'a> {
             return;
         };
         let issue = match severity {
-            crate::Severity::Error => {
-                ValidationIssue::error(rule, object.identity().clone(), property, message)
-            }
             crate::Severity::Warning => {
                 ValidationIssue::warning(rule, object.identity().clone(), property, message)
             }
+            _ => ValidationIssue::error(rule, object.identity().clone(), property, message),
         };
         self.issues.push(issue);
     }
@@ -138,92 +129,5 @@ impl<'a> Validator<'a> {
             issue.severity = severity;
             self.issues.push(issue);
         }
-    }
-}
-
-fn compute_coverage(external_mode: ExternalValidationMode) -> RuleCoverage {
-    let mut coverage = RuleCoverage::default();
-    for status in validation_rule_statuses() {
-        match coverage_for_rule(status, external_mode) {
-            RuleCoverageOutcome::Fully => coverage.fully_applied.push(status.rule),
-            RuleCoverageOutcome::Partial(application) => {
-                coverage.partially_applied.push(application);
-            }
-            RuleCoverageOutcome::NotApplied(record) => coverage.not_applied.push(record),
-        }
-    }
-    coverage
-}
-
-enum RuleCoverageOutcome {
-    Fully,
-    Partial(PartialApplication),
-    NotApplied(NotApplied),
-}
-
-fn coverage_for_rule(
-    status: &ValidationRuleStatus,
-    external_mode: ExternalValidationMode,
-) -> RuleCoverageOutcome {
-    let resolver_satisfied = matches!(
-        external_mode,
-        ExternalValidationMode::ProvidedOnly | ExternalValidationMode::ExternalAllowed
-    );
-    match status.status {
-        // Algorithm complete; unconditionally fires per its severity.
-        RuleStatus::Error | RuleStatus::Warning => RuleCoverageOutcome::Fully,
-        // Algorithm complete; behavior or scope varies with configuration.
-        // The blocker names the axis; per-run coverage records what mode
-        // ran.
-        RuleStatus::Configurable => {
-            let blocker = status
-                .blocker
-                .expect("Configurable rule must declare a blocker (build invariant)");
-            match blocker {
-                Blocker::Resolver if resolver_satisfied => RuleCoverageOutcome::Fully,
-                Blocker::Resolver => RuleCoverageOutcome::Partial(PartialApplication {
-                    rule: status.rule,
-                    blocker,
-                    coverage_kind: CoverageKind::LocalReferencesOnly,
-                }),
-                Blocker::External => RuleCoverageOutcome::Partial(PartialApplication {
-                    rule: status.rule,
-                    blocker,
-                    coverage_kind: CoverageKind::LocalReferencesOnly,
-                }),
-                // Ontology / Policy / StrictDatatype: algorithm runs at
-                // the configured mode; coverage is `fully_applied` for
-                // that mode (the mode IS the algorithm, not a gap).
-                _ => RuleCoverageOutcome::Fully,
-            }
-        }
-        // ▲ rule: spec asks tools not to report violations as the spec
-        // rule. The local subset (if any) emits Warnings; coverage
-        // signal records the rule as `MachineUncheckable`.
-        RuleStatus::MachineUncheckable => RuleCoverageOutcome::NotApplied(NotApplied {
-            rule: status.rule,
-            reason: NotAppliedReason::MachineUncheckable,
-        }),
-        // No local algorithm; needs new code, ontology data, resolver
-        // protocol design, or a policy decision.
-        RuleStatus::Unimplemented => {
-            let blocker = status
-                .blocker
-                .expect("Unimplemented rule must declare a blocker (build invariant)");
-            RuleCoverageOutcome::NotApplied(NotApplied {
-                rule: status.rule,
-                reason: NotAppliedReason::Deferred(blocker),
-            })
-        }
-    }
-}
-
-#[allow(dead_code)] // Reserved for future per-blocker coverage tagging.
-fn coverage_kind_for(blocker: Blocker) -> CoverageKind {
-    match blocker {
-        Blocker::Ontology => CoverageKind::OntologyKnownTermsOnly,
-        Blocker::Resolver | Blocker::External => CoverageKind::LocalReferencesOnly,
-        Blocker::Policy => CoverageKind::PolicyDefaultUndecided,
-        Blocker::StrictDatatype => CoverageKind::LexicalShapeOnly,
     }
 }
