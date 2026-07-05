@@ -2,8 +2,26 @@
 //!
 //! `sbol2` is the SBOL 2 peer of the [`sbol3`](https://docs.rs/sbol3) crate. It
 //! builds on the version-neutral machinery in [`sbol_core`] — the field-metadata
-//! descriptors, identity newtypes, RDF-backed document store, and validation
-//! framework — and layers on the SBOL 2 data model, its RDF serialization, and
-//! its validation rule catalog. Most users reach it through the umbrella `sbol`
-//! crate as `sbol::v2`.
+//! descriptors, identity newtypes, RDF-backed document store — and layers on the
+//! SBOL 2 typed data model, its RDF serialization, and a shared field-metadata
+//! catalog. Most users reach it through the umbrella `sbol` crate as `sbol::v2`.
 #![forbid(unsafe_code)]
+#![allow(clippy::result_large_err)]
+
+mod client;
+pub mod constants;
+mod error;
+pub mod identity;
+mod model;
+mod object;
+pub mod schema;
+#[doc(hidden)]
+pub mod vocab;
+
+pub use error::{BuildError, ReadError, WriteError};
+pub use identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
+pub use model::{Identified, Sbol2Class, TopLevel};
+pub use object::ObjectClasses;
+pub use sbol_core::document::{ObjectStore, RawDocument};
+pub use sbol_core::object::Object;
+pub use sbol_rdf::{Graph as RdfGraph, Iri, Literal, RdfFormat, Resource, Term, Triple};
