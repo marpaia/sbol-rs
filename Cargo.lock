@@ -1135,17 +1135,11 @@ dependencies = [
 name = "sbol"
 version = "0.2.1"
 dependencies = [
- "criterion",
- "proptest",
- "sbol-ontology",
+ "sbol-convert",
+ "sbol-core",
  "sbol-rdf",
- "serde",
- "serde_json",
- "sha2",
- "sha3",
- "thiserror",
- "toml",
- "ureq 2.12.1",
+ "sbol2",
+ "sbol3",
 ]
 
 [[package]]
@@ -1176,11 +1170,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "sbol-convert"
+version = "0.2.1"
+dependencies = [
+ "sbol-core",
+ "sbol-rdf",
+ "sbol3",
+ "ureq 2.12.1",
+]
+
+[[package]]
+name = "sbol-core"
+version = "0.2.1"
+dependencies = [
+ "sbol-rdf",
+ "thiserror",
+]
+
+[[package]]
 name = "sbol-fasta"
 version = "0.2.1"
 dependencies = [
- "sbol",
  "sbol-rdf",
+ "sbol3",
+ "serde_json",
  "tempfile",
  "thiserror",
 ]
@@ -1190,8 +1203,10 @@ name = "sbol-genbank"
 version = "0.2.1"
 dependencies = [
  "gb-io",
- "sbol",
+ "sbol-convert",
  "sbol-rdf",
+ "sbol3",
+ "serde_json",
  "tempfile",
  "thiserror",
 ]
@@ -1214,6 +1229,44 @@ dependencies = [
  "oxrdf",
  "oxrdfio",
  "thiserror",
+]
+
+[[package]]
+name = "sbol-rulegen"
+version = "0.2.1"
+dependencies = [
+ "serde",
+ "toml",
+]
+
+[[package]]
+name = "sbol2"
+version = "0.2.1"
+dependencies = [
+ "sbol-core",
+ "sbol-ontology",
+ "sbol-rdf",
+ "sbol-rulegen",
+ "thiserror",
+]
+
+[[package]]
+name = "sbol3"
+version = "0.2.1"
+dependencies = [
+ "criterion",
+ "proptest",
+ "sbol-core",
+ "sbol-ontology",
+ "sbol-rdf",
+ "sbol-rulegen",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sha3",
+ "thiserror",
+ "toml",
+ "ureq 2.12.1",
 ]
 
 [[package]]

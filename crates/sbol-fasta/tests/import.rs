@@ -2,8 +2,8 @@
 
 use std::path::PathBuf;
 
-use sbol::{RdfFormat, SbolIdentified, SbolTopLevel, Severity};
 use sbol_fasta::{Alphabet, FastaImporter, ImportError, ImportWarning};
+use sbol3::{RdfFormat, SbolIdentified, SbolTopLevel, Severity};
 
 fn workspace_fixture(name: &str) -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -14,7 +14,7 @@ fn workspace_fixture(name: &str) -> PathBuf {
     path
 }
 
-fn assert_no_validation_errors(document: &sbol::Document, name: &str) {
+fn assert_no_validation_errors(document: &sbol3::Document, name: &str) {
     let report = document.validate();
     let errors: Vec<_> = report
         .issues()
@@ -157,7 +157,7 @@ fn round_trip_through_turtle() {
         .read_path(workspace_fixture("pUC19.fasta"))
         .expect("import");
     let turtle = document.write(RdfFormat::Turtle).expect("write turtle");
-    let parsed = sbol::Document::read_turtle(&turtle).expect("re-read turtle");
+    let parsed = sbol3::Document::read_turtle(&turtle).expect("re-read turtle");
     assert_eq!(parsed.components().count(), document.components().count());
     assert_eq!(parsed.sequences().count(), document.sequences().count());
 }

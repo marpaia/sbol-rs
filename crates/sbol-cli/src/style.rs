@@ -1,7 +1,7 @@
 use std::env;
 use std::io::{self, IsTerminal};
 
-use sbol::{RuleStatus, Severity};
+use sbol::v3::{RuleStatus, Severity};
 
 use crate::cli::ColorMode;
 
@@ -35,6 +35,14 @@ impl Styles {
             "\x1b[1;31merror\x1b[0m"
         } else {
             "error"
+        }
+    }
+
+    pub(crate) fn warn_label(self) -> &'static str {
+        if self.stderr {
+            "\x1b[1;33mwarning\x1b[0m"
+        } else {
+            "warning"
         }
     }
 }

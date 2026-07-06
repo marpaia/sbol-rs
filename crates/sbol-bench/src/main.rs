@@ -1,14 +1,18 @@
 //! Cross-implementation performance bench.
 //!
-//! Times `(parse, serialize)` round trips against sbol-rs (in-process),
-//! pySBOL3, libSBOLj3, and sboljs (each pinned in Docker). Inputs are a
-//! handful of representative SBOLTestSuite fixtures pre-converted by
-//! sbol-rs to every RDF serialization on disk so each implementation
-//! sees the same byte-for-byte input. Each bench script reports per
-//! iteration nanoseconds in JSON; this binary aggregates and prints
-//! median and p99 for every (impl × fixture × format) combination, with
-//! the inter-quartile range also recorded in the JSON report, falling
-//! back to a "skipped" row when a tool refuses or fails.
+//! This harness compares sbol-rs against the mainstream implementation
+//! of each SBOL version, across SBOL 2 and SBOL 3. It times `(parse, serialize)`
+//! round trips and cross-format conversions against sbol-rs
+//! (in-process), plus the mainstream implementation of each version:
+//! libSBOLj for SBOL 2, and pySBOL3, libSBOLj3, and sboljs for SBOL 3
+//! (each pinned in Docker). Inputs are representative fixtures
+//! pre-converted by sbol-rs to every RDF serialization on disk so each
+//! implementation sees the same byte-for-byte input. Each bench script
+//! reports per-iteration nanoseconds in JSON; this binary aggregates
+//! and prints median and p99 for every (version × impl × fixture ×
+//! format) combination, with the inter-quartile range also recorded in
+//! the JSON report, falling back to a "skipped" row when a tool refuses
+//! or fails.
 //!
 //! Methodology notes worth knowing before reading the numbers:
 //!
@@ -19,6 +23,9 @@
 //!   state for the JIT-backed implementations and yields stable medians.
 //!   Override via `SBOL_BENCH_WARMUP` / `SBOL_BENCH_ITERS` for tighter
 //!   error bars.
+//! - SBOL 2 is exchanged as RDF/XML; sbol-rs also reads and writes
+//!   Turtle, JSON-LD, and N-Triples for SBOL 2, so those are benchmarked
+//!   for sbol-rs. libSBOLj only appears where its input is RDF/XML.
 //! - sboljs's underlying rdfoo parses only N-Triples and RDF/XML and
 //!   serializes only RDF/XML, so the sboljs row only appears in those
 //!   format combinations. This is a real ecosystem fact, not a harness
@@ -54,7 +61,6 @@ fn main() -> ExitCode {
     };
 
     let workspace = workspace_root();
-    let sboltest_root = workspace.join("tests/fixtures/sbol3");
     let run_id = format!(
         "{}",
         SystemTime::now()
@@ -94,13 +100,22 @@ fn main() -> ExitCode {
     let mut any_native_failure = false;
 
     for fixture in &config.fixtures {
-        let source = sboltest_root.join(fixture.source);
+        // Only the cases whose model version matches the fixture apply.
+        let cases = || {
+            BENCH_CASES
+                .iter()
+                .filter(|case| case.version == fixture.version)
+        };
+        let source = workspace
+            .join(fixture.version.fixture_dir())
+            .join(fixture.source);
         if !source.is_file() {
             eprintln!(
-                "fixture missing at {}; populate the cache by running the sbol3_fixtures test once",
+                "fixture missing at {}; populate the fixture cache (run the \
+                 corresponding integration test once)",
                 source.display()
             );
-            for case in BENCH_CASES {
+            for case in cases() {
                 outcomes.push(CaseOutcome {
                     case: *case,
                     fixture: *fixture,
@@ -112,26 +127,30 @@ fn main() -> ExitCode {
             continue;
         }
 
-        let prepared =
-            match prepare_fixture_in_every_format(&source, &workspace, &scratch_root, fixture.stem)
-            {
-                Ok(prepared) => prepared,
-                Err(error) => {
-                    eprintln!("failed to prepare {}: {error}", fixture.stem);
-                    for case in BENCH_CASES {
-                        outcomes.push(CaseOutcome {
-                            case: *case,
-                            fixture: *fixture,
-                            state: CaseState::Skipped {
-                                reason: format!("could not pre-convert fixture: {error}"),
-                            },
-                        });
-                    }
-                    continue;
+        let prepared = match prepare_fixture_in_every_format(
+            &source,
+            &workspace,
+            &scratch_root,
+            fixture.stem,
+            fixture.version,
+        ) {
+            Ok(prepared) => prepared,
+            Err(error) => {
+                eprintln!("failed to prepare {}: {error}", fixture.stem);
+                for case in cases() {
+                    outcomes.push(CaseOutcome {
+                        case: *case,
+                        fixture: *fixture,
+                        state: CaseState::Skipped {
+                            reason: format!("could not pre-convert fixture: {error}"),
+                        },
+                    });
                 }
-            };
+                continue;
+            }
+        };
 
-        for case in BENCH_CASES {
+        for case in cases() {
             let input_path = prepared
                 .get(&case.parse_format)
                 .expect("every format was prepared above");

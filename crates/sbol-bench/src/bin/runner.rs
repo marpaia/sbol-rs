@@ -11,16 +11,41 @@
 //! Usage:
 //!
 //! ```text
-//! runner <input> <parse_fmt> <serialize_fmt> <warmup> <iters> <output_json>
+//! runner <input> <parse_fmt> <serialize_fmt> <warmup> <iters> <output_json> [validate]
 //! ```
+//!
+//! The optional trailing `validate` flag (`1`/`0`) turns on a timed
+//! `Document::validate()` phase alongside parse and serialize.
 
 use std::fs;
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::Instant;
 
-use sbol::{Document, RdfFormat};
+use sbol::v3::RdfFormat;
+use sbol::{v2, v3};
 use serde::Serialize;
+
+/// Which SBOL model version the runner exercises. Selected by the
+/// trailing CLI argument so the same binary benchmarks both, dispatching
+/// to `sbol::v2` or `sbol::v3`.
+#[derive(Clone, Copy)]
+enum Version {
+    Sbol2,
+    Sbol3,
+}
+
+impl Version {
+    fn from_arg(name: Option<&str>) -> Option<Self> {
+        match name {
+            // Default to SBOL 3 when the argument is absent so older
+            // invocations keep working unchanged.
+            None | Some("sbol3") => Some(Self::Sbol3),
+            Some("sbol2") => Some(Self::Sbol2),
+            Some(_) => None,
+        }
+    }
+}
 
 #[derive(Serialize)]
 struct Output<'a> {
@@ -35,6 +60,8 @@ struct Output<'a> {
     serialized_bytes: u64,
     parse_ns: Vec<u64>,
     serialize_ns: Vec<u64>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    validate_ns: Vec<u64>,
 }
 
 fn main() -> ExitCode {
@@ -63,6 +90,14 @@ fn main() -> ExitCode {
         }
     };
     let output_path = PathBuf::from(&args[6]);
+    let validate = matches!(args.get(7).map(String::as_str), Some("1"));
+    let version = match Version::from_arg(args.get(8).map(String::as_str)) {
+        Some(version) => version,
+        None => {
+            eprintln!("unknown version: {}", args[8]);
+            return ExitCode::from(2);
+        }
+    };
 
     let parse_format = match format_from_str(&parse_fmt_arg) {
         Some(format) => format,
@@ -88,7 +123,7 @@ fn main() -> ExitCode {
     };
 
     for i in 0..warmup {
-        match run_once(&rdf_text, parse_format, serialize_format) {
+        match run_once(&rdf_text, version, parse_format, serialize_format, validate) {
             Ok(_) => {}
             Err(error) => {
                 eprintln!("warmup iter {i} failed: {error}");
@@ -99,12 +134,16 @@ fn main() -> ExitCode {
 
     let mut parse_ns = Vec::with_capacity(iters);
     let mut serialize_ns = Vec::with_capacity(iters);
+    let mut validate_ns = Vec::with_capacity(if validate { iters } else { 0 });
     let mut last_bytes = 0u64;
     for i in 0..iters {
-        match run_timed(&rdf_text, parse_format, serialize_format) {
-            Ok((parse, serialize, bytes)) => {
+        match run_timed(&rdf_text, version, parse_format, serialize_format, validate) {
+            Ok((parse, serialize, validate_time, bytes)) => {
                 parse_ns.push(parse);
                 serialize_ns.push(serialize);
+                if let Some(validate_time) = validate_time {
+                    validate_ns.push(validate_time);
+                }
                 last_bytes = bytes;
             }
             Err(error) => {
@@ -125,6 +164,7 @@ fn main() -> ExitCode {
         serialized_bytes: last_bytes,
         parse_ns,
         serialize_ns,
+        validate_ns,
     };
     let json = match serde_json::to_string(&output) {
         Ok(s) => s,
@@ -152,30 +192,83 @@ fn format_from_str(name: &str) -> Option<RdfFormat> {
 
 fn run_once(
     text: &str,
+    version: Version,
     parse_format: RdfFormat,
     serialize_format: RdfFormat,
+    validate: bool,
 ) -> Result<(), String> {
-    let doc = Document::read(text, parse_format).map_err(|e| format!("parse: {e}"))?;
-    doc.write(serialize_format)
-        .map_err(|e| format!("serialize: {e}"))?;
+    match version {
+        Version::Sbol3 => {
+            let doc = v3::Document::read(text, parse_format).map_err(|e| format!("parse: {e}"))?;
+            doc.write(serialize_format)
+                .map_err(|e| format!("serialize: {e}"))?;
+            if validate {
+                let _ = doc.validate();
+            }
+        }
+        Version::Sbol2 => {
+            let doc = v2::Document::read(text, parse_format).map_err(|e| format!("parse: {e}"))?;
+            doc.write(serialize_format)
+                .map_err(|e| format!("serialize: {e}"))?;
+            if validate {
+                let _ = doc.validate();
+            }
+        }
+    }
     Ok(())
 }
 
 fn run_timed(
     text: &str,
+    version: Version,
     parse_format: RdfFormat,
     serialize_format: RdfFormat,
-) -> Result<(u64, u64, u64), String> {
-    let t0 = Instant::now();
-    let doc = Document::read(text, parse_format).map_err(|e| format!("parse: {e}"))?;
-    let t1 = Instant::now();
-    let out = doc
-        .write(serialize_format)
-        .map_err(|e| format!("serialize: {e}"))?;
-    let t2 = Instant::now();
-    Ok((
-        t1.duration_since(t0).as_nanos() as u64,
-        t2.duration_since(t1).as_nanos() as u64,
-        out.len() as u64,
-    ))
+    validate: bool,
+) -> Result<(u64, u64, Option<u64>, u64), String> {
+    match version {
+        Version::Sbol3 => {
+            let t0 = Instant::now();
+            let doc = v3::Document::read(text, parse_format).map_err(|e| format!("parse: {e}"))?;
+            let t1 = Instant::now();
+            let out = doc
+                .write(serialize_format)
+                .map_err(|e| format!("serialize: {e}"))?;
+            let t2 = Instant::now();
+            let validate_ns = if validate {
+                let v0 = Instant::now();
+                let _ = doc.validate();
+                Some(v0.elapsed().as_nanos() as u64)
+            } else {
+                None
+            };
+            Ok((
+                t1.duration_since(t0).as_nanos() as u64,
+                t2.duration_since(t1).as_nanos() as u64,
+                validate_ns,
+                out.len() as u64,
+            ))
+        }
+        Version::Sbol2 => {
+            let t0 = Instant::now();
+            let doc = v2::Document::read(text, parse_format).map_err(|e| format!("parse: {e}"))?;
+            let t1 = Instant::now();
+            let out = doc
+                .write(serialize_format)
+                .map_err(|e| format!("serialize: {e}"))?;
+            let t2 = Instant::now();
+            let validate_ns = if validate {
+                let v0 = Instant::now();
+                let _ = doc.validate();
+                Some(v0.elapsed().as_nanos() as u64)
+            } else {
+                None
+            };
+            Ok((
+                t1.duration_since(t0).as_nanos() as u64,
+                t2.duration_since(t1).as_nanos() as u64,
+                validate_ns,
+                out.len() as u64,
+            ))
+        }
+    }
 }

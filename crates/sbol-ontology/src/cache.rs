@@ -4,7 +4,7 @@
 //! that are too large to bundle by default (NCIT, lab-specific
 //! ontologies, etc.). Validation reads from the cache via
 //! [`OntologyCache::load`]; the cache is never consulted during
-//! validation itself — only library code that explicitly calls
+//! validation itself. Only library code that explicitly calls
 //! [`OntologyCache::ensure_installed`] performs network IO.
 //!
 //! Default location:
@@ -129,7 +129,7 @@ impl OntologyCache {
         self.do_install(descriptor)
     }
 
-    /// Installs an extension only when it is missing. Idempotent — safe
+    /// Installs an extension only when it is missing. Idempotent and safe
     /// to call from library startup.
     pub fn ensure_installed(
         &self,
@@ -584,27 +584,27 @@ const NCIT_DESCRIPTOR: OntologyDescriptor = OntologyDescriptor {
     source_format: SourceFormat::Owl,
     source_license: "CC BY 4.0",
     branch_roots: &[
-        // Cell — for cell-line roles on experimental Components.
+        // Cell: for cell-line roles on experimental Components.
         BranchRoot {
             id: "NCIT:C12508",
             role: "feature_role",
         },
-        // Organism Strain — for strain roles.
+        // Organism Strain: for strain roles.
         BranchRoot {
             id: "NCIT:C14419",
             role: "feature_role",
         },
-        // Growth Medium — for media reagent roles.
+        // Growth Medium: for media reagent roles.
         BranchRoot {
             id: "NCIT:C85504",
             role: "feature_role",
         },
-        // Positive Control — and siblings via the parent (Control) subtree.
+        // Positive Control, and siblings via the parent (Control) subtree.
         BranchRoot {
             id: "NCIT:C64356",
             role: "feature_role",
         },
-        // Inducer — for inducer reagent roles.
+        // Inducer: for inducer reagent roles.
         BranchRoot {
             id: "NCIT:C120268",
             role: "feature_role",

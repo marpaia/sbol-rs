@@ -1,0 +1,19 @@
+LOCUS       ORACLEJOIN              60 bp    DNA     linear       01-JAN-2026
+DEFINITION  clean multi-span fixture for BioPython feature-table parity.
+ACCESSION   ORACLEJOIN
+FEATURES             Location/Qualifiers
+     source          1..60
+                     /organism="synthetic construct"
+     CDS             join(1..6,16..24)
+                     /label="fwd_join"
+     gene            complement(30..42)
+                     /label="rev_gene"
+     CDS             complement(join(1..6,16..24))
+                     /label="rev_join"
+     CDS             join(complement(1..6),16..24)
+                     /label="mixed_join"
+     misc_feature    order(1..6,16..24)
+                     /label="ordered"
+ORIGIN
+        1 atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc atgcatgcat gcatgcatgc
+//

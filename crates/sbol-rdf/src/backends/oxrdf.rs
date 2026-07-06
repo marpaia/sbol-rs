@@ -10,13 +10,29 @@ use crate::error::{IriError, ParseError, WriteError};
 use crate::format::RdfFormat;
 use crate::terms::{BlankNode, Iri, Literal, Resource, Term, Triple, XSD_STRING};
 
+/// Base IRI for resolving relative references encountered while parsing. It is
+/// deliberately a synthetic, non-SBOL host so a resolved relative reference is
+/// recognizable as a document-local reference that carried no absolute IRI.
+const DEFAULT_BASE_IRI: &str = "http://sbols.org/unspecified/";
+
 pub(crate) enum Backend {}
 
 impl RdfBackend for Backend {
     fn parse(input: &str, format: RdfFormat) -> Result<Vec<Triple>, ParseError> {
         let mut triples = Vec::new();
 
-        for result in RdfParser::from_format(oxrdfio_format(format)).for_reader(input.as_bytes()) {
+        // Resolve relative IRIs against a base. SBOL documents that are not
+        // fully compliant (notably SBOLTestSuite fixtures whose `sbol:source`
+        // and `sbol:attachment` name a sibling file with a relative reference
+        // and declare no `xml:base`) otherwise fail to parse, because the RDF
+        // data model has no relative-IRI term. The base only affects relative
+        // references; absolute IRIs (every SBOL identity) pass through
+        // unchanged. N-Triples ignores the base per its grammar.
+        let parser = RdfParser::from_format(oxrdfio_format(format))
+            .with_base_iri(DEFAULT_BASE_IRI)
+            .expect("DEFAULT_BASE_IRI is a valid absolute IRI");
+
+        for result in parser.for_reader(input.as_bytes()) {
             let quad = result.map_err(ParseError::backend)?;
             if !matches!(quad.graph_name, GraphName::DefaultGraph) {
                 return Err(ParseError::NamedGraphInDefault);

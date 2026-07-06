@@ -9,8 +9,12 @@ to stdout for any reason.
 
 Invoked from inside the Docker container built by the sibling Dockerfile.
 
+The optional trailing ``validate`` flag (``1``/``0``) turns on a timed
+``sbol3.Document.validate()`` phase whose per-iteration timings are
+emitted under ``validate_ns``.
+
 Usage:
-    python3 bench.py <input> <parse_fmt> <serialize_fmt> <warmup> <iters> <output_json>
+    python3 bench.py <input> <parse_fmt> <serialize_fmt> <warmup> <iters> <output_json> [validate]
 """
 
 from __future__ import annotations
@@ -63,6 +67,7 @@ def main(argv: list[str]) -> int:
     warmup = int(argv[4])
     iters = int(argv[5])
     output_json = Path(argv[6])
+    validate = len(argv) > 7 and argv[7] == "1"
 
     parse_rdflib = FORMAT_TO_RDFLIB.get(parse_fmt)
     serialize_rdflib = FORMAT_TO_RDFLIB.get(serialize_fmt)
@@ -77,11 +82,14 @@ def main(argv: list[str]) -> int:
 
     parse_ns: list[int] = []
     serialize_ns: list[int] = []
+    validate_ns: list[int] = []
     last_bytes = 0
 
     for _ in range(warmup):
         doc = _parse_once(rdf_text, parse_rdflib)
         doc.write_string(file_format=serialize_rdflib)
+        if validate:
+            doc.validate()
 
     for _ in range(iters):
         t0 = time.perf_counter_ns()
@@ -92,23 +100,27 @@ def main(argv: list[str]) -> int:
         parse_ns.append(t1 - t0)
         serialize_ns.append(t2 - t1)
         last_bytes = len(serialized.encode("utf-8") if isinstance(serialized, str) else serialized)
+        if validate:
+            v0 = time.perf_counter_ns()
+            doc.validate()
+            v1 = time.perf_counter_ns()
+            validate_ns.append(v1 - v0)
 
-    output_json.write_text(
-        json.dumps(
-            {
-                "impl": "pysbol3",
-                "version": _pysbol3_version(),
-                "fixture": str(input_path),
-                "parse_format": parse_fmt,
-                "serialize_format": serialize_fmt,
-                "warmup_iters": warmup,
-                "measured_iters": iters,
-                "serialized_bytes": last_bytes,
-                "parse_ns": parse_ns,
-                "serialize_ns": serialize_ns,
-            }
-        )
-    )
+    result = {
+        "impl": "pysbol3",
+        "version": _pysbol3_version(),
+        "fixture": str(input_path),
+        "parse_format": parse_fmt,
+        "serialize_format": serialize_fmt,
+        "warmup_iters": warmup,
+        "measured_iters": iters,
+        "serialized_bytes": last_bytes,
+        "parse_ns": parse_ns,
+        "serialize_ns": serialize_ns,
+    }
+    if validate:
+        result["validate_ns"] = validate_ns
+    output_json.write_text(json.dumps(result))
     return 0
 
 

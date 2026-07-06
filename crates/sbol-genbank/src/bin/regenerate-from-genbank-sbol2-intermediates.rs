@@ -7,8 +7,8 @@
 //!   tests/fixtures/genbank/{name}.gb
 //!         │   sbol_genbank::GenbankImporter
 //!         ▼
-//!   sbol::Document  (SBOL 3)
-//!         │   document.downgrade_to_sbol2()
+//!   sbol3::Document  (SBOL 3)
+//!         │   sbol_convert::downgrade(&document)
 //!         ▼
 //!   sbol_rdf::Graph  (SBOL 2)
 //!         │   graph.write(RdfFormat::RdfXml)
@@ -20,7 +20,7 @@
 //! after intentional changes to either converter.
 //!
 //! Note: `pUC19.gbk` is intentionally NOT pulled into the SBOL 2
-//! upgrade conformance corpus — it's part of the GenBank import
+//! upgrade conformance corpus. It's part of the GenBank import
 //! conformance harness instead. Only the iGEM `.gb` fixtures
 //! participate in the upgrade harness, because they were originally
 //! committed there for that purpose.
@@ -28,8 +28,8 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-use sbol::RdfFormat;
 use sbol_genbank::GenbankImporter;
+use sbol3::RdfFormat;
 
 const FIXTURES: &[&str] = &["BBa_B0034", "BBa_E0040", "BBa_F2620", "BBa_R0010"];
 
@@ -75,7 +75,7 @@ fn main() -> ExitCode {
                 continue;
             }
         };
-        let (sbol2_graph, _dreport) = match document.downgrade_to_sbol2() {
+        let (sbol2_graph, _dreport) = match sbol_convert::downgrade(&document) {
             Ok(pair) => pair,
             Err(err) => {
                 eprintln!("[FAIL] {name}: downgrade: {err}");

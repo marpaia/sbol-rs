@@ -1,4 +1,4 @@
-//! SARIF v2.1.0 emitter for [`sbol::ValidationReport`]. Maps each
+//! SARIF v2.1.0 emitter for [`sbol::v3::ValidationReport`]. Maps each
 //! validation issue to a SARIF `result` and exposes the catalog as
 //! `runs[].tool.driver.rules[]`. Coverage metadata round-trips through
 //! `runs[].invocations[0].properties.coverage` so SARIF consumers that
@@ -7,7 +7,7 @@
 
 use std::path::Path;
 
-use sbol::{
+use sbol::v3::{
     Blocker, CoverageKind, NotAppliedReason, RuleStatus, Severity, ValidationIssue,
     ValidationReport, validation_rule_statuses,
 };
@@ -177,7 +177,6 @@ fn blocker_label(blocker: Blocker) -> &'static str {
         Blocker::StrictDatatype => "StrictDatatype",
         Blocker::Policy => "Policy",
         Blocker::External => "External",
-        _ => "Unknown",
     }
 }
 

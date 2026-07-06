@@ -4,7 +4,7 @@
 //! committed `.fasta` / `.fa` / `.fna` / `.faa` file under
 //! `tests/fixtures/fasta/`. Diffing against these snapshots is the
 //! critical conformance gate for the `sbol-fasta` importer. The
-//! whole regen runs in pure Rust — no Docker, no Python, no Node.
+//! whole regen runs in pure Rust: no Docker, no Python, no Node.
 //!
 //! Usage:
 //!
@@ -15,8 +15,8 @@
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use sbol::{Resource, Term, Triple};
 use sbol_fasta::FastaImporter;
+use sbol3::{Resource, Term, Triple};
 
 fn workspace_root() -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));

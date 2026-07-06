@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:sbol="http://sbols.org/v2#"
+         xmlns:biopax="http://www.biopax.org/release/biopax-level3.owl#">
+  <sbol:ComponentDefinition rdf:about="https://example.org/lab/J23100/1">
+    <sbol:persistentIdentity rdf:resource="https://example.org/lab/J23100"/>
+    <sbol:displayId>J23100</sbol:displayId>
+    <sbol:version>1</sbol:version>
+    <sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#Dna"/>
+    <sbol:role rdf:resource="https://identifiers.org/SO:0000167"/>
+    <sbol:sequence rdf:resource="https://example.org/lab/J23100_seq/1"/>
+  </sbol:ComponentDefinition>
+  <sbol:Sequence rdf:about="https://example.org/lab/J23100_seq/1">
+    <sbol:persistentIdentity rdf:resource="https://example.org/lab/J23100_seq"/>
+    <sbol:displayId>J23100_seq</sbol:displayId>
+    <sbol:version>1</sbol:version>
+    <sbol:elements>ttgacggctagctcagtcctaggtacagtgctagc</sbol:elements>
+    <sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/>
+  </sbol:Sequence>
+</rdf:RDF>

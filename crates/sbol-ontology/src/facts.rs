@@ -34,7 +34,7 @@ impl Ontology {
     }
 
     /// Merges `other` into `self`. The current snapshot wins on every duplicate
-    /// term, alias, or compatibility row — extensions can add new facts but
+    /// term, alias, or compatibility row. Extensions can add new facts but
     /// cannot rewrite bundled ones. Provenance from `other` is appended.
     pub fn extend_with(&mut self, other: Ontology) {
         for (id, fact) in other.terms {

@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use std::path::Path;
 use std::process::ExitCode;
 
-use sbol::RdfFormat;
+use sbol::v3::RdfFormat;
 
 use crate::cli::{ImportFastaArgs, ImportGenbankArgs};
 use crate::output::format_issue;
@@ -90,7 +90,7 @@ pub(crate) fn import_genbank(args: ImportGenbankArgs, styles: Styles) -> ExitCod
         return ExitCode::from(2);
     }
 
-    // Always print the import summary to stderr — it's the user's
+    // Always print the import summary to stderr. It's the user's
     // signal that the conversion actually picked up the right number of
     // Components, Sequences, and Features. Mirrors the `sbol upgrade`
     // summary line.

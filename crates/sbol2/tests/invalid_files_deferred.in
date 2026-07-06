@@ -1,0 +1,81 @@
+// Rule ids whose dedicated `InvalidFiles/sbol-NNNNN.xml` corpus fixture the
+// validator does not reject as an *error* under the all-flags-on config. Every
+// machine-checkable rule additionally has a hermetic, firing negative fixture
+// in `tests/rule_cases/`; this list tracks only the downloaded corpus fixtures
+// that the strict error-match does not cover, and why. Each entry is one of:
+//
+//   - SHOULD-level best practice: the rule runs but emits at warning severity,
+//     so the corpus fixture is not an error-match. The conformance suite
+//     asserts these against the SBOL2_bp corpus as warnings. Covers 10302,
+//     10407, 10511, 10518, 10520, 10523, 10525, 10527, 10528, 10529, 10706,
+//     10707, 10711, 10712, 10903, 11412, 11507, 11511, 11905, 11907, 12007,
+//     12408, 12909, 12910, 12911, 12912, 12913, 13006, 13018, 13019, 13020,
+//     13021, 13022, 13206, 13505.
+//
+//   - MachineUncheckable (▲): the rule requires cross-document resolution and
+//     is catalogued MachineUncheckable, so it never emits. Covers the MapsTo
+//     remote-resolution rules 10808, 10809, 10811 and the cross-document
+//     CombinatorialDerivation rules 12908, 13005, 13011, 13016, 13017.
+//
+//   - Reader-scope: 10106 requires the reader to retain declared XML namespace
+//     bindings (discarded after parsing); 12301 and 12303 require the reader to
+//     synthesize a GenericTopLevel from an unknown SBOL-namespace top-level
+//     type. These are reader changes outside the validator's scope.
+//
+//   - Corpus nuance: 10307 (the corpus fixture's attachment reference is not
+//     the local-completeness shape the validator rejects) and 13012 (the corpus
+//     fixture exercises the cross-document variantDerivation portion). Both
+//     have firing hermetic negatives in `tests/rule_cases/`.
+//
+// Kept explicit so the strict/loose match set is auditable and shrinks as
+// reader and resolver support grows.
+[
+    "sbol2-10106",
+    "sbol2-10302",
+    "sbol2-10307",
+    "sbol2-10407",
+    "sbol2-10511",
+    "sbol2-10518",
+    "sbol2-10520",
+    "sbol2-10523",
+    "sbol2-10525",
+    "sbol2-10527",
+    "sbol2-10528",
+    "sbol2-10529",
+    "sbol2-10706",
+    "sbol2-10707",
+    "sbol2-10711",
+    "sbol2-10712",
+    "sbol2-10808",
+    "sbol2-10809",
+    "sbol2-10811",
+    "sbol2-10903",
+    "sbol2-11412",
+    "sbol2-11507",
+    "sbol2-11511",
+    "sbol2-11905",
+    "sbol2-11907",
+    "sbol2-12007",
+    "sbol2-12301",
+    "sbol2-12303",
+    "sbol2-12408",
+    "sbol2-12908",
+    "sbol2-12909",
+    "sbol2-12910",
+    "sbol2-12911",
+    "sbol2-12912",
+    "sbol2-12913",
+    "sbol2-13005",
+    "sbol2-13006",
+    "sbol2-13011",
+    "sbol2-13012",
+    "sbol2-13016",
+    "sbol2-13017",
+    "sbol2-13018",
+    "sbol2-13019",
+    "sbol2-13020",
+    "sbol2-13021",
+    "sbol2-13022",
+    "sbol2-13206",
+    "sbol2-13505",
+]

@@ -1,6 +1,6 @@
 # sbol-cli
 
-Command-line tool for SBOL 3 documents. Ships the `sbol` binary.
+Command-line tool for SBOL 2 and SBOL 3 documents. Ships the `sbol` binary.
 
 ```sh
 cargo install sbol-cli
@@ -10,7 +10,7 @@ Eight subcommands cover the common workflows:
 
 | Subcommand | Use it to… |
 |---|---|
-| `sbol validate` | Validate an SBOL 3 document against the spec |
+| `sbol validate` | Validate an SBOL 2 or SBOL 3 document against the spec |
 | `sbol convert` | Cross-serialize SBOL 3 between Turtle, RDF/XML, JSON-LD, N-Triples |
 | `sbol upgrade` | Convert SBOL 2 RDF (SynBioHub, iGEM, JBEI) to SBOL 3 |
 | `sbol downgrade` | Convert SBOL 3 back to SBOL 2 for legacy tools |
@@ -25,18 +25,41 @@ this README focuses on the CLI surface itself.
 
 ## `sbol validate`
 
-Validate an SBOL 3 document. The serialization format is inferred from the
-file extension: `.ttl` (Turtle), `.rdf` (RDF/XML), `.jsonld` (JSON-LD), or
-`.nt` (N-Triples):
+Validate an SBOL 2 or SBOL 3 document. The serialization format is inferred
+from the file extension: `.ttl` (Turtle), `.rdf` / `.xml` (RDF/XML),
+`.jsonld` (JSON-LD), or `.nt` (N-Triples). The SBOL version is detected from
+the document's RDF namespaces and dispatched to the matching validator:
 
 ```sh
-sbol validate design.ttl
+sbol validate design.ttl                 # auto-detect SBOL 2 vs SBOL 3
 sbol validate design.rdf --format json --treat-partial-as-errors
 sbol validate design.rdf --allow sbol3-10502 --deny sbol3-12807
+sbol validate legacy.xml --sbol-version 2 --best-practice
 ```
+
+Pass `--sbol-version {auto|2|3}` (default `auto`) to force a validator when
+detection is ambiguous. The report format, exit codes, and `--allow` /
+`--deny` / `--warn` per-rule overrides are shared across both versions.
+
+The validation-family flags select which rule families run:
+
+| Flag | Effect |
+| ---- | ---- |
+| `--incomplete` | Skip the completeness family (references may point outside the document) |
+| `--complete` | Force the completeness family on |
+| `--non-compliant` | Skip the compliant-URI structural family |
+| `--best-practice` | Run the SHOULD-level best-practice family (default on for SBOL 3, off for SBOL 2) |
+| `--no-best-practices` | Skip the best-practice family and report only MUST violations |
+| `--types-in-uri` | Interpret compliant URIs as carrying an optional type segment |
 
 Pass `--treat-warnings-as-errors` to make `sbol validate` exit `1` on
 warnings as well as errors.
+
+The resolver and external-resolution flags (`--external-mode`,
+`--resolve-documents`, `--resolve-content`, `--cache-dir`), the severity
+floor/ceiling flags, and `--ontology` apply to the SBOL 3 validator only.
+Passing them alongside an SBOL 2 document prints a warning and the flag is
+ignored.
 
 Exit codes:
 
@@ -61,7 +84,7 @@ sbol convert design.ttl --to ntriples > design.nt
 ## `sbol upgrade`
 
 Convert an SBOL 2 RDF document to SBOL 3. Most published synbio content
-predates SBOL 3 — SynBioHub serves SBOL 2 by default, iGEM Registry parts
+predates SBOL 3: SynBioHub serves SBOL 2 by default, iGEM Registry parts
 ship as SBOL 2, JBEI ICE exports SBOL 2. Upgrade once on ingest and use
 the modern toolchain:
 
@@ -86,13 +109,13 @@ Notable flags:
   folds the result into the exit code.
 - `--strict` exits `1` if any conversion warnings were produced.
 
-The full conversion model — what the upgrade preserves, what it can't,
-what triggers warnings — is documented in
+The full conversion model (what the upgrade preserves, what it can't,
+what triggers warnings) is documented in
 [docs/conversion.md](https://github.com/marpaia/sbol-rs/blob/master/docs/conversion.md).
 
 ## `sbol downgrade`
 
-Convert an SBOL 3 RDF document back to SBOL 2 — for publishing to
+Convert an SBOL 3 RDF document back to SBOL 2, for publishing to
 SynBioHub, libSBOLj2, pySBOL2, or any other tool that hasn't migrated.
 
 ```sh
@@ -104,7 +127,7 @@ The downgrade is the inverse of `sbol upgrade`. Documents that came
 through `sbol upgrade` round-trip with near-zero loss because the
 upgrade preserves SBOL 2 identities and types under a
 `http://sboltools.org/backport#` namespace; the downgrade reads those
-triples back. Native SBOL 3 documents lose more — see
+triples back. Native SBOL 3 documents lose more; see
 [docs/conversion.md](https://github.com/marpaia/sbol-rs/blob/master/docs/conversion.md)
 for the loss model.
 
@@ -116,11 +139,12 @@ Notable flags:
   to match the SynBioHub / libSBOLj convention.
 - `--from <FORMAT>` overrides input-format inference (useful for SBOL 3
   RDF/XML files with `.xml` or non-standard extensions).
-- `--validate` — unusual semantics: there is no SBOL 2 schema validator
-  in this workspace, so `--validate` instead round-trips the produced
-  SBOL 2 back through `sbol upgrade` and validates the resulting SBOL 3.
-  If the round-trip succeeds and the resulting document validates, the
-  SBOL 2 is structurally sound for any downstream consumer.
+- `--validate` round-trips the produced SBOL 2 back through
+  `sbol upgrade` and validates the resulting SBOL 3, checking that the
+  downgrade preserved the design losslessly. (To validate an SBOL 2
+  document directly against the SBOL 2 spec, use `sbol validate`.) If the
+  round-trip succeeds and the resulting document validates, the SBOL 2 is
+  structurally sound for any downstream consumer.
 - `--strict` exits `1` if any downgrade warnings were produced
   (`DualRoleComponent` splits, `OrphanComponentReference` drops, etc.).
 
@@ -135,7 +159,7 @@ sbol import-genbank pBR322.gb \
     --output pBR322.ttl
 ```
 
-`--namespace` is required because GenBank carries no IRI concept — you
+`--namespace` is required because GenBank carries no IRI concept: you
 supply the namespace under which the SBOL 3 top-levels will be rooted.
 
 Each GenBank feature becomes an SBOL 3 SequenceFeature; coordinates
@@ -174,10 +198,12 @@ would otherwise be misclassified as DNA.
 Dump the built-in validation rule catalog so you know what `--allow` /
 `--deny` / `--warn` can target. Output is tab-separated with a header
 row; pass `--format json` for machine consumption, or `--status` to
-filter:
+filter. The listing defaults to the SBOL 3 catalog; pass
+`--sbol-version 2` for the SBOL 2 catalog:
 
 ```sh
 sbol rules list
+sbol rules list --sbol-version 2
 sbol rules list --format json
 sbol rules list --status error
 ```

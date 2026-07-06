@@ -1,7 +1,7 @@
 //! Convert GenBank flat-file records to SBOL 3 documents.
 //!
 //! GenBank is the de facto exchange format for plasmids, genes, and
-//! parts in molecular biology — SnapGene, ApE, Benchling, the NCBI
+//! parts in molecular biology: SnapGene, ApE, Benchling, the NCBI
 //! Nucleotide database, and SynBioHub all speak it natively. This crate
 //! lets `sbol-rs` ingest that data without leaving Rust.
 //!
@@ -27,10 +27,10 @@
 //! # }
 //! ```
 //!
-//! [`Component`]: sbol::Component
-//! [`Sequence`]: sbol::Sequence
-//! [`SequenceFeature`]: sbol::SequenceFeature
-//! [`Range`]: sbol::Range
+//! [`Component`]: sbol3::Component
+//! [`Sequence`]: sbol3::Sequence
+//! [`SequenceFeature`]: sbol3::SequenceFeature
+//! [`Range`]: sbol3::Range
 
 #![forbid(unsafe_code)]
 

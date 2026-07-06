@@ -7,7 +7,7 @@
 //! - **RNA** if any character is `U` or `u`.
 //! - **Protein** if any character is one of the protein-only letters
 //!   (`E F I L P Q Z` and their lowercase variants).
-//! - **DNA** otherwise (the default — this covers the ambiguous case
+//! - **DNA** otherwise (the default; this covers the ambiguous case
 //!   of sequences that happen to use only the letters `A C G T`,
 //!   which are also valid protein letters but overwhelmingly mean
 //!   DNA in practice).

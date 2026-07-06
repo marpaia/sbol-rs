@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:sbol="http://sbols.org/v3#"
+>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/exp1">
+    <sbol:displayId>exp1</sbol:displayId>
+    <rdf:type rdf:resource="http://sbols.org/v3#Experiment"/>
+    <sbol:hasNamespace rdf:resource="https://sbolstandard.org/examples"/>
+    <sbol:member rdf:resource="https://sbolstandard.org/examples/attachment2"/>
+    <sbol:member rdf:resource="https://sbolstandard.org/examples/attachment1"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/attachment1">
+    <sbol:displayId>attachment1</sbol:displayId>
+    <rdf:type rdf:resource="http://sbols.org/v3#Attachment"/>
+    <sbol:hasNamespace rdf:resource="https://sbolstandard.org/examples"/>
+    <sbol:source rdf:resource="https://sbolstandard.org/attachment1"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/attachment2">
+    <sbol:displayId>attachment2</sbol:displayId>
+    <rdf:type rdf:resource="http://sbols.org/v3#Attachment"/>
+    <sbol:hasNamespace rdf:resource="https://sbolstandard.org/examples"/>
+    <sbol:source rdf:resource="https://sbolstandard.org/attachment2"/>
+  </rdf:Description>
+</rdf:RDF>

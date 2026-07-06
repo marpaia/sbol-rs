@@ -1,0 +1,60 @@
+@prefix : <https://synbiohub.org/public/igem/> .
+@prefix SBO: <https://identifiers.org/SBO:> .
+@prefix SO: <https://identifiers.org/SO:> .
+@prefix sbol: <http://sbols.org/v3#> .
+
+:interlab16device1 a sbol:Component ;
+    sbol:displayId "interlab16device1" ;
+    sbol:hasConstraint <https://synbiohub.org/public/igem/interlab16device1/Constraint1> ;
+    sbol:hasFeature <https://synbiohub.org/public/igem/interlab16device1/ComponentReference1>,
+        <https://synbiohub.org/public/igem/interlab16device1/SubComponent1>,
+        <https://synbiohub.org/public/igem/interlab16device1/SubComponent2> ;
+    sbol:hasNamespace <https://synbiohub.org/public/igem> ;
+    sbol:role SO:0000704 ;
+    sbol:type SBO:0000251 .
+
+:i13504 a sbol:Component ;
+    sbol:description "Screening plasmid intermediate" ;
+    sbol:displayId "i13504" ;
+    sbol:hasNamespace <https://synbiohub.org/public/igem> ;
+    sbol:name "i13504" ;
+    sbol:role SO:0000704 ;
+    sbol:type SBO:0000251 .
+
+:i13504_system a sbol:Component ;
+    sbol:displayId "i13504_system" ;
+    sbol:hasFeature <https://synbiohub.org/public/igem/i13504_system/SubComponent1> ;
+    sbol:hasNamespace <https://synbiohub.org/public/igem> ;
+    sbol:name "i13504 system" ;
+    sbol:role SBO:0000289 ;
+    sbol:type SBO:0000241 .
+
+<https://synbiohub.org/public/igem/interlab16device1/Constraint1> a sbol:Constraint ;
+    sbol:displayId "Constraint1" ;
+    sbol:object <https://synbiohub.org/public/igem/interlab16device1/ComponentReference1> ;
+    sbol:restriction sbol:meets ;
+    sbol:subject <https://synbiohub.org/public/igem/interlab16device1/SubComponent2> .
+
+:j23101 a sbol:Component ;
+    sbol:displayId "j23101" ;
+    sbol:hasNamespace <https://synbiohub.org/public/igem> ;
+    sbol:role SO:0000704 ;
+    sbol:type SBO:0000251 .
+
+<https://synbiohub.org/public/igem/i13504_system/SubComponent1> a sbol:SubComponent ;
+    sbol:displayId "SubComponent1" ;
+    sbol:instanceOf :i13504 .
+
+<https://synbiohub.org/public/igem/interlab16device1/ComponentReference1> a sbol:ComponentReference ;
+    sbol:displayId "ComponentReference1" ;
+    sbol:inChildOf <https://synbiohub.org/public/igem/interlab16device1/SubComponent1> ;
+    sbol:refersTo <https://synbiohub.org/public/igem/i13504_system/SubComponent1> .
+
+<https://synbiohub.org/public/igem/interlab16device1/SubComponent1> a sbol:SubComponent ;
+    sbol:displayId "SubComponent1" ;
+    sbol:instanceOf :i13504_system .
+
+<https://synbiohub.org/public/igem/interlab16device1/SubComponent2> a sbol:SubComponent ;
+    sbol:displayId "SubComponent2" ;
+    sbol:instanceOf :j23101 .
+

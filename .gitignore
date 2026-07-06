@@ -1,5 +1,9 @@
 /target
 /tests/fixtures/sbol3/
+/tests/fixtures/sbol2/SBOLTestSuite/
+/tests/fixtures/sbol2/.download/
+/tests/fixtures/sbol2/.sbol2-fixture-cache-version
+/tests/fixtures/sbol2/.sbol2-fixture-lock/
 __pycache__/
 *.pyc
 .env

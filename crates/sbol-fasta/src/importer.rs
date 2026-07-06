@@ -5,9 +5,9 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
 
-use sbol::SbolObject;
-use sbol::constants::{EDAM_IUPAC_DNA, EDAM_IUPAC_PROTEIN, SBO_DNA, SBO_PROTEIN, SBO_RNA};
-use sbol::{BuildError, Component, Document, Iri, Sequence as SbolSequence};
+use sbol3::SbolObject;
+use sbol3::constants::{EDAM_IUPAC_DNA, EDAM_IUPAC_PROTEIN, SBO_DNA, SBO_PROTEIN, SBO_RNA};
+use sbol3::{BuildError, Component, Document, Iri, Sequence as SbolSequence};
 
 use crate::alphabet::Alphabet;
 use crate::parser::{Record, parse_records};
@@ -15,7 +15,7 @@ use crate::parser::{Record, parse_records};
 /// Imports FASTA records and emits SBOL 3 [`Document`]s.
 ///
 /// `FastaImporter::new` takes the namespace IRI that the resulting
-/// SBOL 3 top-level objects will be rooted under — typically the
+/// SBOL 3 top-level objects will be rooted under, typically the
 /// owning lab or repository (e.g. `https://example.org/lab`).
 /// Component identities are derived as `{namespace}/{record-id}`.
 ///
@@ -85,8 +85,8 @@ impl FastaImporter {
         Ok((document, report))
     }
 
-    /// Reads from a file on disk (`.fasta` / `.fa` / `.fna` / `.faa`
-    /// — the importer doesn't actually care about the extension).
+    /// Reads from a file on disk (`.fasta` / `.fa` / `.fna` / `.faa`;
+    /// the importer doesn't actually care about the extension).
     pub fn read_path(
         &self,
         path: impl AsRef<Path>,

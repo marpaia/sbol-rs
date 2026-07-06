@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+   xmlns:igem="http://parts.igem.org/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:sbol="http://sbols.org/v3#"
+>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/SynBioHubRepository">
+    <sbol:displayId>SynBioHubRepository</sbol:displayId>
+    <sbol:name>SynBioHub</sbol:name>
+    <rdf:type rdf:resource="http://parts.igem.org/Repository"/>
+    <rdf:type rdf:resource="http://sbols.org/v3#TopLevel"/>
+    <sbol:hasNamespace rdf:resource="https://sbolstandard.org/examples"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/BBa_J23119/information1">
+    <sbol:displayId>information1</sbol:displayId>
+    <sbol:name>BBa_J23119_experience</sbol:name>
+    <sbol:description>The experience page captures users' experience using the BBa_J23119 part</sbol:description>
+    <rdf:type rdf:resource="http://parts.igem.org/Information"/>
+    <rdf:type rdf:resource="http://sbols.org/v3#Identified"/>
+    <igem:regulation>//regulation/constitutive</igem:regulation>
+    <igem:regulation>//regulation/second_regulation</igem:regulation>
+    <igem:sigmaFactor>//rnap/prokaryote/ecoli/sigma70</igem:sigmaFactor>
+    <igem:source rdf:resource="https://sbolstandard.org/examples/BBa_J23119"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/iGEMRepository">
+    <sbol:displayId>iGEMRepository</sbol:displayId>
+    <sbol:name>iGEM Registry</sbol:name>
+    <sbol:description>Registry of Standard Biological Parts</sbol:description>
+    <rdf:type rdf:resource="http://parts.igem.org/Repository"/>
+    <rdf:type rdf:resource="http://sbols.org/v3#TopLevel"/>
+    <sbol:hasNamespace rdf:resource="https://sbolstandard.org/examples"/>
+    <igem:website rdf:resource="http://parts.igem.org/Main_Page"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/BBa_J23119">
+    <sbol:displayId>BBa_J23119</sbol:displayId>
+    <sbol:name>BBa_J23119 part</sbol:name>
+    <sbol:description>Parts J23100 through J23119 are a family of constitutive promoter parts isolated from a small combinatorial library.</sbol:description>
+    <rdf:type rdf:resource="http://sbols.org/v3#Component"/>
+    <sbol:hasNamespace rdf:resource="https://sbolstandard.org/examples"/>
+    <sbol:type rdf:resource="https://identifiers.org/SBO:0000251"/>
+    <sbol:role rdf:resource="https://identifiers.org/SO:0000167"/>
+    <igem:group>iGEM2006_Berkeley</igem:group>
+    <igem:hasUsage rdf:resource="https://sbolstandard.org/examples/BBa_J23119/usage2"/>
+    <igem:hasUsage rdf:resource="https://sbolstandard.org/examples/BBa_J23119/usage1"/>
+    <igem:hasUsage rdf:resource="https://sbolstandard.org/examples/BBa_J23119/usage3"/>
+    <igem:hasInformation rdf:resource="https://sbolstandard.org/examples/BBa_J23119/information1"/>
+    <igem:hasInformation rdf:resource="https://sbolstandard.org/examples/BBa_J23119/information3"/>
+    <igem:hasInformation rdf:resource="https://sbolstandard.org/examples/BBa_J23119/information2"/>
+    <igem:belongsTo rdf:resource="https://sbolstandard.org/examples/iGEMRepository"/>
+    <igem:belongsTo rdf:resource="https://sbolstandard.org/examples/SynBioHubRepository"/>
+    <igem:experienceURL rdf:resource="http://parts.igem.org/Part:BBa_J23119:Experience"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/BBa_J23119/usage1">
+    <sbol:displayId>usage1</sbol:displayId>
+    <sbol:name>BBa_J23119_usage</sbol:name>
+    <sbol:description>BBa_J23119 usage statistics</sbol:description>
+    <rdf:type rdf:resource="http://parts.igem.org/iGEMUsage"/>
+    <rdf:type rdf:resource="http://sbols.org/v3#Identified"/>
+    <igem:twinURLs rdf:resource="https://sbolstandard.org/examples/BBa_J23119/usage1/twinParts"/>
+    <igem:registryStar>1</igem:registryStar>
+    <igem:uses>442</igem:uses>
+    <igem:twins>7</igem:twins>
+    <igem:inStock>true</igem:inStock>
+    <igem:uses2 rdf:datatype="http://www.w3.org/2001/XMLSchema#int">442</igem:uses2>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/BBa_J23119/usage2">
+    <sbol:displayId>usage2</sbol:displayId>
+    <sbol:name>BBa_J23119_usage_2</sbol:name>
+    <rdf:type rdf:resource="http://parts.igem.org/A_iGEMUsage"/>
+    <rdf:type rdf:resource="http://sbols.org/v3#Identified"/>
+    <igem:twins>7</igem:twins>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/BBa_J23119/usage1/twinParts">
+    <sbol:displayId>twinParts</sbol:displayId>
+    <sbol:name>twin parts</sbol:name>
+    <rdf:type rdf:resource="http://parts.igem.org/TwinPartUsage"/>
+    <rdf:type rdf:resource="http://sbols.org/v3#Identified"/>
+    <igem:twinURL rdf:resource="http://parts.igem.org/wiki/index.php?title=Part:BBa_J72073"/>
+    <igem:twinURL rdf:resource="http://parts.igem.org/wiki/index.php?title=Part:BBa_M36800"/>
+    <igem:twinURL rdf:resource="http://parts.igem.org/wiki/index.php?title=Part:BBa_M1638"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/BBa_J23119/usage3">
+    <sbol:displayId>usage3</sbol:displayId>
+    <sbol:name>BBa_J23119_usage_3</sbol:name>
+    <rdf:type rdf:resource="http://parts.igem.org/Z_iGEMUsage"/>
+    <rdf:type rdf:resource="http://sbols.org/v3#Identified"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/BBa_J23119/information3">
+    <sbol:displayId>information3</sbol:displayId>
+    <sbol:name>BBa_J23119_experience3</sbol:name>
+    <rdf:type rdf:resource="http://parts.igem.org/Z_Information"/>
+    <rdf:type rdf:resource="http://sbols.org/v3#Identified"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://sbolstandard.org/examples/BBa_J23119/information2">
+    <sbol:displayId>information2</sbol:displayId>
+    <sbol:name>BBa_J23119_experience2</sbol:name>
+    <rdf:type rdf:resource="http://parts.igem.org/A_Information"/>
+    <rdf:type rdf:resource="http://sbols.org/v3#Identified"/>
+  </rdf:Description>
+</rdf:RDF>

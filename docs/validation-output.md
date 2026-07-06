@@ -6,10 +6,10 @@ stable from version 1 onward: breaking field renames or removals bump the
 top-level `schema_version` integer; additive fields (new optional field,
 new enum variant in a `properties` map) do not.
 
-Hand-written by `crates/sbol/src/validation/output.rs` to keep the core
+Hand-written by `crates/sbol3/src/validation/output.rs` to keep the core
 crate free of `serde_json` in its public dependency tree. Round-tripped
 through `serde_json` under `[dev-dependencies]` in
-`crates/sbol/tests/validation_output.rs`.
+`crates/sbol3/tests/validation_output.rs`.
 
 ## Top-level shape
 

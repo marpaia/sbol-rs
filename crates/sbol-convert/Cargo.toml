@@ -1,0 +1,31 @@
+[package]
+name = "sbol-convert"
+version = "0.2.1"
+edition.workspace = true
+rust-version.workspace = true
+description = "SBOL version conversion (SBOL 2 ⇄ SBOL 3) for the sbol-rs ecosystem."
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/sbol-convert"
+license.workspace = true
+readme = "../../README.md"
+keywords = ["sbol", "synthetic-biology", "rdf"]
+categories = ["science", "parser-implementations"]
+exclude = ["tests/", "src/bin/"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+sbol3.workspace = true
+sbol-core.workspace = true
+sbol-rdf.workspace = true
+ureq = { workspace = true, optional = true }
+
+[features]
+http-resolver = ["dep:ureq", "sbol3/http-resolver"]
+
+[[example]]
+name = "synbiohub_upgrade"
+required-features = ["http-resolver"]

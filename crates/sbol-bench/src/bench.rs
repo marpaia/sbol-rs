@@ -9,11 +9,12 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Instant;
 
-use sbol::{Document, RdfFormat};
+use sbol::v3::RdfFormat;
+use sbol::{v2, v3};
 use serde::Deserialize;
 
 use crate::cli::Config;
-use crate::matrix::{BenchCase, Fixture};
+use crate::matrix::{BenchCase, Fixture, Version};
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct BenchSamples {
@@ -21,6 +22,11 @@ pub(crate) struct BenchSamples {
     pub(crate) version: Option<String>,
     pub(crate) parse_ns: Vec<u64>,
     pub(crate) serialize_ns: Vec<u64>,
+    // Per-iteration validation timings. Empty for cases that don't run
+    // the validation phase (every conversion row, plus sboljs, which
+    // ships no validator).
+    #[serde(default)]
+    pub(crate) validate_ns: Vec<u64>,
     #[serde(default)]
     pub(crate) serialized_bytes: u64,
 }
@@ -28,13 +34,16 @@ pub(crate) struct BenchSamples {
 // Deserialization surface for whatever the bench scripts emit. The
 // `impl` field is read by serde to ignore it (we already know which
 // implementation produced the JSON from the case we dispatched);
-// `version` is what shows up in the report.
+// `version` is what shows up in the report. `validate_ns` is absent
+// unless the driver ran the validation phase.
 #[derive(Deserialize)]
 pub(crate) struct ForeignSamples {
     #[serde(default)]
     pub(crate) version: Option<String>,
     pub(crate) parse_ns: Vec<u64>,
     pub(crate) serialize_ns: Vec<u64>,
+    #[serde(default)]
+    pub(crate) validate_ns: Vec<u64>,
     #[serde(default)]
     pub(crate) serialized_bytes: u64,
 }
@@ -62,10 +71,23 @@ pub(crate) fn prepare_fixture_in_every_format(
     workspace_root: &Path,
     scratch_root: &Path,
     stem: &str,
+    version: Version,
+) -> Result<BTreeMap<RdfFormat, PathBuf>, String> {
+    match version {
+        Version::Sbol3 => prepare_sbol3_fixture(source, workspace_root, scratch_root, stem),
+        Version::Sbol2 => prepare_sbol2_fixture(source, scratch_root, stem),
+    }
+}
+
+fn prepare_sbol3_fixture(
+    source: &Path,
+    workspace_root: &Path,
+    scratch_root: &Path,
+    stem: &str,
 ) -> Result<BTreeMap<RdfFormat, PathBuf>, String> {
     let source_text = fs::read_to_string(source)
         .map_err(|error| format!("read {}: {error}", source.display()))?;
-    let document = Document::read_turtle(&source_text)
+    let document = v3::Document::read_turtle(&source_text)
         .map_err(|error| format!("parse {}: {error}", source.display()))?;
 
     let mut paths = BTreeMap::new();
@@ -109,7 +131,55 @@ pub(crate) fn prepare_fixture_in_every_format(
     Ok(paths)
 }
 
+fn prepare_sbol2_fixture(
+    source: &Path,
+    scratch_root: &Path,
+    stem: &str,
+) -> Result<BTreeMap<RdfFormat, PathBuf>, String> {
+    // SBOL 2 is exchanged as RDF/XML, and the source fixtures are the
+    // RDF/XML files the test suite and SynBioHub ship. sbol-rs reads
+    // that RDF/XML and re-emits Turtle, JSON-LD, and N-Triples so every
+    // impl sees identical bytes per format. The RDF/XML input row uses
+    // the source file verbatim: it is standard prefix-style RDF/XML
+    // that libSBOLj parses natively, so no reference re-emit is needed.
+    let source_text = fs::read_to_string(source)
+        .map_err(|error| format!("read {}: {error}", source.display()))?;
+    let document = v2::Document::read(&source_text, RdfFormat::RdfXml)
+        .map_err(|error| format!("parse {}: {error}", source.display()))?;
+
+    let mut paths = BTreeMap::new();
+    for &format in RdfFormat::ALL {
+        let output_path = scratch_root.join(format!("{stem}.{}", format.extension()));
+        let serialized = if matches!(format, RdfFormat::RdfXml) {
+            source_text.clone()
+        } else {
+            document
+                .write(format)
+                .map_err(|error| format!("serialize {} as {format}: {error}", source.display()))?
+        };
+        fs::write(&output_path, &serialized).map_err(|error| {
+            format!(
+                "write pre-converted fixture {}: {error}",
+                output_path.display()
+            )
+        })?;
+        paths.insert(format, output_path);
+    }
+    Ok(paths)
+}
+
 pub(crate) fn run_native(
+    input_path: &Path,
+    case: BenchCase,
+    config: &Config,
+) -> Result<BenchSamples, String> {
+    match case.version {
+        Version::Sbol3 => run_native_sbol3(input_path, case, config),
+        Version::Sbol2 => run_native_sbol2(input_path, case, config),
+    }
+}
+
+fn run_native_sbol3(
     input_path: &Path,
     case: BenchCase,
     config: &Config,
@@ -118,19 +188,23 @@ pub(crate) fn run_native(
         .map_err(|error| format!("read {}: {error}", input_path.display()))?;
 
     for _ in 0..config.warmup {
-        let doc = Document::read(&rdf_text, case.parse_format)
+        let doc = v3::Document::read(&rdf_text, case.parse_format)
             .map_err(|error| format!("warmup parse: {error}"))?;
         let _ = doc
             .write(case.serialize_format)
             .map_err(|error| format!("warmup serialize: {error}"))?;
+        if case.validate {
+            let _ = doc.validate();
+        }
     }
 
     let mut parse_ns = Vec::with_capacity(config.iters);
     let mut serialize_ns = Vec::with_capacity(config.iters);
+    let mut validate_ns = Vec::with_capacity(if case.validate { config.iters } else { 0 });
     let mut last_bytes = 0u64;
     for _ in 0..config.iters {
         let t0 = Instant::now();
-        let doc = Document::read(&rdf_text, case.parse_format)
+        let doc = v3::Document::read(&rdf_text, case.parse_format)
             .map_err(|error| format!("measured parse: {error}"))?;
         let t1 = Instant::now();
         let out = doc
@@ -140,12 +214,73 @@ pub(crate) fn run_native(
         parse_ns.push(t1.duration_since(t0).as_nanos() as u64);
         serialize_ns.push(t2.duration_since(t1).as_nanos() as u64);
         last_bytes = out.len() as u64;
+
+        if case.validate {
+            let v0 = Instant::now();
+            let _ = doc.validate();
+            let v1 = Instant::now();
+            validate_ns.push(v1.duration_since(v0).as_nanos() as u64);
+        }
     }
 
     Ok(BenchSamples {
         version: Some(rust_impl_version().to_owned()),
         parse_ns,
         serialize_ns,
+        validate_ns,
+        serialized_bytes: last_bytes,
+    })
+}
+
+fn run_native_sbol2(
+    input_path: &Path,
+    case: BenchCase,
+    config: &Config,
+) -> Result<BenchSamples, String> {
+    let rdf_text = fs::read_to_string(input_path)
+        .map_err(|error| format!("read {}: {error}", input_path.display()))?;
+
+    for _ in 0..config.warmup {
+        let doc = v2::Document::read(&rdf_text, case.parse_format)
+            .map_err(|error| format!("warmup parse: {error}"))?;
+        let _ = doc
+            .write(case.serialize_format)
+            .map_err(|error| format!("warmup serialize: {error}"))?;
+        if case.validate {
+            let _ = doc.validate();
+        }
+    }
+
+    let mut parse_ns = Vec::with_capacity(config.iters);
+    let mut serialize_ns = Vec::with_capacity(config.iters);
+    let mut validate_ns = Vec::with_capacity(if case.validate { config.iters } else { 0 });
+    let mut last_bytes = 0u64;
+    for _ in 0..config.iters {
+        let t0 = Instant::now();
+        let doc = v2::Document::read(&rdf_text, case.parse_format)
+            .map_err(|error| format!("measured parse: {error}"))?;
+        let t1 = Instant::now();
+        let out = doc
+            .write(case.serialize_format)
+            .map_err(|error| format!("measured serialize: {error}"))?;
+        let t2 = Instant::now();
+        parse_ns.push(t1.duration_since(t0).as_nanos() as u64);
+        serialize_ns.push(t2.duration_since(t1).as_nanos() as u64);
+        last_bytes = out.len() as u64;
+
+        if case.validate {
+            let v0 = Instant::now();
+            let _ = doc.validate();
+            let v1 = Instant::now();
+            validate_ns.push(v1.duration_since(v0).as_nanos() as u64);
+        }
+    }
+
+    Ok(BenchSamples {
+        version: Some(rust_impl_version().to_owned()),
+        parse_ns,
+        serialize_ns,
+        validate_ns,
         serialized_bytes: last_bytes,
     })
 }
@@ -181,6 +316,15 @@ pub(crate) fn run_docker(
     let iters_arg = config.iters.to_string();
     let parse_arg = format_name(case.parse_format);
     let serialize_arg = format_name(case.serialize_format);
+    // Trailing positional flag telling the driver whether to run and
+    // time the validation phase. Drivers whose implementation has no
+    // validator ignore it; the harness only sets it on cases marked
+    // `validate` in the matrix.
+    let validate_arg = if case.validate { "1" } else { "0" };
+    // Trailing version argument. The sbol-rs runner dispatches to its
+    // SBOL 2 or SBOL 3 model on it; the version-specific foreign
+    // drivers ignore it.
+    let version_arg = case.version.id();
 
     let result = Command::new("docker")
         .args([
@@ -195,6 +339,8 @@ pub(crate) fn run_docker(
             &warmup_arg,
             &iters_arg,
             &container_output,
+            validate_arg,
+            version_arg,
         ])
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
@@ -216,10 +362,18 @@ pub(crate) fn run_docker(
             config.iters
         ));
     }
+    if case.validate && raw.validate_ns.len() != config.iters {
+        return Err(format!(
+            "bench marked for validation produced {} validate samples; expected {}",
+            raw.validate_ns.len(),
+            config.iters
+        ));
+    }
     Ok(BenchSamples {
         version: raw.version,
         parse_ns: raw.parse_ns,
         serialize_ns: raw.serialize_ns,
+        validate_ns: raw.validate_ns,
         serialized_bytes: raw.serialized_bytes,
     })
 }

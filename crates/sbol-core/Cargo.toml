@@ -1,0 +1,21 @@
+[package]
+name = "sbol-core"
+version = "0.2.1"
+edition.workspace = true
+rust-version.workspace = true
+description = "Version-neutral SBOL machinery shared by the sbol2 and sbol3 crates: field-metadata descriptors, the validation framework, identity/IRI utilities, and object/document scaffolding."
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/sbol-core"
+license.workspace = true
+readme = "README.md"
+keywords = ["sbol", "synthetic-biology", "rdf", "validation"]
+categories = ["science", "data-structures"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+sbol-rdf.workspace = true
+thiserror.workspace = true

@@ -1,9 +1,9 @@
 # sbol-genbank
 
-Pure-Rust GenBank → SBOL 3 importer for the `sbol-rs` ecosystem.
+Pure-Rust GenBank → SBOL 3 importer for the `sbol-rs` workspace.
 
 GenBank is the de facto exchange format for plasmids, parts, and genes
-in molecular biology — SnapGene, ApE, Benchling, and the NCBI Nucleotide
+in molecular biology: SnapGene, ApE, Benchling, and the NCBI Nucleotide
 database all emit `.gb` / `.gbk` files natively. This crate lets
 `sbol-rs` ingest that data without a Python or Node detour.
 

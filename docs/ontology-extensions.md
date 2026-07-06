@@ -72,7 +72,7 @@ bundled snapshot still wins on every conflict).
 ## Rust API
 
 ```rust
-use sbol::{Document, ValidationOptions};
+use sbol::v3::{Document, ValidationOptions};
 use sbol_ontology::{KnownOntology, OntologyCache};
 
 // Default cache path. Performs no IO.

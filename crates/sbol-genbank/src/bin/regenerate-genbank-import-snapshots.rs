@@ -3,7 +3,7 @@
 //! Writes `tests/fixtures/genbank/expected/{name}.nt` for every committed
 //! `.gb` / `.gbk` file under `tests/fixtures/genbank/`. Diffing against
 //! these snapshots is the critical conformance gate for the
-//! `sbol-genbank` importer. The whole regen runs in pure Rust — no
+//! `sbol-genbank` importer. The whole regen runs in pure Rust: no
 //! Docker, no Python, no Node.
 //!
 //! Usage:
@@ -15,8 +15,8 @@
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use sbol::{Resource, Term, Triple};
 use sbol_genbank::GenbankImporter;
+use sbol3::{Resource, Term, Triple};
 
 fn workspace_root() -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));

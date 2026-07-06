@@ -1,8 +1,8 @@
 # sbol-fasta
 
-Pure-Rust FASTA → SBOL 3 importer for the `sbol-rs` ecosystem.
+Pure-Rust FASTA → SBOL 3 importer for the `sbol-rs` workspace.
 
-FASTA is the lowest-common-denominator sequence exchange format —
+FASTA is the lowest-common-denominator sequence exchange format:
 NCBI BLAST, UniProt downloads, every genome project, and most
 bioinformatics tools either emit or accept it. This crate lets
 `sbol-rs` ingest that data with zero new transitive dependencies.
@@ -13,7 +13,7 @@ protein) and the sequence's EDAM encoding are auto-detected from the
 alphabet of the sequence itself; the detection can be overridden
 with `FastaImporter::with_alphabet` when the data is ambiguous.
 
-FASTA carries no feature annotations — what you get back is a
+FASTA carries no feature annotations: what you get back is a
 Component with no `SequenceFeature`s. For annotated data, use
 [`sbol-genbank`](../sbol-genbank/) instead.
 
@@ -60,7 +60,7 @@ Accepted extensions: `.fasta`, `.fa`, `.fna`, `.faa`.
 | Anything else | DNA |
 
 This handles the ambiguous case of FASTA files whose sequence is
-pure `A`/`C`/`G`/`T` — these are also valid protein letters, but in
+pure `A`/`C`/`G`/`T`: these are also valid protein letters, but in
 practice overwhelmingly mean DNA. Override with `--alphabet protein`
 on the CLI or `.with_alphabet(Alphabet::Protein)` in the SDK when
 the data is genuinely a peptide.

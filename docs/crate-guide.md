@@ -12,21 +12,29 @@ is shaped the way it is. Read the others when you need depth.
 
 ## Workspace layout
 
-Four published crates:
+`sbol-rs` implements both SBOL 2 and SBOL 3 on a shared version-neutral
+core.
 
 | Crate          | Purpose                                                                                  |
 | -------------- | ---------------------------------------------------------------------------------------- |
-| `sbol`         | Public API. Document, typed objects, builders, validation, reference resolution.         |
+| `sbol`         | Umbrella facade. Re-exports SBOL 3 as `sbol::v3` and conversion as `sbol::convert` by default, SBOL 2 as `sbol::v2` behind the `v2` feature; adds version detection and a version-neutral document handle. |
+| `sbol3`        | SBOL 3.1.0 typed data model, builders, RDF I/O, validation, reference resolution.        |
+| `sbol2`        | SBOL 2.3.0 typed data model, builders, RDF I/O, validation.                              |
+| `sbol-core`    | Version-neutral machinery both versions build on: field-metadata descriptors, identity newtypes, the RDF-backed document store, and the shared validation reporting / configuration / rule-status types. |
+| `sbol-convert` | SBOL 2 ⇄ SBOL 3 conversion at the triple level (`upgrade_from_sbol2`, `downgrade`).       |
+| `sbol-rulegen` | Generates each version's validation rule catalog from its `rules.toml` at build time.    |
 | `sbol-rdf`     | RDF primitives and multi-format I/O (Turtle, RDF/XML, JSON-LD, N-Triples).                |
 | `sbol-ontology`| Offline ontology facts (EDAM, SBO, SO, GO, ChEBI, CL) plus a runtime cache for opt-in extensions (NCIT, custom). See [`ontology-extensions.md`](ontology-extensions.md).|
-| `sbol-cli`     | Command-line validator. Ships the `sbol` binary.                                          |
+| `sbol-fasta` / `sbol-genbank` | FASTA and GenBank importers to native SBOL 3.                             |
+| `sbol-cli`     | Command-line tool for both versions. Ships the `sbol` binary.                            |
 
-Internally the `sbol` crate is split into private modules; only
-`constants`, `identity`, `prelude`, and `schema` are public modules.
-Everything else is re-exported at the crate root.
+Internally each version crate is split into private modules; on `sbol3`
+only `constants`, `identity`, `prelude`, and `schema` are public modules,
+and everything else is re-exported at the crate root. Most users depend
+on the `sbol` umbrella.
 
-The boundary between `sbol` and `sbol-rdf` is deliberate. SBOL code
-depends on owned RDF primitives (`Iri`, `Literal`, `Resource`,
+The boundary between the version crates and `sbol-rdf` is deliberate.
+SBOL code depends on owned RDF primitives (`Iri`, `Literal`, `Resource`,
 `Term`, `Triple`) and graph traits, not on the underlying parser
 implementation. Swapping parsers is a one-crate change.
 
@@ -69,10 +77,11 @@ their own:
 reference target's typed class is captured in the schema so the
 validator can check the IRI resolves to the right kind of object.
 
-The full schema lives in `crates/sbol/src/schema.rs` as
-`FieldDescriptor` entries (predicate IRI, cardinality, value kind,
-reference target, governing validation rule). Both serialization and
-validation read from these descriptors so they can't drift.
+The full schema lives in `crates/sbol3/src/schema.rs` (and its SBOL 2
+peer in `crates/sbol2/src/schema/`) as `FieldDescriptor` entries
+(predicate IRI, cardinality, value kind, reference target, governing
+validation rule). Both serialization and validation read from these
+descriptors so they can't drift.
 
 ## Document lifecycle
 
@@ -158,25 +167,30 @@ recognize is held in `IdentifiedExtension` rather than dropped.
 
 ## Validation pipeline at a glance
 
-The validator implements all 109 machine-checkable SBOL 3.1.0 rules
-(109/109, 100%). The catalog tracks all 149 spec rules; the remaining
-40 are marked machine-uncheckable (weak-REQUIRED, ▲) in Appendix B and
-are tracked separately rather than counted toward the implemented total
-(see `docs/conformance.md`). The pipeline is:
+Each version ships a validator. The SBOL 3 validator implements all 109
+machine-checkable SBOL 3.1.0 rules (109/109, 100%); its catalog tracks
+all 149 spec rules, the other 40 marked machine-uncheckable
+(weak-REQUIRED, ▲) in Appendix B and counted separately. The SBOL 2
+validator implements all 239 machine-checkable rules of the 268-rule
+SBOL 2.3.0 catalog (see `docs/conformance.md` and
+`docs/sbol2-conformance.md`). Both share the `sbol-core` reporting types.
+The SBOL 3 pipeline is:
 
 1. **Parse to RDF triples** (`sbol-rdf` crate). Format-agnostic
    after this point.
-2. **Typed object graph** (`crates/sbol/src/client/from_rdf.rs`).
+2. **Typed object graph** (`crates/sbol3/src/client/from_rdf.rs`).
    Triples → owned typed structs.
-3. **Rule firings** (`crates/sbol/src/validation/rules/`). One file
+3. **Rule firings** (`crates/sbol3/src/validation/rules/`). One file
    per spec area (`component.rs`, `sequence.rs`, etc.). Each rule
    has a stable `sbol3-*` identifier matched to a row in
-   `crates/sbol/rules.toml`.
-4. **Report assembly** (`crates/sbol/src/validation/report.rs`).
+   `crates/sbol3/rules.toml`.
+4. **Report assembly** (`crates/sbol3/src/validation/report.rs`).
    Errors, warnings, hints, per-rule coverage, and partial-application
    data are all surfaced.
 
-Rules fall into five status categories tracked in `rules.toml`:
+The SBOL 2 validator (`crates/sbol2/src/validation/`) mirrors this
+against `crates/sbol2/rules.toml`. Rules fall into five status categories
+tracked in each `rules.toml`:
 
 - **Error**: violates the spec; fails `check()`.
 - **Warning**: surfaced but doesn't fail `check()`.
@@ -184,8 +198,8 @@ Rules fall into five status categories tracked in `rules.toml`:
   default is conservative, callable via `ValidationOptions`.
 - **MachineUncheckable (▲)**: the spec rule isn't algorithmically
   verifiable (e.g., requires biological judgment).
-- **Unimplemented**: a known gap. The current outstanding one is
-  `sbol3-10204` (cross-document `prov:wasGeneratedBy` cycles).
+- **Unimplemented**: a known gap. Neither catalog currently has any:
+  every machine-checkable rule is implemented in both versions.
 
 Severity for a particular rule on a particular run can be lifted or
 suppressed via `ValidationOptions::override_*`. The CLI exposes
@@ -210,39 +224,40 @@ generated from `rules.toml`).
 
 ## Conversion pipeline at a glance
 
-The `sbol::upgrade` and `sbol::downgrade` modules sit alongside the
-validator and operate on the same `Document` surface. They translate
-between SBOL 2 and SBOL 3 RDF at the triple level — no separate
-intermediate object model, no external runtime.
+The `sbol-convert` crate (re-exported as `sbol::convert`) sits alongside
+the validators and translates between SBOL 2 and SBOL 3 RDF at the triple
+level: no separate intermediate object model, no external runtime. Its
+`upgrade_from_sbol2` and `downgrade` functions take and return the typed
+`sbol3::Document` and an `sbol_rdf::Graph`.
 
 Where conversion code lives:
 
 | Path | Role |
 |---|---|
-| `crates/sbol/src/upgrade/mod.rs` | SBOL 2 → SBOL 3 engine: preflight, type / predicate rewrites, structural-collapse synthesis (MapsTo → CRef+Constraint, FC.direction → Interface, SA-with-component → SubComponent.location). |
-| `crates/sbol/src/upgrade/identity.rs` | SBOL 2 IRI versioning policy: strips trailing `/digits` segments, derives `hasNamespace` from `persistentIdentity` ÷ `displayId`. |
-| `crates/sbol/src/upgrade/values.rs` | Forward enumerated-value maps (orientation, encoding, BioPAX → SBO, MapsTo refinement → Constraint restriction). |
-| `crates/sbol/src/downgrade/mod.rs` | SBOL 3 → SBOL 2 engine: type/predicate dispatch, MapsTo and SA reconstruction, FC direction restoration, dual-role Component classifier and split. |
-| `crates/sbol/src/downgrade/values.rs` | Reverse enumerated-value maps. |
-| `crates/sbol/src/sbol2_vocab.rs` | Shared SBOL 2 IRI constants plus the `http://sboltools.org/backport#` namespace constants. |
-| `crates/sbol-genbank/src/importer.rs` | GenBank → SBOL 3 importer; emits the same shape `sbol::downgrade` expects when re-emitting to SBOL 2. |
+| `crates/sbol-convert/src/upgrade/mod.rs` | SBOL 2 → SBOL 3 engine: preflight, type / predicate rewrites, structural-collapse synthesis (MapsTo → CRef+Constraint, FC.direction → Interface, SA-with-component → SubComponent.location). |
+| `crates/sbol-convert/src/upgrade/identity.rs` | SBOL 2 IRI versioning policy: strips trailing `/digits` segments, derives `hasNamespace` from `persistentIdentity` ÷ `displayId`. |
+| `crates/sbol-convert/src/upgrade/values.rs` | Forward enumerated-value maps (orientation, encoding, BioPAX → SBO, MapsTo refinement → Constraint restriction). |
+| `crates/sbol-convert/src/downgrade/mod.rs` | SBOL 3 → SBOL 2 engine: type/predicate dispatch, MapsTo and SA reconstruction, FC direction restoration, dual-role Component classifier and split. |
+| `crates/sbol-convert/src/downgrade/values.rs` | Reverse enumerated-value maps. |
+| `crates/sbol-convert/src/sbol2_vocab.rs` | Shared SBOL 2 IRI constants plus the `http://sboltools.org/backport#` namespace constants. |
+| `crates/sbol-genbank/src/importer.rs` | GenBank → SBOL 3 importer; emits the same shape the downgrade expects when re-emitting to SBOL 2. |
 | `crates/sbol-fasta/src/importer.rs` | FASTA → SBOL 3 importer; bare sequences + alphabet auto-detection. |
 
 The downgrade engine classifies every SBOL 3 `Component` into one of
 three shapes before emitting:
 
-- **`CdOnly`** — emits a single `sbol2:ComponentDefinition`. Triggered
+- **`CdOnly`**: emits a single `sbol2:ComponentDefinition`. Triggered
   by `backport:sbol2type = ComponentDefinition` (round-tripped SBOL 2)
   or by structural-only signals (`sbol3:type` with a non-functional
   value, `sbol3:role`, `sbol3:hasSequence`, `sbol3:hasFeature` →
   `SequenceFeature`, `sbol3:hasConstraint`).
-- **`MdOnly`** — emits a single `sbol2:ModuleDefinition`. Triggered by
+- **`MdOnly`**: emits a single `sbol2:ModuleDefinition`. Triggered by
   `backport:sbol2type = ModuleDefinition` or by functional-only signals
   (`sbol3:hasInteraction`, `sbol3:hasInterface`, `sbol3:hasModel`, the
   synthesized `SBO:functionalEntity` type marker).
-- **`DualRole`** — emits BOTH a CD and an MD plus a synthesized linking
+- **`DualRole`**: emits BOTH a CD and an MD plus a synthesized linking
   `sbol2:FunctionalComponent`. Triggered by Components carrying both
-  structural and functional signals — the SBOL 2 surface can't express
+  structural and functional signals: the SBOL 2 surface can't express
   this in a single object.
 
 The user-facing story (workflows, the backport namespace, dual-role
@@ -400,13 +415,14 @@ same validator as the library; there's no separate code path.
 
 ## Testing
 
-Regression cases live in `crates/sbol/tests/rule_cases/`, one
-module per spec area. Each `RuleCase` exercises a specific rule
-identifier with either a fixture that should fire it (negative case)
-or one that should pass while still touching the predicate (positive
-case).
+SBOL 3 regression cases live in `crates/sbol3/tests/rule_cases/`, one
+module per spec area (the SBOL 2 peer is `crates/sbol2/tests/rule_cases.rs`).
+Each `RuleCase` exercises a specific rule identifier with either a
+fixture that should fire it (negative case) or one that should pass
+while still touching the predicate (positive case).
 
-Cross-implementation conformance lives at
-`tests/fixtures/cross-impl/`: 33 fixtures × 4 formats validated
-against libSBOLj3 outputs. Property-based and fuzz coverage are
-described in [`testing.md`](testing.md).
+Cross-implementation conformance lives at `tests/fixtures/cross-impl/`
+(33 SBOL 3 fixtures × 4 formats validated against libSBOLj3 and pySBOL3
+outputs) and `tests/fixtures/cross-impl-sbol2/` (SBOL 2 RDF/XML against
+libSBOLj 2.4.0). The 2 → 3 → 2 migration round-trip, property-based, and
+fuzz coverage are described in [`testing.md`](testing.md).

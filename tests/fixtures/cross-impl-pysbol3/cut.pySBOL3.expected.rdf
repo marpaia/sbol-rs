@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:sbol="http://sbols.org/v3#"
+>
+  <rdf:Description rdf:about="https://synbiohub.org/public/igem/BBa_R0040_Sequence1">
+    <sbol:displayId>BBa_R0040_Sequence1</sbol:displayId>
+    <sbol:name>Sequence1</sbol:name>
+    <sbol:description>BBa_R0040 sequence</sbol:description>
+    <rdf:type rdf:resource="http://sbols.org/v3#Sequence"/>
+    <sbol:hasNamespace rdf:resource="https://synbiohub.org/public/igem"/>
+    <sbol:elements>tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac</sbol:elements>
+    <sbol:encoding rdf:resource="https://identifiers.org/edam:format_1207"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://synbiohub.org/public/igem/BBa_R0040">
+    <sbol:displayId>BBa_R0040</sbol:displayId>
+    <sbol:name>pTetR</sbol:name>
+    <sbol:description>TetR repressible promoter</sbol:description>
+    <rdf:type rdf:resource="http://sbols.org/v3#Component"/>
+    <sbol:hasNamespace rdf:resource="https://synbiohub.org/public/igem"/>
+    <sbol:type rdf:resource="https://identifiers.org/SBO:0000251"/>
+    <sbol:role rdf:resource="https://identifiers.org/SO:0000167"/>
+    <sbol:hasSequence rdf:resource="https://synbiohub.org/public/igem/BBa_R0040_Sequence1"/>
+    <sbol:hasFeature rdf:resource="https://synbiohub.org/public/igem/BBa_R0040/SequenceFeature1"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://synbiohub.org/public/igem/BBa_R0040/SequenceFeature1">
+    <sbol:displayId>SequenceFeature1</sbol:displayId>
+    <rdf:type rdf:resource="http://sbols.org/v3#SequenceFeature"/>
+    <sbol:hasLocation rdf:resource="https://synbiohub.org/public/igem/BBa_R0040/SequenceFeature1/Cut1"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://synbiohub.org/public/igem/BBa_R0040/SequenceFeature1/Cut1">
+    <sbol:displayId>Cut1</sbol:displayId>
+    <rdf:type rdf:resource="http://sbols.org/v3#Cut"/>
+    <sbol:hasSequence rdf:resource="https://synbiohub.org/public/igem/BBa_R0040_Sequence1"/>
+    <sbol:at>5</sbol:at>
+  </rdf:Description>
+</rdf:RDF>

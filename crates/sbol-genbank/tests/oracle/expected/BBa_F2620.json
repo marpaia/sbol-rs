@@ -1,0 +1,304 @@
+{
+  "features": [
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          1,
+          19,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          1,
+          54,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "promoter",
+      "spans": [
+        [
+          20,
+          25,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          26,
+          44,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "promoter",
+      "spans": [
+        [
+          43,
+          48,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "promoter",
+      "spans": [
+        [
+          1,
+          54,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          67,
+          70,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "RBS",
+      "spans": [
+        [
+          63,
+          74,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          81,
+          82,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          254,
+          254,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          572,
+          572,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "CDS",
+      "spans": [
+        [
+          81,
+          830,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          81,
+          836,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          837,
+          861,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "CDS",
+      "spans": [
+        [
+          81,
+          836,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "stem_loop",
+      "spans": [
+        [
+          881,
+          924,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          870,
+          949,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "terminator",
+      "spans": [
+        [
+          870,
+          949,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "stem_loop",
+      "spans": [
+        [
+          965,
+          984,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          991,
+          991,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "polyA_site",
+      "spans": [
+        [
+          985,
+          998,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          958,
+          998,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "terminator",
+      "spans": [
+        [
+          958,
+          998,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "terminator",
+      "spans": [
+        [
+          870,
+          998,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          1007,
+          1026,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "promoter",
+      "spans": [
+        [
+          1026,
+          1031,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "promoter",
+      "spans": [
+        [
+          1048,
+          1053,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          1059,
+          1059,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "misc_feature",
+      "spans": [
+        [
+          1007,
+          1061,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "promoter",
+      "spans": [
+        [
+          1007,
+          1061,
+          1
+        ]
+      ]
+    }
+  ]
+}

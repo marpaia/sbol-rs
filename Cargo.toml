@@ -1,7 +1,12 @@
 [workspace]
 members = [
     "crates/sbol",
+    "crates/sbol2",
+    "crates/sbol3",
+    "crates/sbol-convert",
     "crates/sbol-bench",
+    "crates/sbol-core",
+    "crates/sbol-rulegen",
     "crates/sbol-cli",
     "crates/sbol-fasta",
     "crates/sbol-genbank",
@@ -26,6 +31,11 @@ oxrdf = "0.3.3"
 oxrdfio = "0.2.5"
 proptest = "1"
 sbol = { path = "crates/sbol", version = "0.2.1" }
+sbol2 = { path = "crates/sbol2", version = "0.2.1" }
+sbol3 = { path = "crates/sbol3", version = "0.2.1" }
+sbol-convert = { path = "crates/sbol-convert", version = "0.2.1" }
+sbol-core = { path = "crates/sbol-core", version = "0.2.1" }
+sbol-rulegen = { path = "crates/sbol-rulegen", version = "0.2.1" }
 sbol-fasta = { path = "crates/sbol-fasta", version = "0.2.1" }
 sbol-genbank = { path = "crates/sbol-genbank", version = "0.2.1" }
 sbol-ontology = { path = "crates/sbol-ontology", version = "0.2.1" }

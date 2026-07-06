@@ -1,0 +1,815 @@
+//! Per-class property specifications: the `*_PROPS` field tables consumed
+//! by [`super::class_spec`]. Pure declarative data plus the `prop` /
+//! `local_ref` / `external_ref` const constructors that build it.
+
+use super::PropertySpec;
+use crate::SbolClass;
+use crate::schema::{Cardinality, ReferenceSpec, TargetClass, ValueKind};
+use crate::vocab::*;
+
+const fn prop(
+    predicate: &'static str,
+    rule: &'static str,
+    cardinality: Cardinality,
+    value_kind: ValueKind,
+    reference: Option<ReferenceSpec>,
+) -> PropertySpec {
+    PropertySpec::new(predicate, rule, cardinality, value_kind, reference)
+}
+
+const fn local_ref(target: TargetClass) -> Option<ReferenceSpec> {
+    Some(ReferenceSpec::new(target, true))
+}
+
+const fn external_ref(target: TargetClass) -> Option<ReferenceSpec> {
+    Some(ReferenceSpec::new(target, false))
+}
+
+pub(super) const IDENTIFIED_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_DISPLAY_ID,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        SBOL_NAME,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        SBOL_DESCRIPTION,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        SBOL_HAS_MEASURE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::OmMeasure),
+    ),
+    prop(
+        PROV_WAS_DERIVED_FROM,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        PROV_WAS_GENERATED_BY,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        external_ref(TargetClass::ProvActivity),
+    ),
+];
+pub(super) const TOP_LEVEL_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_HAS_NAMESPACE,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Url,
+        None,
+    ),
+    prop(
+        SBOL_HAS_ATTACHMENT,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Attachment.iri())),
+    ),
+];
+pub(super) const ATTACHMENT_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_SOURCE,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_FORMAT,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_HASH_ALGORITHM,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        SBOL_HASH,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        SBOL_SIZE,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Long,
+        None,
+    ),
+];
+pub(super) const COLLECTION_PROPS: &[PropertySpec] = &[prop(
+    SBOL_MEMBER,
+    "sbol3-10110",
+    Cardinality::ZeroOrMore,
+    ValueKind::Uri,
+    external_ref(TargetClass::Sbol(SbolClass::TopLevel.iri())),
+)];
+pub(super) const COMBINATORIAL_DERIVATION_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_TEMPLATE,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Component.iri())),
+    ),
+    prop(
+        SBOL_STRATEGY,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_HAS_VARIABLE_FEATURE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::Sbol(SbolClass::VariableFeature.iri())),
+    ),
+];
+pub(super) const COMPONENT_REFERENCE_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_REFERS_TO,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
+    ),
+    prop(
+        SBOL_IN_CHILD_OF,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::SubComponent.iri())),
+    ),
+];
+pub(super) const COMPONENT_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_HAS_SEQUENCE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Sequence.iri())),
+    ),
+    prop(
+        SBOL_ROLE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_TYPE,
+        "sbol3-10110",
+        Cardinality::OneOrMore,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_HAS_CONSTRAINT,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::Sbol(SbolClass::Constraint.iri())),
+    ),
+    prop(
+        SBOL_HAS_FEATURE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
+    ),
+    prop(
+        SBOL_HAS_INTERACTION,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::Sbol(SbolClass::Interaction.iri())),
+    ),
+    prop(
+        SBOL_HAS_INTERFACE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::Sbol(SbolClass::Interface.iri())),
+    ),
+    prop(
+        SBOL_HAS_MODEL,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Model.iri())),
+    ),
+];
+pub(super) const CONSTRAINT_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_OBJECT,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
+    ),
+    prop(
+        SBOL_RESTRICTION,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_SUBJECT,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
+    ),
+];
+pub(super) const CUT_PROPS: &[PropertySpec] = &[prop(
+    SBOL_AT,
+    "sbol3-10110",
+    Cardinality::ExactlyOne,
+    ValueKind::Integer,
+    None,
+)];
+pub(super) const EXTERNALLY_DEFINED_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_DEFINITION,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_TYPE,
+        "sbol3-10110",
+        Cardinality::OneOrMore,
+        ValueKind::Uri,
+        None,
+    ),
+];
+pub(super) const FEATURE_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_ROLE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_ORIENTATION,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Uri,
+        None,
+    ),
+];
+pub(super) const IMPLEMENTATION_PROPS: &[PropertySpec] = &[prop(
+    SBOL_BUILT,
+    "sbol3-10110",
+    Cardinality::ZeroOrOne,
+    ValueKind::Uri,
+    external_ref(TargetClass::Sbol(SbolClass::Component.iri())),
+)];
+pub(super) const INTERACTION_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_TYPE,
+        "sbol3-10110",
+        Cardinality::OneOrMore,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_HAS_PARTICIPATION,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::Sbol(SbolClass::Participation.iri())),
+    ),
+];
+pub(super) const INTERFACE_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_INPUT,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
+    ),
+    prop(
+        SBOL_OUTPUT,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
+    ),
+    prop(
+        SBOL_NONDIRECTIONAL,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
+    ),
+];
+pub(super) const LOCATION_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_ORIENTATION,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_ORDER,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Integer,
+        None,
+    ),
+    prop(
+        SBOL_HAS_SEQUENCE,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Sequence.iri())),
+    ),
+];
+pub(super) const LOCAL_SUB_COMPONENT_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_HAS_LOCATION,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::Sbol(SbolClass::Location.iri())),
+    ),
+    prop(
+        SBOL_TYPE,
+        "sbol3-10110",
+        Cardinality::OneOrMore,
+        ValueKind::Uri,
+        None,
+    ),
+];
+pub(super) const MODEL_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_SOURCE,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_FRAMEWORK,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_LANGUAGE,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        None,
+    ),
+];
+pub(super) const PARTICIPATION_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_PARTICIPANT,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
+    ),
+    prop(
+        SBOL_HIGHER_ORDER_PARTICIPANT,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Interaction.iri())),
+    ),
+    prop(
+        SBOL_ROLE,
+        "sbol3-10110",
+        Cardinality::OneOrMore,
+        ValueKind::Uri,
+        None,
+    ),
+];
+pub(super) const RANGE_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_END,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Integer,
+        None,
+    ),
+    prop(
+        SBOL_START,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Integer,
+        None,
+    ),
+];
+pub(super) const SEQUENCE_FEATURE_PROPS: &[PropertySpec] = &[prop(
+    SBOL_HAS_LOCATION,
+    "sbol3-10110",
+    Cardinality::OneOrMore,
+    ValueKind::Uri,
+    local_ref(TargetClass::Sbol(SbolClass::Location.iri())),
+)];
+pub(super) const SEQUENCE_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_ELEMENTS,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        SBOL_ENCODING,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Uri,
+        None,
+    ),
+];
+pub(super) const SUB_COMPONENT_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_INSTANCE_OF,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Component.iri())),
+    ),
+    prop(
+        SBOL_ROLE_INTEGRATION,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_SOURCE_LOCATION,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::Sbol(SbolClass::Location.iri())),
+    ),
+    prop(
+        SBOL_HAS_LOCATION,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::Sbol(SbolClass::Location.iri())),
+    ),
+];
+pub(super) const VARIABLE_FEATURE_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_CARDINALITY,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        SBOL_VARIABLE,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Feature.iri())),
+    ),
+    prop(
+        SBOL_VARIANT_COLLECTION,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Collection.iri())),
+    ),
+    prop(
+        SBOL_VARIANT_DERIVATION,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::CombinatorialDerivation.iri())),
+    ),
+    prop(
+        SBOL_VARIANT_MEASURE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::OmMeasure),
+    ),
+    prop(
+        SBOL_VARIANT,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        external_ref(TargetClass::Sbol(SbolClass::Component.iri())),
+    ),
+];
+pub(super) const PROV_ACTIVITY_PROPS: &[PropertySpec] = &[
+    prop(
+        PROV_ENDED_AT_TIME,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::DateTime,
+        None,
+    ),
+    prop(
+        PROV_QUALIFIED_USAGE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::ProvUsage),
+    ),
+    prop(
+        PROV_STARTED_AT_TIME,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::DateTime,
+        None,
+    ),
+    prop(
+        PROV_WAS_INFORMED_BY,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        external_ref(TargetClass::ProvActivity),
+    ),
+    prop(
+        SBOL_TYPE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        PROV_QUALIFIED_ASSOCIATION,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        local_ref(TargetClass::ProvAssociation),
+    ),
+];
+pub(super) const PROV_ASSOCIATION_PROPS: &[PropertySpec] = &[
+    prop(
+        PROV_AGENT,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::ProvAgent),
+    ),
+    prop(
+        PROV_HAD_ROLE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        PROV_HAD_PLAN,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::ProvPlan),
+    ),
+];
+pub(super) const PROV_USAGE_PROPS: &[PropertySpec] = &[
+    prop(
+        PROV_ENTITY,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        PROV_HAD_ROLE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        None,
+    ),
+];
+pub(super) const OM_MEASURE_PROPS: &[PropertySpec] = &[
+    prop(
+        SBOL_TYPE,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::Uri,
+        None,
+    ),
+    prop(
+        OM_HAS_UNIT,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::OmUnit),
+    ),
+    prop(
+        OM_HAS_NUMERICAL_VALUE,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Float,
+        None,
+    ),
+];
+pub(super) const OM_UNIT_PROPS: &[PropertySpec] = &[
+    prop(
+        OM_ALTERNATIVE_LABEL,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        OM_LABEL,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        OM_LONG_COMMENT,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        OM_SYMBOL,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        OM_ALTERNATIVE_SYMBOL,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        OM_COMMENT,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::String,
+        None,
+    ),
+];
+pub(super) const OM_SINGULAR_UNIT_PROPS: &[PropertySpec] = &[
+    prop(
+        OM_HAS_UNIT,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::OmUnit),
+    ),
+    prop(
+        OM_HAS_FACTOR,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::Float,
+        None,
+    ),
+];
+pub(super) const OM_PREFIXED_UNIT_PROPS: &[PropertySpec] = &[
+    prop(
+        OM_HAS_UNIT,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::OmUnit),
+    ),
+    prop(
+        OM_HAS_PREFIX,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::OmPrefix),
+    ),
+];
+pub(super) const OM_PREFIX_PROPS: &[PropertySpec] = &[
+    prop(
+        OM_ALTERNATIVE_LABEL,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        OM_COMMENT,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        OM_HAS_FACTOR,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Float,
+        None,
+    ),
+    prop(
+        OM_LABEL,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        OM_LONG_COMMENT,
+        "sbol3-10110",
+        Cardinality::ZeroOrOne,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        OM_ALTERNATIVE_SYMBOL,
+        "sbol3-10110",
+        Cardinality::ZeroOrMore,
+        ValueKind::String,
+        None,
+    ),
+    prop(
+        OM_SYMBOL,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::String,
+        None,
+    ),
+];
+pub(super) const OM_UNIT_DIVISION_PROPS: &[PropertySpec] = &[
+    prop(
+        OM_HAS_DENOMINATOR,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::OmUnit),
+    ),
+    prop(
+        OM_HAS_NUMERATOR,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::OmUnit),
+    ),
+];
+pub(super) const OM_UNIT_EXPONENTIATION_PROPS: &[PropertySpec] = &[
+    prop(
+        OM_HAS_BASE,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::OmUnit),
+    ),
+    prop(
+        OM_HAS_EXPONENT,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Integer,
+        None,
+    ),
+];
+pub(super) const OM_UNIT_MULTIPLICATION_PROPS: &[PropertySpec] = &[
+    prop(
+        OM_HAS_TERM1,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::OmUnit),
+    ),
+    prop(
+        OM_HAS_TERM2,
+        "sbol3-10110",
+        Cardinality::ExactlyOne,
+        ValueKind::Uri,
+        external_ref(TargetClass::OmUnit),
+    ),
+];
