@@ -44,8 +44,7 @@ pub const ACCESS_PRIVATE: Iri = Iri::from_static(vocab::SBOL2_PRIVATE);
 // === Location.orientation values ===
 
 pub const ORIENTATION_INLINE: Iri = Iri::from_static(vocab::SBOL2_INLINE);
-pub const ORIENTATION_REVERSE_COMPLEMENT: Iri =
-    Iri::from_static(vocab::SBOL2_REVERSE_COMPLEMENT);
+pub const ORIENTATION_REVERSE_COMPLEMENT: Iri = Iri::from_static(vocab::SBOL2_REVERSE_COMPLEMENT);
 
 // === FunctionalComponent.direction values ===
 
@@ -61,8 +60,7 @@ pub const RESTRICTION_SAME_ORIENTATION_AS: Iri =
     Iri::from_static("http://sbols.org/v2#sameOrientationAs");
 pub const RESTRICTION_OPPOSITE_ORIENTATION_AS: Iri =
     Iri::from_static("http://sbols.org/v2#oppositeOrientationAs");
-pub const RESTRICTION_DIFFERENT_FROM: Iri =
-    Iri::from_static("http://sbols.org/v2#differentFrom");
+pub const RESTRICTION_DIFFERENT_FROM: Iri = Iri::from_static("http://sbols.org/v2#differentFrom");
 
 // === MapsTo.refinement values ===
 

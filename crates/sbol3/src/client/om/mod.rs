@@ -25,10 +25,10 @@ use crate::client::shared::{iris, literals};
 use crate::client::to_rdf::{Emitter, emit_identified, seed_triples};
 use crate::client::{IdentifiedData, ToRdf, TryFromObject};
 use crate::error::BuildError;
-use sbol_core::error::BuildError as LexError;
 use crate::identity::DisplayId;
 use crate::vocab::*;
 use crate::{Iri, Object, Resource, SbolClass, Triple};
+use sbol_core::error::BuildError as LexError;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]

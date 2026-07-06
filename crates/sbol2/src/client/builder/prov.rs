@@ -5,9 +5,7 @@ use super::{
     child_seed, identified_seed, identified_setters, missing, top_level_seed, top_level_setters,
 };
 use crate::client::identity::{DEFAULT_VERSION, build_top_level_identity};
-use crate::client::{
-    Activity, Agent, Association, IdentifiedData, Plan, TopLevelData, Usage,
-};
+use crate::client::{Activity, Agent, Association, IdentifiedData, Plan, TopLevelData, Usage};
 use crate::error::BuildError;
 use crate::identity::{DisplayId, Namespace};
 use crate::{Iri, Resource, Sbol2Class, Term};
@@ -18,7 +16,11 @@ fn top_seed(
     display_id: &DisplayId,
 ) -> (Resource, IdentifiedData, TopLevelData) {
     let (identity, persistent) = build_top_level_identity(namespace, display_id, DEFAULT_VERSION);
-    (identity, identified_seed(display_id, persistent), top_level_seed())
+    (
+        identity,
+        identified_seed(display_id, persistent),
+        top_level_seed(),
+    )
 }
 
 /// Builder for [`Activity`].
@@ -122,7 +124,10 @@ impl Activity {
         namespace: impl TryInto<Namespace, Error = LexError>,
         display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<ActivityBuilder, BuildError> {
-        Ok(ActivityBuilder::seed(namespace.try_into()?, display_id.try_into()?))
+        Ok(ActivityBuilder::seed(
+            namespace.try_into()?,
+            display_id.try_into()?,
+        ))
     }
 }
 
@@ -139,7 +144,11 @@ macro_rules! bare_top_level {
         impl $builder {
             pub(crate) fn seed(namespace: Namespace, display_id: DisplayId) -> Self {
                 let (identity, identified, top_level) = top_seed(&namespace, &display_id);
-                Self { identity, identified, top_level }
+                Self {
+                    identity,
+                    identified,
+                    top_level,
+                }
             }
 
             identified_setters!();
@@ -166,7 +175,10 @@ macro_rules! bare_top_level {
                 namespace: impl TryInto<Namespace, Error = LexError>,
                 display_id: impl TryInto<DisplayId, Error = LexError>,
             ) -> Result<$builder, BuildError> {
-                Ok($builder::seed(namespace.try_into()?, display_id.try_into()?))
+                Ok($builder::seed(
+                    namespace.try_into()?,
+                    display_id.try_into()?,
+                ))
             }
         }
     };

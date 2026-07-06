@@ -1,8 +1,6 @@
 //! Builders for the SBOL 2 TopLevel classes.
 
-use super::{
-    identified_seed, identified_setters, missing, top_level_seed, top_level_setters,
-};
+use super::{identified_seed, identified_setters, missing, top_level_seed, top_level_setters};
 use crate::client::identity::{DEFAULT_VERSION, build_top_level_identity};
 use crate::client::{
     Attachment, Collection, CombinatorialDerivation, ComponentDefinition, Experiment,
@@ -360,7 +358,9 @@ impl CombinatorialDerivation {
         display_id: impl TryInto<DisplayId, Error = LexError>,
         template: Resource,
     ) -> Result<Self, BuildError> {
-        Self::builder(namespace, display_id)?.template(template).build()
+        Self::builder(namespace, display_id)?
+            .template(template)
+            .build()
     }
 }
 

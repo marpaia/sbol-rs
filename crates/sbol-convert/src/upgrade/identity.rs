@@ -16,9 +16,9 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::sbol2_vocab as v2;
-use sbol3::vocab as v3;
-use sbol_rdf::{Iri, Literal, Resource, Term, Triple};
 use sbol_rdf::Graph;
+use sbol_rdf::{Iri, Literal, Resource, Term, Triple};
+use sbol3::vocab as v3;
 
 /// Result of pre-scanning the SBOL 2 graph for everything needed to compute
 /// stable SBOL 3 identities and namespaces.
@@ -122,10 +122,7 @@ impl IdentityMap {
         // (round-tripped through sbol-rs, sbol-utilities, or sbolgraph)
         // carried, which derivation can only approximate.
         for (subject, namespace) in sbol3_namespace_hints {
-            let canonical = rewrites
-                .get(&subject)
-                .cloned()
-                .unwrap_or(subject);
+            let canonical = rewrites.get(&subject).cloned().unwrap_or(subject);
             namespaces.insert(canonical, namespace);
         }
 

@@ -127,7 +127,12 @@ impl ToRdf for IdentifiedExtension {
         }
         if let Some(top_level) = &self.top_level {
             for attachment in &top_level.attachments {
-                push_resource(&mut triples, &self.identity, SBOL2_ATTACHMENT, attachment.clone());
+                push_resource(
+                    &mut triples,
+                    &self.identity,
+                    SBOL2_ATTACHMENT,
+                    attachment.clone(),
+                );
             }
         }
         Ok(triples)

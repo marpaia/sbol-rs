@@ -268,9 +268,10 @@ impl Document {
         let mut out = Vec::new();
         for object in &self.typed {
             if let Some(ns) = object.top_level_namespace()
-                && seen.insert(ns.as_str().to_owned()) {
-                    out.push(ns);
-                }
+                && seen.insert(ns.as_str().to_owned())
+            {
+                out.push(ns);
+            }
         }
         out
     }

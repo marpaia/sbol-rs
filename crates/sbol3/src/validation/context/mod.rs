@@ -1,7 +1,7 @@
 use sbol_ontology::{Ontology, OntologyRegistry};
 
-use crate::validation::options::ValidationOptions;
 use crate::Document;
+use crate::validation::options::ValidationOptions;
 
 mod resolvers;
 

@@ -2,8 +2,8 @@
 
 use std::path::PathBuf;
 
-use sbol3::{RdfFormat, SbolIdentified, SbolTopLevel, Severity};
 use sbol_fasta::{Alphabet, FastaImporter, ImportError, ImportWarning};
+use sbol3::{RdfFormat, SbolIdentified, SbolTopLevel, Severity};
 
 fn workspace_fixture(name: &str) -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));

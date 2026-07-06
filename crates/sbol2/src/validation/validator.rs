@@ -210,27 +210,29 @@ impl<'a> Validator<'a> {
         }
         // 10204: displayId must be alphanumeric/underscore, not leading digit.
         if let Some(display_id) = &object.identified().display_id
-            && !syntax::is_valid_display_id(display_id) {
-                self.error(
-                    "sbol2-10204",
-                    object,
-                    Some(SBOL2_DISPLAY_ID),
-                    format!(
-                        "displayId `{display_id}` must contain only alphanumeric or underscore \
+            && !syntax::is_valid_display_id(display_id)
+        {
+            self.error(
+                "sbol2-10204",
+                object,
+                Some(SBOL2_DISPLAY_ID),
+                format!(
+                    "displayId `{display_id}` must contain only alphanumeric or underscore \
                          characters and must not begin with a digit"
-                    ),
-                );
-            }
+                ),
+            );
+        }
         // 10206: version must be alphanumeric/underscore/hyphen/period, leading digit.
         if let Some(version) = self.literal(object, SBOL2_VERSION)
-            && !is_valid_version(&version) {
-                self.error(
-                    "sbol2-10206",
-                    object,
-                    Some(SBOL2_VERSION),
-                    format!("version `{version}` is not a valid SBOL 2 version string"),
-                );
-            }
+            && !is_valid_version(&version)
+        {
+            self.error(
+                "sbol2-10206",
+                object,
+                Some(SBOL2_VERSION),
+                format!("version `{version}` is not a valid SBOL 2 version string"),
+            );
+        }
         // 10228: at most one rdfType in each of the SBOL 2 and PROV namespaces.
         let sbol_types = object
             .rdf_types()
@@ -278,7 +280,12 @@ impl<'a> Validator<'a> {
     /// table, plus the `rdfType` namespace restriction on GenericTopLevel.
     fn validate_controlled_values(&mut self, object: &Object) {
         // 10607: access from Table 4 (public, private).
-        self.check_enum(object, SBOL2_ACCESS, "sbol2-10607", &[SBOL2_PUBLIC, SBOL2_PRIVATE]);
+        self.check_enum(
+            object,
+            SBOL2_ACCESS,
+            "sbol2-10607",
+            &[SBOL2_PUBLIC, SBOL2_PRIVATE],
+        );
         // 10708: roleIntegration from Table 6 (mergeRoles, overrideRoles).
         self.check_enum(
             object,
@@ -365,7 +372,10 @@ impl<'a> Validator<'a> {
                     rule,
                     object,
                     Some(predicate),
-                    format!("value `{}` of `{predicate}` is not an allowed term", iri.as_str()),
+                    format!(
+                        "value `{}` of `{predicate}` is not an allowed term",
+                        iri.as_str()
+                    ),
                 );
             }
         }
@@ -460,7 +470,9 @@ impl<'a> Validator<'a> {
         // definition is the object whose composite property lists this instance.
         if object.has_class(Sbol2Class::Component) || object.has_class(Sbol2Class::Module) {
             if let (Some(def), Some(parent)) = (
-                object.first_resource(SBOL2_DEFINITION).and_then(Resource::as_iri),
+                object
+                    .first_resource(SBOL2_DEFINITION)
+                    .and_then(Resource::as_iri),
                 self.parent_definition(identity),
             ) && def.as_str() == parent
             {
@@ -569,9 +581,10 @@ impl<'a> Validator<'a> {
         // 12903: an enumerate CombinatorialDerivation must not contain a
         // VariableComponent whose operator is zeroOrMore or oneOrMore.
         if object.has_class(Sbol2Class::CombinatorialDerivation)
-            && object
-                .resources(SBOL2_STRATEGY)
-                .any(|r| r.as_iri().is_some_and(|iri| iri.as_str() == SBOL2_ENUMERATE))
+            && object.resources(SBOL2_STRATEGY).any(|r| {
+                r.as_iri()
+                    .is_some_and(|iri| iri.as_str() == SBOL2_ENUMERATE)
+            })
         {
             let mut offending = false;
             for vc_ref in object.resources(SBOL2_VARIABLE_COMPONENT) {
@@ -579,8 +592,9 @@ impl<'a> Validator<'a> {
                     continue;
                 };
                 if vc.resources(SBOL2_OPERATOR).any(|r| {
-                    r.as_iri()
-                        .is_some_and(|iri| matches!(iri.as_str(), SBOL2_OP_ZERO_OR_MORE | SBOL2_OP_ONE_OR_MORE))
+                    r.as_iri().is_some_and(|iri| {
+                        matches!(iri.as_str(), SBOL2_OP_ZERO_OR_MORE | SBOL2_OP_ONE_OR_MORE)
+                    })
                 }) {
                     offending = true;
                 }
@@ -604,8 +618,7 @@ impl<'a> Validator<'a> {
                 let Some(vc) = self.document.get(vc_ref) else {
                     continue;
                 };
-                if let Some(variable) =
-                    vc.first_resource(SBOL2_VARIABLE).and_then(Resource::as_iri)
+                if let Some(variable) = vc.first_resource(SBOL2_VARIABLE).and_then(Resource::as_iri)
                     && !variables.insert(variable.as_str().to_owned())
                 {
                     duplicate = true;
@@ -635,14 +648,17 @@ impl<'a> Validator<'a> {
                 let Some(sa) = self.document.get(sa_ref) else {
                     continue;
                 };
-                if let Some(component) =
-                    sa.first_resource(SBOL2_COMPONENT).and_then(Resource::as_iri)
+                if let Some(component) = sa
+                    .first_resource(SBOL2_COMPONENT)
+                    .and_then(Resource::as_iri)
                 {
                     by_sa.insert(sa_id, component.as_str().to_owned());
                 }
             }
             let mut seen = std::collections::BTreeSet::new();
-            let duplicate = by_sa.values().any(|component| !seen.insert(component.clone()));
+            let duplicate = by_sa
+                .values()
+                .any(|component| !seen.insert(component.clone()));
             if duplicate {
                 self.error(
                     "sbol2-10522",
@@ -664,9 +680,7 @@ impl<'a> Validator<'a> {
         }
         if object.has_class(Sbol2Class::SequenceAnnotation) {
             // 10909: a SequenceAnnotation must not carry both a component and roles.
-            if !object.values(SBOL2_COMPONENT).is_empty()
-                && !object.values(SBOL2_ROLE).is_empty()
-            {
+            if !object.values(SBOL2_COMPONENT).is_empty() && !object.values(SBOL2_ROLE).is_empty() {
                 self.error(
                     "sbol2-10909",
                     object,
@@ -675,7 +689,10 @@ impl<'a> Validator<'a> {
                 );
             }
             // 10905: the referenced Component must belong to the containing CD.
-            let missing = match object.first_resource(SBOL2_COMPONENT).and_then(Resource::as_iri) {
+            let missing = match object
+                .first_resource(SBOL2_COMPONENT)
+                .and_then(Resource::as_iri)
+            {
                 Some(component) => match self.container_by(object, SBOL2_SEQUENCE_ANNOTATION) {
                     Some(cd) => !self.lists(cd, SBOL2_COMPONENT, component.as_str()),
                     None => false,
@@ -694,10 +711,15 @@ impl<'a> Validator<'a> {
         if object.has_class(Sbol2Class::Participation) {
             // 12003: the participant FunctionalComponent must belong to the
             // ModuleDefinition that contains the Interaction of the Participation.
-            let missing = match object.first_resource(SBOL2_PARTICIPANT).and_then(Resource::as_iri) {
+            let missing = match object
+                .first_resource(SBOL2_PARTICIPANT)
+                .and_then(Resource::as_iri)
+            {
                 Some(participant) => match self.container_by(object, SBOL2_PARTICIPATION) {
                     Some(interaction) => match self.container_by(interaction, SBOL2_INTERACTION) {
-                        Some(md) => !self.lists(md, SBOL2_FUNCTIONAL_COMPONENT, participant.as_str()),
+                        Some(md) => {
+                            !self.lists(md, SBOL2_FUNCTIONAL_COMPONENT, participant.as_str())
+                        }
                         None => false,
                     },
                     None => false,
@@ -719,8 +741,12 @@ impl<'a> Validator<'a> {
     }
 
     fn validate_sequence_constraint(&mut self, object: &Object) {
-        let subject = object.first_resource(SBOL2_SUBJECT).and_then(Resource::as_iri);
-        let obj = object.first_resource(SBOL2_OBJECT).and_then(Resource::as_iri);
+        let subject = object
+            .first_resource(SBOL2_SUBJECT)
+            .and_then(Resource::as_iri);
+        let obj = object
+            .first_resource(SBOL2_OBJECT)
+            .and_then(Resource::as_iri);
         // 11406: subject and object must not be the same Component.
         if let (Some(subject), Some(obj)) = (subject, obj)
             && subject.as_str() == obj.as_str()
@@ -736,10 +762,12 @@ impl<'a> Validator<'a> {
             return;
         };
         // 11403 / 11405: subject and object must be Components of the CD.
-        let subject_missing =
-            subject.map(|s| !self.lists(cd, SBOL2_COMPONENT, s.as_str())).unwrap_or(false);
-        let object_missing =
-            obj.map(|o| !self.lists(cd, SBOL2_COMPONENT, o.as_str())).unwrap_or(false);
+        let subject_missing = subject
+            .map(|s| !self.lists(cd, SBOL2_COMPONENT, s.as_str()))
+            .unwrap_or(false);
+        let object_missing = obj
+            .map(|o| !self.lists(cd, SBOL2_COMPONENT, o.as_str()))
+            .unwrap_or(false);
         // 11413: under differentFrom, subject and object Components must not
         // resolve to the same ComponentDefinition.
         let restriction = object
@@ -750,7 +778,10 @@ impl<'a> Validator<'a> {
         let same_definition = is_different_from
             && match (subject, obj) {
                 (Some(s), Some(o)) => {
-                    match (self.definition_of(s.as_str()), self.definition_of(o.as_str())) {
+                    match (
+                        self.definition_of(s.as_str()),
+                        self.definition_of(o.as_str()),
+                    ) {
                         (Some(sd), Some(od)) => sd == od,
                         _ => false,
                     }
@@ -765,8 +796,10 @@ impl<'a> Validator<'a> {
         let same_resolved_definition = is_different_from
             && match (subject, obj) {
                 (Some(s), Some(o)) => match (
-                    self.definition_of(s.as_str()).and_then(|d| self.resolved_identity(&d)),
-                    self.definition_of(o.as_str()).and_then(|d| self.resolved_identity(&d)),
+                    self.definition_of(s.as_str())
+                        .and_then(|d| self.resolved_identity(&d)),
+                    self.definition_of(o.as_str())
+                        .and_then(|d| self.resolved_identity(&d)),
                 ) {
                     (Some(sd), Some(od)) => sd == od,
                     _ => false,
@@ -818,7 +851,10 @@ impl<'a> Validator<'a> {
     }
 
     fn validate_maps_to_local(&mut self, object: &Object) {
-        let Some(local) = object.first_resource(SBOL2_LOCAL).and_then(Resource::as_iri) else {
+        let Some(local) = object
+            .first_resource(SBOL2_LOCAL)
+            .and_then(Resource::as_iri)
+        else {
             return;
         };
         let Some(owner) = self.container_by(object, SBOL2_MAPS_TO) else {
@@ -883,11 +919,11 @@ impl<'a> Validator<'a> {
 
     /// The definition URI of the ComponentInstance identified by `instance`.
     fn definition_of(&self, instance: &str) -> Option<String> {
-        let object = self
-            .document
-            .objects()
-            .values()
-            .find(|o| o.identity().as_iri().is_some_and(|iri| iri.as_str() == instance))?;
+        let object = self.document.objects().values().find(|o| {
+            o.identity()
+                .as_iri()
+                .is_some_and(|iri| iri.as_str() == instance)
+        })?;
         object
             .first_resource(SBOL2_DEFINITION)
             .and_then(Resource::as_iri)
@@ -895,10 +931,10 @@ impl<'a> Validator<'a> {
     }
 
     fn integer(&self, object: &Object, predicate: &str) -> Option<i64> {
-        object
-            .values(predicate)
-            .iter()
-            .find_map(|term| term.as_literal().and_then(|l| l.value().parse::<i64>().ok()))
+        object.values(predicate).iter().find_map(|term| {
+            term.as_literal()
+                .and_then(|l| l.value().parse::<i64>().ok())
+        })
     }
 
     fn validate_uri_uniqueness(&mut self) {
@@ -916,17 +952,18 @@ impl<'a> Validator<'a> {
             .collect();
         for object in self.document.objects().values() {
             if let Some(iri) = object.identity().as_iri()
-                && dupes.iter().any(|d| d == iri.as_str()) {
-                    self.error(
-                        "sbol2-10202",
-                        object,
-                        None,
-                        format!(
-                            "identity `{}` is not unique within the document",
-                            iri.as_str()
-                        ),
-                    );
-                }
+                && dupes.iter().any(|d| d == iri.as_str())
+            {
+                self.error(
+                    "sbol2-10202",
+                    object,
+                    None,
+                    format!(
+                        "identity `{}` is not unique within the document",
+                        iri.as_str()
+                    ),
+                );
+            }
         }
     }
 
@@ -1058,7 +1095,9 @@ impl<'a> Validator<'a> {
             // distinguishes containment (a CD's `component`) from a same-named
             // cross-reference (a SequenceAnnotation's `component`).
             for spec in property_specs_for(object).values() {
-                let owns = spec.reference.is_some_and(|reference| reference.require_local);
+                let owns = spec
+                    .reference
+                    .is_some_and(|reference| reference.require_local);
                 if !owns {
                     continue;
                 }
@@ -1079,7 +1118,11 @@ impl<'a> Validator<'a> {
         if object.is_top_level() {
             return;
         }
-        let Some(child_id) = object.identity().as_iri().map(|iri| iri.as_str().to_owned()) else {
+        let Some(child_id) = object
+            .identity()
+            .as_iri()
+            .map(|iri| iri.as_str().to_owned())
+        else {
             return;
         };
         let Some(parent_id) = parents.get(&child_id) else {
@@ -1249,11 +1292,23 @@ impl<'a> Validator<'a> {
         }
 
         let checks: &[(&str, &[Sbol2Class], &str)] = &[
-            (PROV_WAS_GENERATED_BY, &[Sbol2Class::ProvActivity], "sbol2-10222"),
-            (PROV_WAS_INFORMED_BY, &[Sbol2Class::ProvActivity], "sbol2-12407"),
+            (
+                PROV_WAS_GENERATED_BY,
+                &[Sbol2Class::ProvActivity],
+                "sbol2-10222",
+            ),
+            (
+                PROV_WAS_INFORMED_BY,
+                &[Sbol2Class::ProvActivity],
+                "sbol2-12407",
+            ),
             (PROV_AGENT, &[Sbol2Class::ProvAgent], "sbol2-12606"),
             (SBOL2_MODEL, &[Sbol2Class::Model], "sbol2-11608"),
-            (SBOL2_VARIANT_COLLECTION, &[Sbol2Class::Collection], "sbol2-13010"),
+            (
+                SBOL2_VARIANT_COLLECTION,
+                &[Sbol2Class::Collection],
+                "sbol2-13010",
+            ),
             (
                 SBOL2_VARIANT_DERIVATION,
                 &[Sbol2Class::CombinatorialDerivation],
@@ -1361,7 +1416,10 @@ impl<'a> Validator<'a> {
     /// The in-document object whose identity or persistentIdentity equals `uri`.
     fn resolve(&self, uri: &str) -> Option<&Object> {
         self.document.objects().values().find(|object| {
-            object.identity().as_iri().is_some_and(|iri| iri.as_str() == uri)
+            object
+                .identity()
+                .as_iri()
+                .is_some_and(|iri| iri.as_str() == uri)
                 || object
                     .first_resource(SBOL2_PERSISTENT_IDENTITY)
                     .and_then(Resource::as_iri)
@@ -1442,7 +1500,8 @@ impl<'a> Validator<'a> {
         }
 
         let types: Vec<&str> = object.iris(SBOL2_TYPE).map(|iri| iri.as_str()).collect();
-        let wants_nucleic = types.contains(&BIOPAX_DNA_REGION) || types.contains(&BIOPAX_RNA_REGION);
+        let wants_nucleic =
+            types.contains(&BIOPAX_DNA_REGION) || types.contains(&BIOPAX_RNA_REGION);
         let missing_category = (wants_nucleic && nucleic_length.is_none())
             || (types.contains(&BIOPAX_PROTEIN) && protein_length.is_none())
             || (types.contains(&BIOPAX_SMALL_MOLECULE) && smiles_length.is_none());
@@ -1484,8 +1543,9 @@ impl<'a> Validator<'a> {
                 let Some(sa) = self.document.get(sa_ref) else {
                     continue;
                 };
-                let Some(component_iri) =
-                    sa.first_resource(SBOL2_COMPONENT).and_then(Resource::as_iri)
+                let Some(component_iri) = sa
+                    .first_resource(SBOL2_COMPONENT)
+                    .and_then(Resource::as_iri)
                 else {
                     continue;
                 };
@@ -1502,7 +1562,9 @@ impl<'a> Validator<'a> {
                 let Some(definition_iri) = self
                     .resolve(component_iri.as_str())
                     .and_then(|component| {
-                        component.first_resource(SBOL2_DEFINITION).and_then(Resource::as_iri)
+                        component
+                            .first_resource(SBOL2_DEFINITION)
+                            .and_then(Resource::as_iri)
                     })
                     .map(|iri| iri.as_str().to_owned())
                 else {
@@ -1568,9 +1630,7 @@ impl<'a> Validator<'a> {
                 .first_resource(SBOL2_ENCODING)
                 .and_then(Resource::as_iri)
                 .is_some_and(|iri| iri.as_str() == IUPAC_NUCLEIC_ENCODING);
-            if is_nucleic
-                && let Some(elements) = self.literal(sequence, SBOL2_ELEMENTS)
-            {
+            if is_nucleic && let Some(elements) = self.literal(sequence, SBOL2_ELEMENTS) {
                 return Some(elements.chars().count() as i64);
             }
         }
@@ -1609,21 +1669,20 @@ impl<'a> Validator<'a> {
                 "the source Locations of a Component should not overlap",
             );
         }
-        let Some(component_id) = object.identity().as_iri().map(|iri| iri.as_str().to_owned())
+        let Some(component_id) = object
+            .identity()
+            .as_iri()
+            .map(|iri| iri.as_str().to_owned())
         else {
             return;
         };
-        let annotation = self
-            .document
-            .objects()
-            .values()
-            .find(|candidate| {
-                candidate.has_class(Sbol2Class::SequenceAnnotation)
-                    && candidate
-                        .first_resource(SBOL2_COMPONENT)
-                        .and_then(Resource::as_iri)
-                        .is_some_and(|iri| iri.as_str() == component_id)
-            });
+        let annotation = self.document.objects().values().find(|candidate| {
+            candidate.has_class(Sbol2Class::SequenceAnnotation)
+                && candidate
+                    .first_resource(SBOL2_COMPONENT)
+                    .and_then(Resource::as_iri)
+                    .is_some_and(|iri| iri.as_str() == component_id)
+        });
         let Some(annotation) = annotation else {
             return;
         };
@@ -1655,9 +1714,10 @@ impl<'a> Validator<'a> {
                 continue;
             };
             if location.has_class(Sbol2Class::Range) {
-                if let (Some(start), Some(end)) =
-                    (self.integer(location, SBOL2_START), self.integer(location, SBOL2_END))
-                {
+                if let (Some(start), Some(end)) = (
+                    self.integer(location, SBOL2_START),
+                    self.integer(location, SBOL2_END),
+                ) {
                     regions.push(Region::Range(start, end));
                 }
             } else if location.has_class(Sbol2Class::Cut)
@@ -1681,7 +1741,10 @@ impl<'a> Validator<'a> {
         let types: Vec<String> = object
             .iris(SBOL2_TYPE)
             .filter(|iri| {
-                ontology.is_in_branch(ontology_curie(iri.as_str()), SBO_OCCURRING_ENTITY_REPRESENTATION)
+                ontology.is_in_branch(
+                    ontology_curie(iri.as_str()),
+                    SBO_OCCURRING_ENTITY_REPRESENTATION,
+                )
             })
             .map(|iri| ontology_curie(iri.as_str()).to_owned())
             .collect();
@@ -1699,7 +1762,9 @@ impl<'a> Validator<'a> {
             };
             let roles: Vec<String> = participation
                 .iris(SBOL2_ROLE)
-                .filter(|iri| ontology.is_in_branch(ontology_curie(iri.as_str()), SBO_PARTICIPANT_ROLE))
+                .filter(|iri| {
+                    ontology.is_in_branch(ontology_curie(iri.as_str()), SBO_PARTICIPANT_ROLE)
+                })
                 .map(|iri| ontology_curie(iri.as_str()).to_owned())
                 .collect();
             if let [role] = roles.as_slice()
@@ -1733,11 +1798,7 @@ impl<'a> Validator<'a> {
                 .and_then(|iri| self.resolve(iri.as_str()))
                 && template.resources(SBOL2_COMPONENT).next().is_none()
             {
-                findings.push((
-                    "sbol2-12909",
-                    object.identity().clone(),
-                    SBOL2_TEMPLATE,
-                ));
+                findings.push(("sbol2-12909", object.identity().clone(), SBOL2_TEMPLATE));
             }
             // 13006: a VariableComponent should offer at least one variant source.
             for variable_ref in object.resources(SBOL2_VARIABLE_COMPONENT) {
@@ -1745,8 +1806,14 @@ impl<'a> Validator<'a> {
                     continue;
                 };
                 let empty = variable.resources(SBOL2_VARIANT).next().is_none()
-                    && variable.resources(SBOL2_VARIANT_COLLECTION).next().is_none()
-                    && variable.resources(SBOL2_VARIANT_DERIVATION).next().is_none();
+                    && variable
+                        .resources(SBOL2_VARIANT_COLLECTION)
+                        .next()
+                        .is_none()
+                    && variable
+                        .resources(SBOL2_VARIANT_DERIVATION)
+                        .next()
+                        .is_none();
                 if empty {
                     findings.push(("sbol2-13006", variable.identity().clone(), SBOL2_VARIANT));
                 }
@@ -1840,8 +1907,7 @@ impl<'a> Validator<'a> {
                 let Some(vc) = self.document.get(vc_ref) else {
                     continue;
                 };
-                let Some(variable) =
-                    vc.first_resource(SBOL2_VARIABLE).and_then(Resource::as_iri)
+                let Some(variable) = vc.first_resource(SBOL2_VARIABLE).and_then(Resource::as_iri)
                 else {
                     continue;
                 };
@@ -1939,10 +2005,12 @@ impl<'a> Validator<'a> {
         let ontology = sbol_ontology::Ontology::bundled();
         if object.has_class(Sbol2Class::ComponentDefinition) {
             let types: Vec<&str> = object.iris(SBOL2_TYPE).map(|iri| iri.as_str()).collect();
-            let is_dna_or_rna_region =
-                types.iter().any(|t| *t == BIOPAX_DNA_REGION || *t == BIOPAX_RNA_REGION);
-            let is_dna_or_rna_molecule =
-                types.iter().any(|t| *t == BIOPAX_DNA_MOLECULE || *t == BIOPAX_RNA_MOLECULE);
+            let is_dna_or_rna_region = types
+                .iter()
+                .any(|t| *t == BIOPAX_DNA_REGION || *t == BIOPAX_RNA_REGION);
+            let is_dna_or_rna_molecule = types
+                .iter()
+                .any(|t| *t == BIOPAX_DNA_MOLECULE || *t == BIOPAX_RNA_MOLECULE);
 
             // 10503 / 10525: exactly one Table 2 (BioPAX) type is recommended;
             // more than one is forbidden.
@@ -1965,11 +2033,18 @@ impl<'a> Validator<'a> {
 
             let num_so = object
                 .iris(SBOL2_ROLE)
-                .filter(|iri| ontology.is_in_branch(ontology_curie(iri.as_str()), SO_SEQUENCE_FEATURE))
+                .filter(|iri| {
+                    ontology.is_in_branch(ontology_curie(iri.as_str()), SO_SEQUENCE_FEATURE)
+                })
                 .count();
-            let num_topo = types.iter().filter(|t| ontology.is_in_branch(ontology_curie(t), SO_TOPOLOGY_ATTRIBUTE)).count();
-            let num_strand =
-                types.iter().filter(|t| ontology.is_in_branch(ontology_curie(t), SO_STRAND_ATTRIBUTE)).count();
+            let num_topo = types
+                .iter()
+                .filter(|t| ontology.is_in_branch(ontology_curie(t), SO_TOPOLOGY_ATTRIBUTE))
+                .count();
+            let num_strand = types
+                .iter()
+                .filter(|t| ontology.is_in_branch(ontology_curie(t), SO_STRAND_ATTRIBUTE))
+                .count();
 
             if is_dna_or_rna_region {
                 // 10527: exactly one SO sequence-feature role is recommended.
@@ -2021,7 +2096,9 @@ impl<'a> Validator<'a> {
                     .any(|t| t == BIOPAX_DNA_REGION || t == BIOPAX_RNA_REGION);
                 let num_so = object
                     .iris(SBOL2_ROLE)
-                    .filter(|iri| ontology.is_in_branch(ontology_curie(iri.as_str()), SO_SEQUENCE_FEATURE))
+                    .filter(|iri| {
+                        ontology.is_in_branch(ontology_curie(iri.as_str()), SO_SEQUENCE_FEATURE)
+                    })
                     .count();
                 if !def_is_dna_rna_region {
                     if num_so != 0 {
@@ -2047,7 +2124,12 @@ impl<'a> Validator<'a> {
             // 11905: exactly one occurring-entity-representation SBO type.
             let num = object
                 .iris(SBOL2_TYPE)
-                .filter(|iri| ontology.is_in_branch(ontology_curie(iri.as_str()), SBO_OCCURRING_ENTITY_REPRESENTATION))
+                .filter(|iri| {
+                    ontology.is_in_branch(
+                        ontology_curie(iri.as_str()),
+                        SBO_OCCURRING_ENTITY_REPRESENTATION,
+                    )
+                })
                 .count();
             if num != 1 {
                 self.warning(
@@ -2063,7 +2145,9 @@ impl<'a> Validator<'a> {
             // 12007: exactly one participant-role SBO term.
             let num = object
                 .iris(SBOL2_ROLE)
-                .filter(|iri| ontology.is_in_branch(ontology_curie(iri.as_str()), SBO_PARTICIPANT_ROLE))
+                .filter(|iri| {
+                    ontology.is_in_branch(ontology_curie(iri.as_str()), SBO_PARTICIPANT_ROLE)
+                })
                 .count();
             if num != 1 {
                 self.warning(
@@ -2117,7 +2201,9 @@ impl<'a> Validator<'a> {
             }
             // 11511: a Model's framework should be in the SBO modeling-framework branch.
             for framework in object.iris(SBOL2_FRAMEWORK) {
-                if !ontology.is_in_branch(ontology_curie(framework.as_str()), SBO_MODELING_FRAMEWORK) {
+                if !ontology
+                    .is_in_branch(ontology_curie(framework.as_str()), SBO_MODELING_FRAMEWORK)
+                {
                     self.warning(
                         "sbol2-11511",
                         object,
@@ -2147,8 +2233,12 @@ impl<'a> Validator<'a> {
             // systems-description-parameter SBO type.
             let types: Vec<&str> = object.iris(SBOL2_TYPE).map(|iri| iri.as_str()).collect();
             if !types.is_empty() {
-                let num =
-                    types.iter().filter(|t| ontology.is_in_branch(ontology_curie(t), SBO_SYSTEMS_DESCRIPTION_PARAMETER)).count();
+                let num = types
+                    .iter()
+                    .filter(|t| {
+                        ontology.is_in_branch(ontology_curie(t), SBO_SYSTEMS_DESCRIPTION_PARAMETER)
+                    })
+                    .count();
                 if num != 1 {
                     self.warning(
                         "sbol2-13505",
@@ -2164,13 +2254,19 @@ impl<'a> Validator<'a> {
     /// The BioPAX/SO type IRIs of the ComponentDefinition referenced by a
     /// Component's definition property.
     fn definition_types(&self, component: &Object) -> Option<Vec<String>> {
-        let def = component.first_resource(SBOL2_DEFINITION).and_then(Resource::as_iri)?;
-        let cd = self
-            .document
-            .objects()
-            .values()
-            .find(|o| o.identity().as_iri().is_some_and(|iri| iri.as_str() == def.as_str()))?;
-        Some(cd.iris(SBOL2_TYPE).map(|iri| iri.as_str().to_owned()).collect())
+        let def = component
+            .first_resource(SBOL2_DEFINITION)
+            .and_then(Resource::as_iri)?;
+        let cd = self.document.objects().values().find(|o| {
+            o.identity()
+                .as_iri()
+                .is_some_and(|iri| iri.as_str() == def.as_str())
+        })?;
+        Some(
+            cd.iris(SBOL2_TYPE)
+                .map(|iri| iri.as_str().to_owned())
+                .collect(),
+        )
     }
 
     fn validate_activity_role_usage(&mut self, object: &Object) {
@@ -2245,10 +2341,26 @@ impl<'a> Validator<'a> {
             .collect();
         // (association role, rule, forbidden usage roles).
         let table: &[(&str, &str, &[&str])] = &[
-            (SBOL2_ROLE_DESIGN, "sbol2-12408", &[SBOL2_ROLE_BUILD, SBOL2_ROLE_TEST]),
-            (SBOL2_ROLE_BUILD, "sbol2-12409", &[SBOL2_ROLE_TEST, SBOL2_ROLE_LEARN]),
-            (SBOL2_ROLE_TEST, "sbol2-12410", &[SBOL2_ROLE_DESIGN, SBOL2_ROLE_LEARN]),
-            (SBOL2_ROLE_LEARN, "sbol2-12411", &[SBOL2_ROLE_DESIGN, SBOL2_ROLE_BUILD]),
+            (
+                SBOL2_ROLE_DESIGN,
+                "sbol2-12408",
+                &[SBOL2_ROLE_BUILD, SBOL2_ROLE_TEST],
+            ),
+            (
+                SBOL2_ROLE_BUILD,
+                "sbol2-12409",
+                &[SBOL2_ROLE_TEST, SBOL2_ROLE_LEARN],
+            ),
+            (
+                SBOL2_ROLE_TEST,
+                "sbol2-12410",
+                &[SBOL2_ROLE_DESIGN, SBOL2_ROLE_LEARN],
+            ),
+            (
+                SBOL2_ROLE_LEARN,
+                "sbol2-12411",
+                &[SBOL2_ROLE_DESIGN, SBOL2_ROLE_BUILD],
+            ),
         ];
         for (association_role, rule, forbidden) in table {
             if association_roles.contains(*association_role)
@@ -2322,7 +2434,9 @@ impl<'a> Validator<'a> {
             return;
         };
         for derived in object.resources(PROV_WAS_DERIVED_FROM) {
-            let Some(iri) = derived.as_iri() else { continue };
+            let Some(iri) = derived.as_iri() else {
+                continue;
+            };
             let Some(source) = self.resolve(iri.as_str()) else {
                 continue;
             };
@@ -2370,7 +2484,10 @@ impl<'a> Validator<'a> {
         let uses_sbol2 = triples.iter().any(|triple| {
             triple.predicate.as_str().starts_with(SBOL2_NS)
                 || (triple.predicate.as_str() == RDF_TYPE
-                    && triple.object.as_iri().is_some_and(|iri| iri.as_str().starts_with(SBOL2_NS)))
+                    && triple
+                        .object
+                        .as_iri()
+                        .is_some_and(|iri| iri.as_str().starts_with(SBOL2_NS)))
         });
         if !uses_sbol2 {
             let identity = Resource::Iri(Iri::new_unchecked(SBOL2_NS));
@@ -2392,7 +2509,11 @@ impl<'a> Validator<'a> {
     /// definitions, and a CombinatorialDerivation through its VariableComponents'
     /// variantDerivations. Each mirrors libSBOLj's per-definition cycle walk.
     fn validate_instance_graph_cycles(&mut self) {
-        let cd = self.cycle_offenders(Sbol2Class::ComponentDefinition, SBOL2_COMPONENT, SBOL2_DEFINITION);
+        let cd = self.cycle_offenders(
+            Sbol2Class::ComponentDefinition,
+            SBOL2_COMPONENT,
+            SBOL2_DEFINITION,
+        );
         let md = self.cycle_offenders(Sbol2Class::ModuleDefinition, SBOL2_MODULE, SBOL2_DEFINITION);
         let combo = self.cycle_offenders(
             Sbol2Class::CombinatorialDerivation,
@@ -2400,16 +2521,28 @@ impl<'a> Validator<'a> {
             SBOL2_VARIANT_DERIVATION,
         );
         for identity in cd {
-            self.error_at("sbol2-10605", &identity, Some(SBOL2_COMPONENT),
-                "a ComponentDefinition must not form a cycle through its Components' definitions");
+            self.error_at(
+                "sbol2-10605",
+                &identity,
+                Some(SBOL2_COMPONENT),
+                "a ComponentDefinition must not form a cycle through its Components' definitions",
+            );
         }
         for identity in md {
-            self.error_at("sbol2-11705", &identity, Some(SBOL2_MODULE),
-                "a ModuleDefinition must not form a cycle through its Modules' definitions");
+            self.error_at(
+                "sbol2-11705",
+                &identity,
+                Some(SBOL2_MODULE),
+                "a ModuleDefinition must not form a cycle through its Modules' definitions",
+            );
         }
         for identity in combo {
-            self.error_at("sbol2-13015", &identity, Some(SBOL2_VARIABLE_COMPONENT),
-                "a CombinatorialDerivation must not form a cycle through its variantDerivations");
+            self.error_at(
+                "sbol2-13015",
+                &identity,
+                Some(SBOL2_VARIABLE_COMPONENT),
+                "a CombinatorialDerivation must not form a cycle through its variantDerivations",
+            );
         }
     }
 
@@ -2435,7 +2568,10 @@ impl<'a> Validator<'a> {
                 let Some(instance) = self.document.get(instance_ref) else {
                     continue;
                 };
-                let Some(link) = instance.first_resource(link_pred).and_then(Resource::as_iri) else {
+                let Some(link) = instance
+                    .first_resource(link_pred)
+                    .and_then(Resource::as_iri)
+                else {
                     continue;
                 };
                 if let Some(target) = self.resolve(link.as_str())
@@ -2527,12 +2663,20 @@ impl<'a> Validator<'a> {
             &[SBOL2_MODULE, SBOL2_FUNCTIONAL_COMPONENT],
         );
         for identity in cd {
-            self.error_at("sbol2-10526", &identity, Some(SBOL2_MAPS_TO),
-                "two useRemote MapsTos of a ComponentDefinition must not share a local");
+            self.error_at(
+                "sbol2-10526",
+                &identity,
+                Some(SBOL2_MAPS_TO),
+                "two useRemote MapsTos of a ComponentDefinition must not share a local",
+            );
         }
         for identity in md {
-            self.error_at("sbol2-11609", &identity, Some(SBOL2_MAPS_TO),
-                "two useRemote MapsTos of a ModuleDefinition must not share a local");
+            self.error_at(
+                "sbol2-11609",
+                &identity,
+                Some(SBOL2_MAPS_TO),
+                "two useRemote MapsTos of a ModuleDefinition must not share a local",
+            );
         }
     }
 
@@ -2561,8 +2705,9 @@ impl<'a> Validator<'a> {
                         if !use_remote {
                             continue;
                         }
-                        if let Some(local) =
-                            maps_to.first_resource(SBOL2_LOCAL).and_then(Resource::as_iri)
+                        if let Some(local) = maps_to
+                            .first_resource(SBOL2_LOCAL)
+                            .and_then(Resource::as_iri)
                         {
                             locals.push(local.as_str().to_owned());
                         }
@@ -2586,8 +2731,10 @@ impl<'a> Validator<'a> {
         if !object.has_class(Sbol2Class::Sequence) {
             return;
         }
-        let Some(encoding) =
-            object.first_resource(SBOL2_ENCODING).and_then(Resource::as_iri).map(|iri| iri.as_str().to_owned())
+        let Some(encoding) = object
+            .first_resource(SBOL2_ENCODING)
+            .and_then(Resource::as_iri)
+            .map(|iri| iri.as_str().to_owned())
         else {
             return;
         };
@@ -2714,7 +2861,10 @@ impl<'a> Validator<'a> {
                 continue;
             };
             let position = if location.has_class(Sbol2Class::Range) {
-                match (self.integer(location, SBOL2_START), self.integer(location, SBOL2_END)) {
+                match (
+                    self.integer(location, SBOL2_START),
+                    self.integer(location, SBOL2_END),
+                ) {
                     (Some(start), Some(end)) => Some((start, end)),
                     _ => None,
                 }
@@ -3055,7 +3205,10 @@ fn participant_roles_for_interaction(interaction_type: &str) -> Option<&'static 
 
 /// The set of IRI values `object` carries under `predicate`.
 fn set_of(object: &Object, predicate: &str) -> std::collections::BTreeSet<String> {
-    object.iris(predicate).map(|iri| iri.as_str().to_owned()).collect()
+    object
+        .iris(predicate)
+        .map(|iri| iri.as_str().to_owned())
+        .collect()
 }
 
 /// The diagnostic message for a CombinatorialDerivation best-practice finding.
@@ -3070,8 +3223,12 @@ fn combinatorial_message(rule: &str) -> &'static str {
         "sbol2-13020" => "a one VariableComponent should be realized exactly once",
         "sbol2-13021" => "a oneOrMore VariableComponent should be realized at least once",
         "sbol2-13022" => "a non-replaced template Component should be realized exactly once",
-        "sbol2-12912" => "a Collection should record the CombinatorialDerivation its members derive from",
-        "sbol2-12913" => "a Collection's members should derive from the same CombinatorialDerivation",
+        "sbol2-12912" => {
+            "a Collection should record the CombinatorialDerivation its members derive from"
+        }
+        "sbol2-12913" => {
+            "a Collection's members should derive from the same CombinatorialDerivation"
+        }
         _ => "combinatorial derivation best practice",
     }
 }
@@ -3176,9 +3333,10 @@ fn ends_with_delimited(uri: &str, tail: &str) -> bool {
 /// Whether `full` equals `base` + delimiter + `suffix`.
 fn is_delimited_suffix(full: &str, base: &str, suffix: &str) -> bool {
     if let Some(rest) = full.strip_prefix(base)
-        && let Some(after) = rest.strip_suffix(suffix) {
-            return after == "/" || after == "#" || after == ":";
-        }
+        && let Some(after) = rest.strip_suffix(suffix)
+    {
+        return after == "/" || after == "#" || after == ":";
+    }
     false
 }
 

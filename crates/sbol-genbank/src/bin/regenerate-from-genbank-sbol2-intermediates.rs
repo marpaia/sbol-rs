@@ -28,8 +28,8 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-use sbol3::RdfFormat;
 use sbol_genbank::GenbankImporter;
+use sbol3::RdfFormat;
 
 const FIXTURES: &[&str] = &["BBa_B0034", "BBa_E0040", "BBa_F2620", "BBa_R0010"];
 

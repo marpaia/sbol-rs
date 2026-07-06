@@ -12,15 +12,15 @@ pub use sbol_core;
 pub use sbol_rdf;
 pub use sbol_rdf::{Graph as RdfGraph, Iri, Literal, RdfFormat, Resource, Term, Triple};
 
+/// SBOL 2 ⇄ SBOL 3 conversion.
+#[cfg(feature = "convert")]
+pub use sbol_convert as convert;
 /// SBOL 2 implementation.
 #[cfg(feature = "v2")]
 pub use sbol2 as v2;
 /// SBOL 3 implementation.
 #[cfg(feature = "v3")]
 pub use sbol3 as v3;
-/// SBOL 2 ⇄ SBOL 3 conversion.
-#[cfg(feature = "convert")]
-pub use sbol_convert as convert;
 
 const SBOL_V2_NS: &str = "http://sbols.org/v2#";
 const SBOL_V3_NS: &str = "http://sbols.org/v3#";

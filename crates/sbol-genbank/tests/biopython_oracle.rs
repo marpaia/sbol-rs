@@ -21,8 +21,8 @@
 
 use std::path::PathBuf;
 
-use sbol3::LocationRef;
 use sbol_genbank::GenbankImporter;
+use sbol3::LocationRef;
 use serde_json::Value;
 
 fn manifest_dir() -> PathBuf {
@@ -42,10 +42,22 @@ fn fixtures() -> Vec<(&'static str, PathBuf)> {
     let root = workspace_root();
     let crate_dir = manifest_dir();
     vec![
-        ("BBa_E0040", root.join("tests/fixtures/genbank/BBa_E0040.gb")),
-        ("BBa_R0010", root.join("tests/fixtures/genbank/BBa_R0010.gb")),
-        ("BBa_B0034", root.join("tests/fixtures/genbank/BBa_B0034.gb")),
-        ("BBa_F2620", root.join("tests/fixtures/genbank/BBa_F2620.gb")),
+        (
+            "BBa_E0040",
+            root.join("tests/fixtures/genbank/BBa_E0040.gb"),
+        ),
+        (
+            "BBa_R0010",
+            root.join("tests/fixtures/genbank/BBa_R0010.gb"),
+        ),
+        (
+            "BBa_B0034",
+            root.join("tests/fixtures/genbank/BBa_B0034.gb"),
+        ),
+        (
+            "BBa_F2620",
+            root.join("tests/fixtures/genbank/BBa_F2620.gb"),
+        ),
         ("pUC19", root.join("tests/fixtures/genbank/pUC19.gbk")),
         (
             "oracle_join",

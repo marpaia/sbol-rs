@@ -5,8 +5,8 @@ mod common;
 
 use common::upgrade::*;
 
-use sbol3::RdfFormat;
 use sbol_convert::UpgradeWarning;
+use sbol3::RdfFormat;
 
 #[test]
 fn public_component_in_component_definition_enters_interface() {

@@ -107,7 +107,10 @@ fn positive_cases_do_not_report_their_rule() {
         let document = read_positive_case(case);
         let report = document.validate_with_config(&config);
         if reports_any(&report, case.rule) {
-            failures.push(format!("{} ({}) unexpectedly reported", case.name, case.rule));
+            failures.push(format!(
+                "{} ({}) unexpectedly reported",
+                case.name, case.rule
+            ));
         }
     }
     assert!(

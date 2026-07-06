@@ -29,8 +29,8 @@
 use std::env;
 use std::time::Duration;
 
-use sbol3::{Document, RdfFormat, SbolIdentified, SbolTopLevel};
 use sbol_convert::{UpgradeReport, UpgradeWarning};
+use sbol3::{Document, RdfFormat, SbolIdentified, SbolTopLevel};
 
 const SYNBIOHUB_BASE: &str = "https://synbiohub.org/public/igem";
 const USER_AGENT: &str = "sbol-rs synbiohub_upgrade example";

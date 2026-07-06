@@ -15,8 +15,8 @@
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use sbol3::{Resource, Term, Triple};
 use sbol_fasta::FastaImporter;
+use sbol3::{Resource, Term, Triple};
 
 fn workspace_root() -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));

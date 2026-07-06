@@ -132,10 +132,16 @@ fn sbol_rs_output_matches_libsbolj_reference() {
                 panic!("{name}: libSBOLj {format} reference did not parse: {error}")
             });
 
-        let sbol_triples: BTreeSet<_> =
-            sbol_reparsed.rdf_graph().normalized_triples().into_iter().collect();
-        let ref_triples: BTreeSet<_> =
-            reference_doc.rdf_graph().normalized_triples().into_iter().collect();
+        let sbol_triples: BTreeSet<_> = sbol_reparsed
+            .rdf_graph()
+            .normalized_triples()
+            .into_iter()
+            .collect();
+        let ref_triples: BTreeSet<_> = reference_doc
+            .rdf_graph()
+            .normalized_triples()
+            .into_iter()
+            .collect();
         assert_eq!(
             sbol_triples, ref_triples,
             "{source} produces a different normalized triple set than libSBOLj in {format} \

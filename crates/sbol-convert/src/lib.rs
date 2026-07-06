@@ -15,8 +15,8 @@ mod sbol2_vocab;
 mod upgrade;
 
 pub use downgrade::{
-    DowngradeCounts, DowngradeError, DowngradeOptions, DowngradeReport, DowngradeWarning, downgrade,
-    downgrade_with, sbol3_to_sbol2,
+    DowngradeCounts, DowngradeError, DowngradeOptions, DowngradeReport, DowngradeWarning,
+    downgrade, downgrade_with, sbol3_to_sbol2,
 };
 pub use upgrade::{
     MapsToSide, NamespaceSource, UpgradeCounts, UpgradeError, UpgradeFromPathError, UpgradeOptions,

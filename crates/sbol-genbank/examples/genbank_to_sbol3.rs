@@ -41,8 +41,8 @@
 use std::env;
 use std::path::{Path, PathBuf};
 
-use sbol3::{Document, RdfFormat, SbolIdentified, Severity};
 use sbol_genbank::{GenbankImporter, ImportReport, ImportWarning};
+use sbol3::{Document, RdfFormat, SbolIdentified, Severity};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let input_path = PathBuf::from(

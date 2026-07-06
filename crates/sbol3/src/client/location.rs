@@ -4,10 +4,10 @@ use crate::client::shared::first_i64;
 use crate::client::to_rdf::{Emitter, emit_identified, emit_location, seed_triples};
 use crate::client::{IdentifiedData, LocationData, ToRdf, TryFromObject};
 use crate::error::BuildError;
-use sbol_core::error::BuildError as LexError;
 use crate::identity::DisplayId;
 use crate::vocab::*;
 use crate::{Object, Resource, SbolClass, Triple};
+use sbol_core::error::BuildError as LexError;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]

@@ -1,7 +1,7 @@
 //! SBOL component, collection, location, and sequence graph queries.
 
-use crate::object::ObjectClasses;
 use super::*;
+use crate::object::ObjectClasses;
 
 pub(crate) fn component_sequence_infos(
     ontology: &Ontology,

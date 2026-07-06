@@ -128,7 +128,11 @@ pub struct UnitMultiplication {
 impl ToRdf for UnitMultiplication {
     fn to_rdf_triples(&self) -> Result<Vec<Triple>, crate::BuildError> {
         let mut triples = seed_triples(&self.identity, Sbol2Class::OmUnitMultiplication);
-        let mut e = Emitter::new(&mut triples, &self.identity, Sbol2Class::OmUnitMultiplication);
+        let mut e = Emitter::new(
+            &mut triples,
+            &self.identity,
+            Sbol2Class::OmUnitMultiplication,
+        );
         emit_identified(&mut e, &self.identified)?;
         emit_top_level(&mut e, &self.top_level)?;
         emit_unit_fields(&mut e, &self.unit)?;
@@ -204,7 +208,11 @@ pub struct UnitExponentiation {
 impl ToRdf for UnitExponentiation {
     fn to_rdf_triples(&self) -> Result<Vec<Triple>, crate::BuildError> {
         let mut triples = seed_triples(&self.identity, Sbol2Class::OmUnitExponentiation);
-        let mut e = Emitter::new(&mut triples, &self.identity, Sbol2Class::OmUnitExponentiation);
+        let mut e = Emitter::new(
+            &mut triples,
+            &self.identity,
+            Sbol2Class::OmUnitExponentiation,
+        );
         emit_identified(&mut e, &self.identified)?;
         emit_top_level(&mut e, &self.top_level)?;
         emit_unit_fields(&mut e, &self.unit)?;

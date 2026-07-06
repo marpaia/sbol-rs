@@ -9,10 +9,10 @@ use crate::client::top_level::Component;
 use crate::client::{FeatureData, IdentifiedData, ToRdf, TryFromObject};
 use crate::document::Document;
 use crate::error::BuildError;
-use sbol_core::error::BuildError as LexError;
 use crate::identity::DisplayId;
 use crate::vocab::*;
 use crate::{Iri, Object, Resource, SbolClass, Triple};
+use sbol_core::error::BuildError as LexError;
 
 /// Looks up the `Component` that owns `feature` via `sbol:hasFeature`.
 ///

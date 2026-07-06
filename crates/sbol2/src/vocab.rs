@@ -48,8 +48,7 @@ pub const PROV_PLAN: &str = "http://www.w3.org/ns/prov#Plan";
 pub const PROV_ASSOCIATION: &str = "http://www.w3.org/ns/prov#Association";
 pub const PROV_USAGE: &str = "http://www.w3.org/ns/prov#Usage";
 
-pub const OM_MEASURE: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure";
+pub const OM_MEASURE: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure";
 pub const OM_UNIT: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/Unit";
 pub const OM_SINGULAR_UNIT: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/SingularUnit";
@@ -63,10 +62,8 @@ pub const OM_UNIT_EXPONENTIATION: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/UnitExponentiation";
 pub const OM_PREFIXED_UNIT: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/PrefixedUnit";
-pub const OM_PREFIX: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/Prefix";
-pub const OM_SI_PREFIX: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/SIPrefix";
+pub const OM_PREFIX: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/Prefix";
+pub const OM_SI_PREFIX: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/SIPrefix";
 pub const OM_BINARY_PREFIX: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/BinaryPrefix";
 
@@ -162,8 +159,7 @@ pub const SBOL2_OPERATOR: &str = "http://sbols.org/v2#operator";
 
 pub const PROV_STARTED_AT_TIME: &str = "http://www.w3.org/ns/prov#startedAtTime";
 pub const PROV_ENDED_AT_TIME: &str = "http://www.w3.org/ns/prov#endedAtTime";
-pub const PROV_QUALIFIED_ASSOCIATION: &str =
-    "http://www.w3.org/ns/prov#qualifiedAssociation";
+pub const PROV_QUALIFIED_ASSOCIATION: &str = "http://www.w3.org/ns/prov#qualifiedAssociation";
 pub const PROV_QUALIFIED_USAGE: &str = "http://www.w3.org/ns/prov#qualifiedUsage";
 pub const PROV_WAS_INFORMED_BY: &str = "http://www.w3.org/ns/prov#wasInformedBy";
 pub const PROV_AGENT: &str = "http://www.w3.org/ns/prov#agent";
@@ -175,8 +171,7 @@ pub const PROV_ENTITY: &str = "http://www.w3.org/ns/prov#entity";
 
 pub const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 pub const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
-pub const OM_SYMBOL: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/symbol";
+pub const OM_SYMBOL: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/symbol";
 pub const OM_ALTERNATIVE_SYMBOL: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/alternativeSymbol";
 pub const OM_ALTERNATIVE_LABEL: &str =
@@ -185,20 +180,16 @@ pub const OM_LONG_COMMENT: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/longcomment";
 pub const OM_HAS_NUMERICAL_VALUE: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/hasNumericalValue";
-pub const OM_HAS_UNIT: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit";
+pub const OM_HAS_UNIT: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit";
 pub const OM_HAS_FACTOR: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/hasFactor";
-pub const OM_HAS_TERM1: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/hasTerm1";
-pub const OM_HAS_TERM2: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/hasTerm2";
+pub const OM_HAS_TERM1: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/hasTerm1";
+pub const OM_HAS_TERM2: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/hasTerm2";
 pub const OM_HAS_NUMERATOR: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/hasNumerator";
 pub const OM_HAS_DENOMINATOR: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/hasDenominator";
-pub const OM_HAS_BASE: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/hasBase";
+pub const OM_HAS_BASE: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/hasBase";
 pub const OM_HAS_EXPONENT: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/hasExponent";
 pub const OM_HAS_PREFIX: &str =

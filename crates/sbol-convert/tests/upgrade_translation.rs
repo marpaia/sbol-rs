@@ -7,8 +7,8 @@ use common::upgrade::*;
 
 use std::path::Path;
 
-use sbol3::{RdfFormat, SbolTopLevel};
 use sbol_convert::{UpgradeError, UpgradeOptions, UpgradeWarning};
+use sbol3::{RdfFormat, SbolTopLevel};
 
 #[test]
 fn single_component_definition_upgrades() {
@@ -557,14 +557,16 @@ fn unknown_sbol2_extension_type_does_not_mask_known_type() {
 fn path_helper_works_for_turtle_extension() {
     let _ = Path::new(""); // keep import live
     let path = workspace_fixture("single_cd.ttl");
-    let (document, _report) = sbol_convert::upgrade_from_sbol2_path(&path).expect("upgrade by path");
+    let (document, _report) =
+        sbol_convert::upgrade_from_sbol2_path(&path).expect("upgrade by path");
     assert_eq!(document.components().count(), 1);
 }
 
 #[test]
 fn path_helper_accepts_sbol2_rdfxml_xml_extension() {
     let path = workspace_fixture("real/implementation_example.xml");
-    let (document, _report) = sbol_convert::upgrade_from_sbol2_path(&path).expect("upgrade .xml path");
+    let (document, _report) =
+        sbol_convert::upgrade_from_sbol2_path(&path).expect("upgrade .xml path");
     assert!(
         document.implementations().count() >= 1 || document.components().count() >= 1,
         "expected .xml SBOL 2 fixture to upgrade into typed SBOL 3 objects"

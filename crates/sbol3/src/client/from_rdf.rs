@@ -1,4 +1,3 @@
-use crate::object::ObjectClasses;
 use crate::client::{
     Activity, Agent, Association, Attachment, BinaryPrefix, Collection, CombinatorialDerivation,
     Component, ComponentReference, CompoundUnit, Constraint, Cut, EntireSequence, Experiment,
@@ -7,6 +6,7 @@ use crate::client::{
     SIPrefix, SbolObject, Sequence, SequenceFeature, SingularUnit, SubComponent, TryFromObject,
     Unit, UnitDivision, UnitExponentiation, UnitMultiplication, Usage, VariableFeature,
 };
+use crate::object::ObjectClasses;
 use crate::{Object, SbolClass};
 
 impl TryFromObject for SbolObject {

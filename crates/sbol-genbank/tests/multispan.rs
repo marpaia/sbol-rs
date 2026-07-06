@@ -11,8 +11,8 @@
 
 use std::path::PathBuf;
 
-use sbol3::{LocationRef, RdfFormat, Severity};
 use sbol_genbank::{GenbankImporter, ImportWarning};
+use sbol3::{LocationRef, RdfFormat, Severity};
 
 const INLINE: &str = "http://sbols.org/v3#inline";
 const REVERSE_COMPLEMENT: &str = "http://sbols.org/v3#reverseComplement";

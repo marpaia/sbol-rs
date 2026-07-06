@@ -274,7 +274,10 @@ fn render_configurable_section(out: &mut String, statuses: &[ValidationRuleStatu
     for entry in entries {
         let safe_note = entry.note.replace('|', "\\|");
         let blocker = entry.blocker.map(blocker_label).unwrap_or("(unspecified)");
-        out.push_str(&format!("| `{}` | `{blocker}` | {safe_note} |\n", entry.rule));
+        out.push_str(&format!(
+            "| `{}` | `{blocker}` | {safe_note} |\n",
+            entry.rule
+        ));
     }
     out.push('\n');
 }
@@ -301,7 +304,10 @@ fn render_machine_uncheckable_section(out: &mut String, statuses: &[ValidationRu
     for entry in entries {
         let safe_note = entry.note.replace('|', "\\|");
         let blocker = entry.blocker.map(blocker_label).unwrap_or("(none)");
-        out.push_str(&format!("| `{}` | `{blocker}` | {safe_note} |\n", entry.rule));
+        out.push_str(&format!(
+            "| `{}` | `{blocker}` | {safe_note} |\n",
+            entry.rule
+        ));
     }
     out.push('\n');
 }
@@ -322,9 +328,7 @@ fn render_corpus_results(out: &mut String) {
     );
     out.push_str("| Corpus | Files | Flag behavior |\n");
     out.push_str("| --- | ---: | --- |\n");
-    out.push_str(
-        "| `SBOL2` | 179 | Valid: pass under both the default config and `all_on`. |\n",
-    );
+    out.push_str("| `SBOL2` | 179 | Valid: pass under both the default config and `all_on`. |\n");
     out.push_str(
         "| `SBOL2_ic` | 71 | Incomplete: pass with `complete` off; the completeness family \
          flags them when `complete` is on. |\n",
@@ -347,15 +351,9 @@ fn render_corpus_results(out: &mut String) {
     );
     out.push_str("| Outcome | Count | Meaning |\n");
     out.push_str("| --- | ---: | --- |\n");
-    out.push_str(
-        "| Strict | 166 | The file's exact expected rule fires. |\n",
-    );
-    out.push_str(
-        "| Loose | 14 | Rejected via a related error rather than the exact rule id. |\n",
-    );
-    out.push_str(
-        "| Parse-rejected | 3 | The RDF/XML reader rejects the file at read time. |\n",
-    );
+    out.push_str("| Strict | 166 | The file's exact expected rule fires. |\n");
+    out.push_str("| Loose | 14 | Rejected via a related error rather than the exact rule id. |\n");
+    out.push_str("| Parse-rejected | 3 | The RDF/XML reader rejects the file at read time. |\n");
     out.push_str(
         "| Deferred | 48 | Exercised but not error-rejected: the violation needs a resolver or \
          cross-document context, is a \u{25B2} machine-uncheckable condition, is a reader-scope \

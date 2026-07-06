@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
+use crate::client::object::for_each_variant;
 use crate::client::shared::{
     ComponentInstanceData, IdentifiedData, LocationData, MeasuredData, TopLevelData,
 };
-use crate::client::object::for_each_variant;
 use crate::client::{Sbol2Object, ToRdf};
 use crate::schema::{FieldDescriptor, ValueKind, class_spec, xsd_datatype};
 use crate::vocab::*;
@@ -176,7 +176,13 @@ impl<'t> Emitter<'t> {
     ) -> Result<(), BuildError> {
         let kind = self.value_kind(predicate);
         if let Some(value) = value {
-            push_literal(self.triples, self.identity, predicate, &value.to_string(), kind);
+            push_literal(
+                self.triples,
+                self.identity,
+                predicate,
+                &value.to_string(),
+                kind,
+            );
         }
         Ok(())
     }

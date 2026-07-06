@@ -26,6 +26,7 @@ mod top_level;
 mod traits;
 
 pub use accessors::{SbolIdentified, SbolTopLevel};
+pub use annotation::{SequenceAnnotation, SequenceConstraint};
 pub use builder::{
     ActivityBuilder, AgentBuilder, AssociationBuilder, AttachmentBuilder, BinaryPrefixBuilder,
     CollectionBuilder, CombinatorialDerivationBuilder, ComponentBuilder,
@@ -38,7 +39,6 @@ pub use builder::{
     SingularUnitBuilder, UnitBuilder, UnitDivisionBuilder, UnitExponentiationBuilder,
     UnitMultiplicationBuilder, UsageBuilder, VariableComponentBuilder,
 };
-pub use annotation::{SequenceAnnotation, SequenceConstraint};
 pub use combinatorial::VariableComponent;
 pub use component_instance::{Component, FunctionalComponent};
 pub use extension::{GenericTopLevel, IdentifiedExtension};

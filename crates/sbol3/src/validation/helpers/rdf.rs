@@ -1,7 +1,7 @@
 //! RDF type inspection: class-hierarchy checks and target/external-resource classification.
 
-use crate::object::ObjectClasses;
 use super::*;
+use crate::object::ObjectClasses;
 
 pub(crate) fn known_external_resource(iri: &str) -> Option<ExternalResource> {
     let iri = iri.to_ascii_lowercase();
@@ -31,10 +31,10 @@ pub(crate) fn known_external_resource(iri: &str) -> Option<ExternalResource> {
 
 pub(crate) fn object_matches_target(object: &Object, target: TargetClass) -> bool {
     match target {
-        TargetClass::Sbol(class_iri) => crate::SbolClass::from_iri(&crate::Iri::new_unchecked(
-            class_iri,
-        ))
-        .is_some_and(|class| object.has_class(class)),
+        TargetClass::Sbol(class_iri) => {
+            crate::SbolClass::from_iri(&crate::Iri::new_unchecked(class_iri))
+                .is_some_and(|class| object.has_class(class))
+        }
         TargetClass::ProvActivity => object_has_rdf_type(object, PROV_ACTIVITY),
         TargetClass::ProvAgent => object_has_rdf_type(object, PROV_AGENT_CLASS),
         TargetClass::ProvAssociation => object_has_rdf_type(object, PROV_ASSOCIATION),

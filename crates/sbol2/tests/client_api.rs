@@ -100,8 +100,8 @@ fn unknown_predicates_round_trip_as_extension_triples() {
         .build()
         .expect("cd");
 
-    let document = Document::from_objects(vec![Sbol2Object::ComponentDefinition(cd)])
-        .expect("document");
+    let document =
+        Document::from_objects(vec![Sbol2Object::ComponentDefinition(cd)]).expect("document");
     let turtle = document.write_turtle().expect("turtle");
     let reparsed = Document::read_turtle(&turtle).expect("reparse");
     let cd = reparsed

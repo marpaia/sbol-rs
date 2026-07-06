@@ -8,8 +8,7 @@ pub const SBOL_IDENTIFIED_CLASS: &str = "http://sbols.org/v3#Identified";
 pub const SBOL_TOP_LEVEL_CLASS: &str = "http://sbols.org/v3#TopLevel";
 pub const SBOL_ATTACHMENT_CLASS: &str = "http://sbols.org/v3#Attachment";
 pub const SBOL_COLLECTION_CLASS: &str = "http://sbols.org/v3#Collection";
-pub const SBOL_COMBINATORIAL_DERIVATION_CLASS: &str =
-    "http://sbols.org/v3#CombinatorialDerivation";
+pub const SBOL_COMBINATORIAL_DERIVATION_CLASS: &str = "http://sbols.org/v3#CombinatorialDerivation";
 pub const SBOL_COMPONENT_CLASS: &str = "http://sbols.org/v3#Component";
 pub const SBOL_COMPONENT_REFERENCE_CLASS: &str = "http://sbols.org/v3#ComponentReference";
 pub const SBOL_CONSTRAINT_CLASS: &str = "http://sbols.org/v3#Constraint";
@@ -129,14 +128,12 @@ pub const PROV_ENDED_AT_TIME: &str = "http://www.w3.org/ns/prov#endedAtTime";
 pub const PROV_ENTITY: &str = "http://www.w3.org/ns/prov#entity";
 pub const PROV_HAD_PLAN: &str = "http://www.w3.org/ns/prov#hadPlan";
 pub const PROV_HAD_ROLE: &str = "http://www.w3.org/ns/prov#hadRole";
-pub const PROV_QUALIFIED_ASSOCIATION: &str =
-    "http://www.w3.org/ns/prov#qualifiedAssociation";
+pub const PROV_QUALIFIED_ASSOCIATION: &str = "http://www.w3.org/ns/prov#qualifiedAssociation";
 pub const PROV_QUALIFIED_USAGE: &str = "http://www.w3.org/ns/prov#qualifiedUsage";
 pub const PROV_STARTED_AT_TIME: &str = "http://www.w3.org/ns/prov#startedAtTime";
 pub const PROV_WAS_INFORMED_BY: &str = "http://www.w3.org/ns/prov#wasInformedBy";
 pub const PROV_AGENT: &str = "http://www.w3.org/ns/prov#agent";
-pub const OM_MEASURE: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure";
+pub const OM_MEASURE: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/Measure";
 pub const OM_UNIT: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/Unit";
 pub const OM_SINGULAR_UNIT: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/SingularUnit";
@@ -150,14 +147,11 @@ pub const OM_UNIT_MULTIPLICATION: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/UnitMultiplication";
 pub const OM_PREFIXED_UNIT: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/PrefixedUnit";
-pub const OM_PREFIX: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/Prefix";
-pub const OM_SI_PREFIX: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/SIPrefix";
+pub const OM_PREFIX: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/Prefix";
+pub const OM_SI_PREFIX: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/SIPrefix";
 pub const OM_BINARY_PREFIX: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/BinaryPrefix";
-pub const OM_HAS_UNIT: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit";
+pub const OM_HAS_UNIT: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit";
 pub const OM_HAS_NUMERICAL_VALUE: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/hasNumericalValue";
 pub const OM_HAS_PREFIX: &str =
@@ -166,27 +160,22 @@ pub const OM_ALTERNATIVE_LABEL: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/alternativeLabel";
 pub const OM_ALTERNATIVE_SYMBOL: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/alternativeSymbol";
-pub const OM_COMMENT: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/comment";
+pub const OM_COMMENT: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/comment";
 pub const OM_HAS_FACTOR: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/hasFactor";
 pub const OM_LABEL: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/label";
 pub const OM_LONG_COMMENT: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/longcomment";
-pub const OM_SYMBOL: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/symbol";
+pub const OM_SYMBOL: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/symbol";
 pub const OM_HAS_DENOMINATOR: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/hasDenominator";
 pub const OM_HAS_NUMERATOR: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/hasNumerator";
-pub const OM_HAS_BASE: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/hasBase";
+pub const OM_HAS_BASE: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/hasBase";
 pub const OM_HAS_EXPONENT: &str =
     "http://www.ontology-of-units-of-measure.org/resource/om-2/hasExponent";
-pub const OM_HAS_TERM1: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/hasTerm1";
-pub const OM_HAS_TERM2: &str =
-    "http://www.ontology-of-units-of-measure.org/resource/om-2/hasTerm2";
+pub const OM_HAS_TERM1: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/hasTerm1";
+pub const OM_HAS_TERM2: &str = "http://www.ontology-of-units-of-measure.org/resource/om-2/hasTerm2";
 
 pub const ORIENTATION_IRIS: &[&str] = &[
     SBOL_INLINE,

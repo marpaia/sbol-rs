@@ -43,11 +43,11 @@
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
-use sbol3::Document;
 use crate::sbol2_vocab as v2;
-use sbol3::vocab as v3;
-use sbol_rdf::{Iri, Resource, Term, Triple};
 use sbol_rdf::{Graph, ParseError, RdfFormat};
+use sbol_rdf::{Iri, Resource, Term, Triple};
+use sbol3::Document;
+use sbol3::vocab as v3;
 
 mod emit;
 mod engine;

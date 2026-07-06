@@ -12,10 +12,10 @@ use crate::client::accessors::impl_sbol_identified;
 use crate::client::builder::IdentifiedExtensionBuilder;
 use crate::client::{IdentifiedData, ToRdf, TopLevelData, TryFromObject};
 use crate::error::BuildError;
-use sbol_core::error::BuildError as LexError;
 use crate::identity::DisplayId;
 use crate::vocab::*;
 use crate::{Iri, Literal, Object, Resource, Term, Triple};
+use sbol_core::error::BuildError as LexError;
 
 /// An RDF subject preserved through the typed model when no concrete
 /// SBOL class variant matched its `rdf:type` set. The Identified shared

@@ -59,7 +59,11 @@ pub struct ComponentDefinition {
 impl ToRdf for ComponentDefinition {
     fn to_rdf_triples(&self) -> Result<Vec<Triple>, crate::BuildError> {
         let mut triples = seed_triples(&self.identity, Sbol2Class::ComponentDefinition);
-        let mut e = Emitter::new(&mut triples, &self.identity, Sbol2Class::ComponentDefinition);
+        let mut e = Emitter::new(
+            &mut triples,
+            &self.identity,
+            Sbol2Class::ComponentDefinition,
+        );
         emit_identified(&mut e, &self.identified)?;
         emit_top_level(&mut e, &self.top_level)?;
         e.iris(SBOL2_TYPE, &self.types)?;
@@ -313,7 +317,9 @@ impl TryFromObject for Attachment {
             source: object.first_resource(SBOL2_SOURCE).cloned(),
             format: object.first_iri(SBOL2_FORMAT).cloned(),
             size: first_i64(object, SBOL2_SIZE),
-            hash: object.first_literal_value(SBOL2_HASH).map(ToOwned::to_owned),
+            hash: object
+                .first_literal_value(SBOL2_HASH)
+                .map(ToOwned::to_owned),
         })
     }
 }

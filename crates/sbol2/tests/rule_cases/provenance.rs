@@ -139,10 +139,14 @@ macro_rules! activity_body {
     };
 }
 
-const ACT_DESIGN_BUILD: &str = activity_body!("http://sbols.org/v2#design", "http://sbols.org/v2#build");
-const ACT_BUILD_TEST: &str = activity_body!("http://sbols.org/v2#build", "http://sbols.org/v2#test");
-const ACT_TEST_DESIGN: &str = activity_body!("http://sbols.org/v2#test", "http://sbols.org/v2#design");
-const ACT_LEARN_DESIGN: &str = activity_body!("http://sbols.org/v2#learn", "http://sbols.org/v2#design");
+const ACT_DESIGN_BUILD: &str =
+    activity_body!("http://sbols.org/v2#design", "http://sbols.org/v2#build");
+const ACT_BUILD_TEST: &str =
+    activity_body!("http://sbols.org/v2#build", "http://sbols.org/v2#test");
+const ACT_TEST_DESIGN: &str =
+    activity_body!("http://sbols.org/v2#test", "http://sbols.org/v2#design");
+const ACT_LEARN_DESIGN: &str =
+    activity_body!("http://sbols.org/v2#learn", "http://sbols.org/v2#design");
 
 macro_rules! usage_body {
     ($role:literal, $class:literal) => {
@@ -251,10 +255,13 @@ const USAGE_BUILD_IMPL: &str = usage_body!("http://sbols.org/v2#build", "sbol:Im
 const USAGE_TEST_ATTACHMENT: &str = usage_body!("http://sbols.org/v2#test", "sbol:Attachment");
 const USAGE_LEARN_CD: &str = usage_body!("http://sbols.org/v2#learn", "sbol:ComponentDefinition");
 
-const ACT_DESIGN_ONLY: &str = activity_body!("http://sbols.org/v2#design", "http://sbols.org/v2#design");
-const ACT_BUILD_ONLY: &str = activity_body!("http://sbols.org/v2#build", "http://sbols.org/v2#build");
+const ACT_DESIGN_ONLY: &str =
+    activity_body!("http://sbols.org/v2#design", "http://sbols.org/v2#design");
+const ACT_BUILD_ONLY: &str =
+    activity_body!("http://sbols.org/v2#build", "http://sbols.org/v2#build");
 const ACT_TEST_ONLY: &str = activity_body!("http://sbols.org/v2#test", "http://sbols.org/v2#test");
-const ACT_LEARN_ONLY: &str = activity_body!("http://sbols.org/v2#learn", "http://sbols.org/v2#learn");
+const ACT_LEARN_ONLY: &str =
+    activity_body!("http://sbols.org/v2#learn", "http://sbols.org/v2#learn");
 
 const ASSOC_VALID: &str = r#"<http://ex/assoc> a prov:Association ;
     sbol:displayId "assoc" ;

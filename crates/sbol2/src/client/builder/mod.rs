@@ -89,7 +89,10 @@ macro_rules! identified_setters {
         pub fn extension(mut self, predicate: Iri, value: Term) -> Self {
             self.identified
                 .extensions
-                .push($crate::client::ExtensionTriple { predicate, object: value });
+                .push($crate::client::ExtensionTriple {
+                    predicate,
+                    object: value,
+                });
             self
         }
     };

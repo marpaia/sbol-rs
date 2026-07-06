@@ -75,7 +75,9 @@ impl UnitData {
     pub(crate) fn from_object(object: &Object) -> Self {
         Self {
             symbol: object.first_literal_value(OM_SYMBOL).map(ToOwned::to_owned),
-            label: object.first_literal_value(RDFS_LABEL).map(ToOwned::to_owned),
+            label: object
+                .first_literal_value(RDFS_LABEL)
+                .map(ToOwned::to_owned),
             alternative_symbols: literals(object, OM_ALTERNATIVE_SYMBOL),
             alternative_labels: literals(object, OM_ALTERNATIVE_LABEL),
             comment: object
@@ -88,7 +90,10 @@ impl UnitData {
     }
 }
 
-pub(crate) fn emit_unit_fields(e: &mut Emitter<'_>, data: &UnitData) -> Result<(), crate::BuildError> {
+pub(crate) fn emit_unit_fields(
+    e: &mut Emitter<'_>,
+    data: &UnitData,
+) -> Result<(), crate::BuildError> {
     e.literal(OM_SYMBOL, data.symbol.as_deref())?;
     e.literal(RDFS_LABEL, data.label.as_deref())?;
     e.literals(OM_ALTERNATIVE_SYMBOL, &data.alternative_symbols)?;
@@ -115,7 +120,9 @@ impl PrefixData {
     pub(crate) fn from_object(object: &Object) -> Self {
         Self {
             symbol: object.first_literal_value(OM_SYMBOL).map(ToOwned::to_owned),
-            label: object.first_literal_value(RDFS_LABEL).map(ToOwned::to_owned),
+            label: object
+                .first_literal_value(RDFS_LABEL)
+                .map(ToOwned::to_owned),
             alternative_symbols: literals(object, OM_ALTERNATIVE_SYMBOL),
             alternative_labels: literals(object, OM_ALTERNATIVE_LABEL),
             comment: object

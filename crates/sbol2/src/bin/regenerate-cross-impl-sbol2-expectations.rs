@@ -32,19 +32,28 @@ const FIXTURES: &[(&str, &str)] = &[
     ("bba_i0462", "real/BBa_I0462.xml"),
     ("cd_sa_cut_example", "real/CD_SA_Cut_Example.xml"),
     ("cd_sa_range_example", "real/CD_SA_Range_Example.xml"),
-    ("component_definition_output", "real/ComponentDefinitionOutput.xml"),
+    (
+        "component_definition_output",
+        "real/ComponentDefinitionOutput.xml",
+    ),
     (
         "component_definition_output_gl_cd_sa_comp",
         "real/ComponentDefinitionOutput_gl_cd_sa_comp.xml",
     ),
     ("implementation_example", "real/implementation_example.xml"),
-    ("module_definition_output", "real/ModuleDefinitionOutput.xml"),
+    (
+        "module_definition_output",
+        "real/ModuleDefinitionOutput.xml",
+    ),
     (
         "module_definition_output_int_md_ann",
         "real/ModuleDefinitionOutput_int_md_ann.xml",
     ),
     ("repression_model", "real/RepressionModel.xml"),
-    ("sequence_constraint_output", "real/SequenceConstraintOutput.xml"),
+    (
+        "sequence_constraint_output",
+        "real/SequenceConstraintOutput.xml",
+    ),
 ];
 
 const DOCKER_IMAGE: &str = "libsbolj-pinned";
@@ -72,7 +81,10 @@ fn main() -> ExitCode {
     for (stem, source) in FIXTURES {
         let source_path = fixture_root.join(source);
         if !source_path.is_file() {
-            eprintln!("skipping {stem}: source fixture missing at {}", source_path.display());
+            eprintln!(
+                "skipping {stem}: source fixture missing at {}",
+                source_path.display()
+            );
             failures += 1;
             continue;
         }

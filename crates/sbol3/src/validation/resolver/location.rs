@@ -1,10 +1,10 @@
 //! Location normalization: collapsing `Range` / `Cut` / `EntireSequence`
 //! into half-open `[start, end)` [`LinearLocation`] spans.
 
-use crate::object::ObjectClasses;
 use super::{
     ComponentReferenceResolver, OwnershipIndex, directional_orientation_value, integer_value,
 };
+use crate::object::ObjectClasses;
 use crate::vocab::*;
 use crate::{Document, Resource, SbolClass};
 

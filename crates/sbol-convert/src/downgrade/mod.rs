@@ -62,12 +62,12 @@
 
 use std::collections::{HashMap, HashSet};
 
-use sbol_core::iri::last_iri_segment as last_segment;
 use crate::sbol2_vocab as v2;
-use sbol3::vocab as v3;
-use sbol3::Document;
-use sbol_rdf::{Iri, Resource, Term, Triple};
+use sbol_core::iri::last_iri_segment as last_segment;
 use sbol_rdf::Graph;
+use sbol_rdf::{Iri, Resource, Term, Triple};
+use sbol3::Document;
+use sbol3::vocab as v3;
 
 mod analyze;
 mod dispatch;

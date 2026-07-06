@@ -140,7 +140,10 @@ fn fetch_fixtures(root: &Path) -> io::Result<()> {
 
     let source_root = extracted_source_root(&extract_root)?;
     for sub in EXTRACT_DIRS {
-        copy_xml_files(&source_root.join(sub), &root.join("SBOLTestSuite").join(sub))?;
+        copy_xml_files(
+            &source_root.join(sub),
+            &root.join("SBOLTestSuite").join(sub),
+        )?;
     }
     fs::remove_dir_all(extract_root)?;
     Ok(())

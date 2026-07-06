@@ -190,7 +190,8 @@ macro_rules! generated_body {
     };
 }
 
-const GEN_IMPL_DESIGN: &str = generated_body!("sbol:Implementation", "http://sbols.org/v2#design", "");
+const GEN_IMPL_DESIGN: &str =
+    generated_body!("sbol:Implementation", "http://sbols.org/v2#design", "");
 const GEN_CD_BUILD: &str = generated_body!(
     "sbol:ComponentDefinition",
     "http://sbols.org/v2#build",
@@ -201,7 +202,8 @@ const GEN_CD_TEST: &str = generated_body!(
     "http://sbols.org/v2#test",
     "\n    sbol:type <http://www.biopax.org/release/biopax-level3.owl#DnaRegion> ;"
 );
-const GEN_IMPL_LEARN: &str = generated_body!("sbol:Implementation", "http://sbols.org/v2#learn", "");
+const GEN_IMPL_LEARN: &str =
+    generated_body!("sbol:Implementation", "http://sbols.org/v2#learn", "");
 
 pub fn positives() -> Vec<PositiveCase> {
     vec![
@@ -351,7 +353,8 @@ const GEN_CD_DESIGN: &str = generated_body!(
     "http://sbols.org/v2#design",
     "\n    sbol:type <http://www.biopax.org/release/biopax-level3.owl#DnaRegion> ;"
 );
-const GEN_IMPL_BUILD: &str = generated_body!("sbol:Implementation", "http://sbols.org/v2#build", "");
+const GEN_IMPL_BUILD: &str =
+    generated_body!("sbol:Implementation", "http://sbols.org/v2#build", "");
 const GEN_ED_TEST: &str = generated_body!("sbol:ExperimentalData", "http://sbols.org/v2#test", "");
 const GEN_CD_LEARN: &str = generated_body!(
     "sbol:ComponentDefinition",

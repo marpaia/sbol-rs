@@ -5,8 +5,8 @@
 //! method calls so callers write `cd.name()` instead of
 //! `cd.identified.name.as_deref()`. Bring them into scope through the prelude.
 
-use crate::client::shared::{ExtensionTriple, IdentifiedData, TopLevelData};
 use crate::Resource;
+use crate::client::shared::{ExtensionTriple, IdentifiedData, TopLevelData};
 
 /// Read-only access to the shared metadata every SBOL 2 `Identified` object
 /// carries: `persistentIdentity`, `version`, `displayId`, `name`

@@ -93,8 +93,7 @@ impl<'a> Engine<'a> {
 
             if predicate.starts_with(v2::SBOL2_NS) {
                 saw_sbol2_predicate = true;
-                if (predicate == v2::SBOL2_PERSISTENT_IDENTITY
-                    || predicate == v2::SBOL2_DISPLAY_ID)
+                if (predicate == v2::SBOL2_PERSISTENT_IDENTITY || predicate == v2::SBOL2_DISPLAY_ID)
                     && let Some(subject_iri) = triple.subject.as_iri()
                 {
                     sbol2_identified.insert(subject_iri.as_str().to_owned());

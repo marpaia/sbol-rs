@@ -3,11 +3,11 @@ use sbol_ontology::Ontology;
 use crate::validation::report::Severity;
 use crate::validation::spec::validation_rule_statuses;
 
+use sbol_core::validation::options::RuleOverrides;
 pub use sbol_core::validation::options::{
     HashAlgorithmRegistry, PolicyOptions, RuleOverride, TopologyCompleteness, UnknownRule,
     ValidationConfig,
 };
-use sbol_core::validation::options::RuleOverrides;
 
 /// Options for local SBOL validation.
 #[derive(Clone, Debug, PartialEq, Eq)]

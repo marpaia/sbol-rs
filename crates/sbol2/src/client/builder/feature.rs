@@ -3,8 +3,8 @@
 //! interactions, and combinatorial variable components.
 
 use super::{
-    child_seed, component_instance_setters, identified_setters, location_setters,
-    measured_setters, measured_seed, missing,
+    child_seed, component_instance_setters, identified_setters, location_setters, measured_seed,
+    measured_setters, missing,
 };
 use crate::client::{
     Component, ComponentInstanceData, Cut, FunctionalComponent, GenericLocation, IdentifiedData,
@@ -85,7 +85,9 @@ impl Component {
         display_id: impl TryInto<DisplayId, Error = LexError>,
         definition: Resource,
     ) -> Result<Self, BuildError> {
-        Self::builder(parent, display_id)?.definition(definition).build()
+        Self::builder(parent, display_id)?
+            .definition(definition)
+            .build()
     }
 
     pub fn builder(
@@ -147,7 +149,9 @@ impl FunctionalComponent {
         display_id: impl TryInto<DisplayId, Error = LexError>,
         definition: Resource,
     ) -> Result<Self, BuildError> {
-        Self::builder(parent, display_id)?.definition(definition).build()
+        Self::builder(parent, display_id)?
+            .definition(definition)
+            .build()
     }
 
     pub fn builder(
@@ -216,7 +220,9 @@ impl Module {
         display_id: impl TryInto<DisplayId, Error = LexError>,
         definition: Resource,
     ) -> Result<Self, BuildError> {
-        Self::builder(parent, display_id)?.definition(definition).build()
+        Self::builder(parent, display_id)?
+            .definition(definition)
+            .build()
     }
 
     pub fn builder(
@@ -376,7 +382,9 @@ impl SequenceAnnotation {
         display_id: impl TryInto<DisplayId, Error = LexError>,
         locations: impl IntoIterator<Item = Resource>,
     ) -> Result<Self, BuildError> {
-        Self::builder(parent, display_id)?.locations(locations).build()
+        Self::builder(parent, display_id)?
+            .locations(locations)
+            .build()
     }
 
     pub fn builder(
@@ -432,7 +440,11 @@ impl SequenceConstraintBuilder {
             .constrained_object
             .ok_or_else(|| missing(&self.identity, Sbol2Class::SequenceConstraint, "object"))?;
         let restriction = self.restriction.ok_or_else(|| {
-            missing(&self.identity, Sbol2Class::SequenceConstraint, "restriction")
+            missing(
+                &self.identity,
+                Sbol2Class::SequenceConstraint,
+                "restriction",
+            )
         })?;
         Ok(SequenceConstraint {
             identity: self.identity,
@@ -525,7 +537,10 @@ impl Range {
         start: i64,
         end: i64,
     ) -> Result<Self, BuildError> {
-        Self::builder(parent, display_id)?.start(start).end(end).build()
+        Self::builder(parent, display_id)?
+            .start(start)
+            .end(end)
+            .build()
     }
 
     pub fn builder(

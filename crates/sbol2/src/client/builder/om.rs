@@ -21,7 +21,11 @@ fn top_seed(
     display_id: &DisplayId,
 ) -> (Resource, IdentifiedData, TopLevelData) {
     let (identity, persistent) = build_top_level_identity(namespace, display_id, DEFAULT_VERSION);
-    (identity, identified_seed(display_id, persistent), top_level_seed())
+    (
+        identity,
+        identified_seed(display_id, persistent),
+        top_level_seed(),
+    )
 }
 
 /// Builder for [`Measure`].
@@ -66,9 +70,9 @@ impl MeasureBuilder {
     }
 
     pub fn build(self) -> Result<Measure, BuildError> {
-        let has_numerical_value = self.has_numerical_value.ok_or_else(|| {
-            missing(&self.identity, Sbol2Class::OmMeasure, "hasNumericalValue")
-        })?;
+        let has_numerical_value = self
+            .has_numerical_value
+            .ok_or_else(|| missing(&self.identity, Sbol2Class::OmMeasure, "hasNumericalValue"))?;
         let has_unit = self
             .has_unit
             .ok_or_else(|| missing(&self.identity, Sbol2Class::OmMeasure, "hasUnit"))?;
@@ -257,7 +261,12 @@ macro_rules! prefix_builder {
         impl $builder {
             pub(crate) fn seed(namespace: Namespace, display_id: DisplayId) -> Self {
                 let (identity, identified, top_level) = top_seed(&namespace, &display_id);
-                Self { identity, identified, top_level, prefix: prefix_seed() }
+                Self {
+                    identity,
+                    identified,
+                    top_level,
+                    prefix: prefix_seed(),
+                }
             }
 
             identified_setters!();
@@ -272,7 +281,11 @@ macro_rules! prefix_builder {
                     return Err(missing(&self.identity, Sbol2Class::$sbol_class, "label"));
                 }
                 if self.prefix.has_factor.is_none() {
-                    return Err(missing(&self.identity, Sbol2Class::$sbol_class, "hasFactor"));
+                    return Err(missing(
+                        &self.identity,
+                        Sbol2Class::$sbol_class,
+                        "hasFactor",
+                    ));
                 }
                 Ok($class {
                     identity: self.identity,
@@ -288,7 +301,10 @@ macro_rules! prefix_builder {
                 namespace: impl TryInto<Namespace, Error = LexError>,
                 display_id: impl TryInto<DisplayId, Error = LexError>,
             ) -> Result<$builder, BuildError> {
-                Ok($builder::seed(namespace.try_into()?, display_id.try_into()?))
+                Ok($builder::seed(
+                    namespace.try_into()?,
+                    display_id.try_into()?,
+                ))
             }
 
             pub fn new(
@@ -359,14 +375,19 @@ impl GenericTopLevel {
         display_id: impl TryInto<DisplayId, Error = LexError>,
         rdf_type: Iri,
     ) -> Result<Self, BuildError> {
-        Self::builder(namespace, display_id)?.rdf_type(rdf_type).build()
+        Self::builder(namespace, display_id)?
+            .rdf_type(rdf_type)
+            .build()
     }
 
     pub fn builder(
         namespace: impl TryInto<Namespace, Error = LexError>,
         display_id: impl TryInto<DisplayId, Error = LexError>,
     ) -> Result<GenericTopLevelBuilder, BuildError> {
-        Ok(GenericTopLevelBuilder::seed(namespace.try_into()?, display_id.try_into()?))
+        Ok(GenericTopLevelBuilder::seed(
+            namespace.try_into()?,
+            display_id.try_into()?,
+        ))
     }
 }
 

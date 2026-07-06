@@ -6,8 +6,8 @@ mod common;
 
 use common::upgrade::*;
 
-use sbol3::RdfFormat;
 use sbol_convert::UpgradeWarning;
+use sbol3::RdfFormat;
 
 #[test]
 fn real_implementation_example_validates_clean() {

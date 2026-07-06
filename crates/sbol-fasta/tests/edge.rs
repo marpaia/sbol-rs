@@ -2,8 +2,8 @@
 //! RNA/DNA/protein detection boundary, empty records, and non-UTF-8
 //! bytes. Each test pins documented behavior rather than a panic.
 
-use sbol3::Severity;
 use sbol_fasta::{FastaImporter, ImportError, ImportWarning};
+use sbol3::Severity;
 
 fn importer() -> FastaImporter {
     FastaImporter::new("https://example.org/lab").expect("namespace")

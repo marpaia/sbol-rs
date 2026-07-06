@@ -9,7 +9,11 @@ use sbol2::{Document, RdfFormat, Triple};
 mod common;
 
 fn triple_set(document: &Document) -> BTreeSet<Triple> {
-    document.rdf_graph().normalized_triples().into_iter().collect()
+    document
+        .rdf_graph()
+        .normalized_triples()
+        .into_iter()
+        .collect()
 }
 
 fn assert_round_trip(input: &str, format: RdfFormat, label: &str) {
@@ -69,7 +73,11 @@ fn collect_xml(dir: &std::path::Path, base: &std::path::Path, out: &mut Vec<Stri
         if path.is_dir() {
             collect_xml(&path, base, out);
         } else if path.extension().and_then(|e| e.to_str()) == Some("xml") {
-            let relative = path.strip_prefix(base).unwrap().to_string_lossy().into_owned();
+            let relative = path
+                .strip_prefix(base)
+                .unwrap()
+                .to_string_lossy()
+                .into_owned();
             out.push(relative);
         }
     }
@@ -78,7 +86,10 @@ fn collect_xml(dir: &std::path::Path, base: &std::path::Path, out: &mut Vec<Stri
 #[test]
 fn real_xml_fixtures_round_trip() {
     let fixtures = xml_fixtures();
-    assert!(!fixtures.is_empty(), "expected vendored SBOL 2 XML fixtures");
+    assert!(
+        !fixtures.is_empty(),
+        "expected vendored SBOL 2 XML fixtures"
+    );
     for fixture in fixtures {
         let input = common::read_fixture(&fixture);
         assert_round_trip(&input, RdfFormat::RdfXml, &fixture);

@@ -100,8 +100,7 @@ fn downgrade_honors_split_dual_role_components_false() {
     let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
     let mut options = sbol_convert::DowngradeOptions::default();
     options.split_dual_role_components = false;
-    let (graph, report) =
-        sbol_convert::downgrade_with(&document, options).expect("downgrade");
+    let (graph, report) = sbol_convert::downgrade_with(&document, options).expect("downgrade");
 
     assert!(
         !report

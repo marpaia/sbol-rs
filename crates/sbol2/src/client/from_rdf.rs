@@ -15,10 +15,14 @@ impl TryFromObject for Sbol2Object {
         // Concrete subclasses dispatch most-specific-first; bare-Identified
         // and bare-TopLevel subjects fall through to `IdentifiedExtension`.
         if object.has_class(Sbol2Class::ComponentDefinition) {
-            return Some(Self::ComponentDefinition(ComponentDefinition::try_from_object(object)?));
+            return Some(Self::ComponentDefinition(
+                ComponentDefinition::try_from_object(object)?,
+            ));
         }
         if object.has_class(Sbol2Class::ModuleDefinition) {
-            return Some(Self::ModuleDefinition(ModuleDefinition::try_from_object(object)?));
+            return Some(Self::ModuleDefinition(ModuleDefinition::try_from_object(
+                object,
+            )?));
         }
         if object.has_class(Sbol2Class::Sequence) {
             return Some(Self::Sequence(Sequence::try_from_object(object)?));
@@ -38,19 +42,25 @@ impl TryFromObject for Sbol2Object {
             ));
         }
         if object.has_class(Sbol2Class::Implementation) {
-            return Some(Self::Implementation(Implementation::try_from_object(object)?));
+            return Some(Self::Implementation(Implementation::try_from_object(
+                object,
+            )?));
         }
         if object.has_class(Sbol2Class::Attachment) {
             return Some(Self::Attachment(Attachment::try_from_object(object)?));
         }
         if object.has_class(Sbol2Class::ExperimentalData) {
-            return Some(Self::ExperimentalData(ExperimentalData::try_from_object(object)?));
+            return Some(Self::ExperimentalData(ExperimentalData::try_from_object(
+                object,
+            )?));
         }
         if object.has_class(Sbol2Class::Component) {
             return Some(Self::Component(Component::try_from_object(object)?));
         }
         if object.has_class(Sbol2Class::FunctionalComponent) {
-            return Some(Self::FunctionalComponent(FunctionalComponent::try_from_object(object)?));
+            return Some(Self::FunctionalComponent(
+                FunctionalComponent::try_from_object(object)?,
+            ));
         }
         if object.has_class(Sbol2Class::Module) {
             return Some(Self::Module(Module::try_from_object(object)?));
@@ -59,13 +69,19 @@ impl TryFromObject for Sbol2Object {
             return Some(Self::MapsTo(MapsTo::try_from_object(object)?));
         }
         if object.has_class(Sbol2Class::SequenceAnnotation) {
-            return Some(Self::SequenceAnnotation(SequenceAnnotation::try_from_object(object)?));
+            return Some(Self::SequenceAnnotation(
+                SequenceAnnotation::try_from_object(object)?,
+            ));
         }
         if object.has_class(Sbol2Class::SequenceConstraint) {
-            return Some(Self::SequenceConstraint(SequenceConstraint::try_from_object(object)?));
+            return Some(Self::SequenceConstraint(
+                SequenceConstraint::try_from_object(object)?,
+            ));
         }
         if object.has_class(Sbol2Class::VariableComponent) {
-            return Some(Self::VariableComponent(VariableComponent::try_from_object(object)?));
+            return Some(Self::VariableComponent(VariableComponent::try_from_object(
+                object,
+            )?));
         }
         if object.has_class(Sbol2Class::Interaction) {
             return Some(Self::Interaction(Interaction::try_from_object(object)?));
@@ -80,7 +96,9 @@ impl TryFromObject for Sbol2Object {
             return Some(Self::Cut(Cut::try_from_object(object)?));
         }
         if object.has_class(Sbol2Class::GenericLocation) {
-            return Some(Self::GenericLocation(GenericLocation::try_from_object(object)?));
+            return Some(Self::GenericLocation(GenericLocation::try_from_object(
+                object,
+            )?));
         }
         if object.has_class(Sbol2Class::ProvActivity) {
             return Some(Self::Activity(Activity::try_from_object(object)?));
@@ -104,10 +122,14 @@ impl TryFromObject for Sbol2Object {
             return Some(Self::UnitDivision(UnitDivision::try_from_object(object)?));
         }
         if object.has_class(Sbol2Class::OmUnitExponentiation) {
-            return Some(Self::UnitExponentiation(UnitExponentiation::try_from_object(object)?));
+            return Some(Self::UnitExponentiation(
+                UnitExponentiation::try_from_object(object)?,
+            ));
         }
         if object.has_class(Sbol2Class::OmUnitMultiplication) {
-            return Some(Self::UnitMultiplication(UnitMultiplication::try_from_object(object)?));
+            return Some(Self::UnitMultiplication(
+                UnitMultiplication::try_from_object(object)?,
+            ));
         }
         if object.has_class(Sbol2Class::OmSingularUnit) {
             return Some(Self::SingularUnit(SingularUnit::try_from_object(object)?));
@@ -135,7 +157,9 @@ impl TryFromObject for Sbol2Object {
         }
         // A `sbol2:GenericTopLevel` subject with no more specific variant.
         if object.has_class(Sbol2Class::GenericTopLevel) {
-            return Some(Self::GenericTopLevel(GenericTopLevel::try_from_object(object)?));
+            return Some(Self::GenericTopLevel(GenericTopLevel::try_from_object(
+                object,
+            )?));
         }
         // Catch-all: subjects typed only as `sbol2:Identified` or
         // `sbol2:TopLevel`. Preserves displayId, name, derived_from,
@@ -146,7 +170,9 @@ impl TryFromObject for Sbol2Object {
             .iter()
             .any(|class| matches!(class, Sbol2Class::Identified | Sbol2Class::TopLevel))
         {
-            return Some(Self::IdentifiedExtension(IdentifiedExtension::try_from_object(object)?));
+            return Some(Self::IdentifiedExtension(
+                IdentifiedExtension::try_from_object(object)?,
+            ));
         }
         None
     }

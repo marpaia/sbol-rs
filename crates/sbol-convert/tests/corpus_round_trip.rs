@@ -19,10 +19,10 @@ mod common;
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use common::corpus::{xml_files, CORPUS_DIRS};
+use common::corpus::{CORPUS_DIRS, xml_files};
 
-use sbol3::RdfFormat;
 use sbol_convert::UpgradeError;
+use sbol3::RdfFormat;
 
 /// Corpus files that legitimately cannot reach the SBOL 2 → SBOL 3 fixed
 /// point, paired with the reason. Keyed by file name (unique across the
@@ -108,9 +108,7 @@ fn fixed_point(path: &Path) -> Result<bool, &'static str> {
     let before = canonicalize(upgraded.rdf_graph());
 
     let (downgraded, _) = sbol_convert::downgrade(&upgraded).map_err(|_| "downgrade")?;
-    let sbol2 = downgraded
-        .write(RdfFormat::Turtle)
-        .map_err(|_| "write")?;
+    let sbol2 = downgraded.write(RdfFormat::Turtle).map_err(|_| "write")?;
 
     let (reupgraded, _) =
         sbol_convert::upgrade_from_sbol2(&sbol2, RdfFormat::Turtle).map_err(|_| "reupgrade")?;

@@ -229,7 +229,8 @@ fn round_trip_real_synbiohub_sa_reconstruction() {
         "tests/fixtures/sbol2/real/synbiohub/BBa_F2620.xml",
     ))
     .unwrap();
-    let (upgraded, _) = sbol_convert::upgrade_from_sbol2(&input, RdfFormat::RdfXml).expect("upgrade");
+    let (upgraded, _) =
+        sbol_convert::upgrade_from_sbol2(&input, RdfFormat::RdfXml).expect("upgrade");
     let original = canonicalize(upgraded.rdf_graph());
     let (downgraded, _) = sbol_convert::downgrade(&upgraded).expect("downgrade");
     let turtle = downgraded.write(RdfFormat::Turtle).expect("write turtle");
@@ -268,7 +269,8 @@ fn round_trip_real_repression_model_mapsto_and_interface() {
         "tests/fixtures/sbol2/real/RepressionModel.xml",
     ))
     .unwrap();
-    let (upgraded, _) = sbol_convert::upgrade_from_sbol2(&input, RdfFormat::RdfXml).expect("upgrade");
+    let (upgraded, _) =
+        sbol_convert::upgrade_from_sbol2(&input, RdfFormat::RdfXml).expect("upgrade");
     let original = canonicalize(upgraded.rdf_graph());
     let (downgraded, dreport) = sbol_convert::downgrade(&upgraded).expect("downgrade");
     assert!(
@@ -505,7 +507,8 @@ fn biopax_dna_plus_dna_region_round_trip_distinctly() {
     sbol:type biopax:Dna ;
     sbol:type biopax:DnaRegion .
 "#;
-    let (document, _r) = sbol_convert::upgrade_from_sbol2(sbol2, RdfFormat::Turtle).expect("upgrade");
+    let (document, _r) =
+        sbol_convert::upgrade_from_sbol2(sbol2, RdfFormat::Turtle).expect("upgrade");
     let (graph, _r) = sbol_convert::downgrade(&document).expect("downgrade");
 
     let biopax_types: std::collections::HashSet<String> = graph

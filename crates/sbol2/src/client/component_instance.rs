@@ -55,7 +55,11 @@ pub struct FunctionalComponent {
 impl ToRdf for FunctionalComponent {
     fn to_rdf_triples(&self) -> Result<Vec<Triple>, crate::BuildError> {
         let mut triples = seed_triples(&self.identity, Sbol2Class::FunctionalComponent);
-        let mut e = Emitter::new(&mut triples, &self.identity, Sbol2Class::FunctionalComponent);
+        let mut e = Emitter::new(
+            &mut triples,
+            &self.identity,
+            Sbol2Class::FunctionalComponent,
+        );
         emit_identified(&mut e, &self.identified)?;
         emit_component_instance(&mut e, &self.component_instance)?;
         e.iri(SBOL2_DIRECTION, self.direction.as_ref())?;

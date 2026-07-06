@@ -4,4 +4,6 @@
 //! construction time rather than at document-assembly time, so a
 //! `ComponentDefinition::new(...)` call fails fast on inputs the spec rejects.
 
-pub use sbol_core::identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
+pub use sbol_core::identity::{
+    DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements,
+};

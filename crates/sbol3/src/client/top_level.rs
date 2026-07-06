@@ -9,10 +9,10 @@ use crate::client::to_rdf::{Emitter, emit_identified, emit_top_level, seed_tripl
 use crate::client::{IdentifiedData, ToRdf, TopLevelData, TryFromObject};
 use crate::document::Document;
 use crate::error::BuildError;
-use sbol_core::error::BuildError as LexError;
 use crate::identity::{DisplayId, Namespace};
 use crate::vocab::*;
 use crate::{Iri, Object, Resource, SbolClass, Triple};
+use sbol_core::error::BuildError as LexError;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]

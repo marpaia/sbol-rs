@@ -294,9 +294,9 @@ impl Sbol2Class {
             Self::OmMeasure => &[Self::Identified],
             Self::OmUnit | Self::OmPrefix => &[Self::TopLevel],
             Self::OmSingularUnit | Self::OmCompoundUnit | Self::OmPrefixedUnit => &[Self::OmUnit],
-            Self::OmUnitMultiplication
-            | Self::OmUnitDivision
-            | Self::OmUnitExponentiation => &[Self::OmCompoundUnit],
+            Self::OmUnitMultiplication | Self::OmUnitDivision | Self::OmUnitExponentiation => {
+                &[Self::OmCompoundUnit]
+            }
             Self::OmSiPrefix | Self::OmBinaryPrefix => &[Self::OmPrefix],
         }
     }

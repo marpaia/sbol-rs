@@ -126,7 +126,8 @@ fn main() -> ExitCode {
                 continue;
             }
         };
-        let (document, _report) = match sbol_convert::upgrade_from_sbol2(&bytes, RdfFormat::RdfXml) {
+        let (document, _report) = match sbol_convert::upgrade_from_sbol2(&bytes, RdfFormat::RdfXml)
+        {
             Ok(pair) => pair,
             Err(err) => {
                 eprintln!("[FAIL] {name}: upgrade: {err}");

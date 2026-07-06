@@ -28,7 +28,10 @@ pub(crate) const GENBANK_SO_MAP: &[(&str, &str)] = &[
     ("promoter", "https://identifiers.org/SO:0000167"),
     ("terminator", "https://identifiers.org/SO:0000141"),
     ("RBS", "https://identifiers.org/SO:0000139"),
-    ("ribosome_binding_site", "https://identifiers.org/SO:0000139"),
+    (
+        "ribosome_binding_site",
+        "https://identifiers.org/SO:0000139",
+    ),
     ("regulatory", "https://identifiers.org/SO:0005836"),
     ("5'UTR", "https://identifiers.org/SO:0000204"),
     ("3'UTR", "https://identifiers.org/SO:0000205"),
@@ -59,7 +62,10 @@ pub(crate) const GENBANK_SO_MAP: &[(&str, &str)] = &[
     ("-35_signal", "https://identifiers.org/SO:0000176"),
     ("GC_signal", "https://identifiers.org/SO:0000173"),
     ("CAAT_signal", "https://identifiers.org/SO:0000172"),
-    ("polyA_secondary_structure", "https://identifiers.org/SO:0000553"),
+    (
+        "polyA_secondary_structure",
+        "https://identifiers.org/SO:0000553",
+    ),
     ("iDNA", "https://identifiers.org/SO:0000723"),
     ("old_sequence", "https://identifiers.org/SO:0000413"),
     ("modified_base", "https://identifiers.org/SO:0000305"),

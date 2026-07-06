@@ -148,18 +148,18 @@ pub use client::{
 };
 pub use conformance::render_conformance_report;
 pub use document::Document;
-pub use sbol_core::document::{ObjectStore, RawDocument};
 pub use error::{BuildError, ReadError, WriteError};
 pub use identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
 pub use model::{Identified, SbolClass, TopLevel};
 pub use object::ObjectClasses;
-pub use sbol_core::object::Object;
 pub use owl_conformance::{
     OWL_ONLY_ALLOWLIST, OwlConformanceReport, OwlIdentifiers, OwlPinInfo, RUST_ONLY_ALLOWLIST,
     analyze_owl_conformance, extract_owl_identifiers, extract_vocab_iris,
     render_owl_conformance_report,
 };
 pub use resolve::{FeatureTrace, ObjectGraph, ReferenceError, VariantSet};
+pub use sbol_core::document::{ObjectStore, RawDocument};
+pub use sbol_core::object::Object;
 pub use sbol_ontology::{Ontology, OntologyRegistry};
 pub use sbol_rdf::{Graph as RdfGraph, Iri, Literal, RdfFormat, Resource, Term, Triple};
 pub use specification::{SPEC_VERSION, SPECIFICATION_URL};

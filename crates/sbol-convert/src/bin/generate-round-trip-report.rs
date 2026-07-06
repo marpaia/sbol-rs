@@ -21,8 +21,8 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use sbol3::{RdfFormat, Severity, Triple};
 use sbol_convert::canonical_nt_line;
+use sbol3::{RdfFormat, Severity, Triple};
 
 fn workspace_root() -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));

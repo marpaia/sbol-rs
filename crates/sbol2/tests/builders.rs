@@ -3,9 +3,7 @@
 
 use std::collections::BTreeSet;
 
-use sbol2::constants::{
-    ACCESS_PUBLIC, BIOPAX_DNA, OPERATOR_ONE, ORIENTATION_INLINE, SO_PROMOTER,
-};
+use sbol2::constants::{ACCESS_PUBLIC, BIOPAX_DNA, OPERATOR_ONE, ORIENTATION_INLINE, SO_PROMOTER};
 use sbol2::prelude::*;
 
 const NS: &str = "https://example.org/lab";
@@ -23,23 +21,36 @@ fn assert_objects_round_trip(objects: Vec<Sbol2Object>) {
     let rebuilt = Document::from_objects(reparsed.typed_objects().to_vec())
         .expect("reparsed typed objects rebuild");
 
-    let a: BTreeSet<Triple> = reparsed.rdf_graph().normalized_triples().into_iter().collect();
-    let b: BTreeSet<Triple> = rebuilt.rdf_graph().normalized_triples().into_iter().collect();
-    assert_eq!(a, b, "builder output did not round-trip through the typed model");
+    let a: BTreeSet<Triple> = reparsed
+        .rdf_graph()
+        .normalized_triples()
+        .into_iter()
+        .collect();
+    let b: BTreeSet<Triple> = rebuilt
+        .rdf_graph()
+        .normalized_triples()
+        .into_iter()
+        .collect();
+    assert_eq!(
+        a, b,
+        "builder output did not round-trip through the typed model"
+    );
 }
 
 #[test]
 fn generic_top_level_builds_and_round_trips() {
-    let gtl = GenericTopLevel::new(NS, "custom", iri("https://example.org/ont#Widget"))
-        .expect("builds")
-        ;
+    let gtl =
+        GenericTopLevel::new(NS, "custom", iri("https://example.org/ont#Widget")).expect("builds");
     assert_eq!(gtl.display_id(), Some("custom"));
     assert_eq!(gtl.version(), Some("1"));
     assert_eq!(
         gtl.identity.as_iri().unwrap().as_str(),
         "https://example.org/lab/custom/1"
     );
-    assert_eq!(gtl.rdf_type.as_ref().unwrap().as_str(), "https://example.org/ont#Widget");
+    assert_eq!(
+        gtl.rdf_type.as_ref().unwrap().as_str(),
+        "https://example.org/ont#Widget"
+    );
     assert_objects_round_trip(vec![Sbol2Object::GenericTopLevel(gtl)]);
 }
 
@@ -56,16 +67,15 @@ fn implementation_and_generic_location_round_trip() {
 
     // GenericLocation is a child; parent is a component's persistentIdentity.
     let component = Component::new(&cd.identity, "sub", cd.identity.clone()).expect("component");
-    let location = GenericLocation::builder(
-        component.persistent_identity().unwrap(),
-        "whole",
-    )
-    .expect("loc builder")
-    .orientation(ORIENTATION_INLINE)
-    .build()
-    .expect("generic location");
-    assert_eq!(location.location.orientation.as_ref().unwrap().as_str(),
-        ORIENTATION_INLINE.as_str());
+    let location = GenericLocation::builder(component.persistent_identity().unwrap(), "whole")
+        .expect("loc builder")
+        .orientation(ORIENTATION_INLINE)
+        .build()
+        .expect("generic location");
+    assert_eq!(
+        location.location.orientation.as_ref().unwrap().as_str(),
+        ORIENTATION_INLINE.as_str()
+    );
 
     assert_objects_round_trip(vec![
         Sbol2Object::ComponentDefinition(cd),
@@ -93,8 +103,7 @@ fn experiment_and_experimental_data_round_trip() {
 #[test]
 fn combinatorial_derivation_and_variable_component_round_trip() {
     let template = ComponentDefinition::new(NS, "template", [BIOPAX_DNA]).expect("template");
-    let slot = Component::new(&template.identity, "slot", template.identity.clone())
-        .expect("slot");
+    let slot = Component::new(&template.identity, "slot", template.identity.clone()).expect("slot");
     let variant = ComponentDefinition::new(NS, "variant_a", [BIOPAX_DNA]).expect("variant");
 
     let derivation = CombinatorialDerivation::builder(NS, "library")
@@ -103,16 +112,13 @@ fn combinatorial_derivation_and_variable_component_round_trip() {
         .build()
         .expect("derivation");
 
-    let variable = VariableComponent::builder(
-        derivation.persistent_identity().unwrap(),
-        "var",
-    )
-    .expect("var builder")
-    .variable(slot.identity.clone())
-    .operator(OPERATOR_ONE)
-    .add_variant(variant.identity.clone())
-    .build()
-    .expect("variable component");
+    let variable = VariableComponent::builder(derivation.persistent_identity().unwrap(), "var")
+        .expect("var builder")
+        .variable(slot.identity.clone())
+        .operator(OPERATOR_ONE)
+        .add_variant(variant.identity.clone())
+        .build()
+        .expect("variable component");
     assert_eq!(variable.variants.len(), 1);
 
     assert_objects_round_trip(vec![
@@ -148,7 +154,10 @@ fn provenance_hierarchy_round_trips() {
         .expect("usage");
 
     assert_eq!(association.agent.as_ref().unwrap(), &agent.identity);
-    assert_eq!(activity.started_at_time.as_deref(), Some("2020-01-01T00:00:00Z"));
+    assert_eq!(
+        activity.started_at_time.as_deref(),
+        Some("2020-01-01T00:00:00Z")
+    );
 
     assert_objects_round_trip(vec![
         Sbol2Object::Agent(agent),
@@ -209,8 +218,8 @@ fn om_unit_and_prefix_hierarchy_round_trips() {
 
     // A Measure attaches to a parent via sbol2:measure.
     let cd = ComponentDefinition::new(NS, "measured_cd", [BIOPAX_DNA]).expect("cd");
-    let measure = Measure::new(&cd.identity, "one_metre", metre.identity.clone(), 1.0)
-        .expect("measure");
+    let measure =
+        Measure::new(&cd.identity, "one_metre", metre.identity.clone(), 1.0).expect("measure");
     assert_eq!(measure.has_numerical_value.as_deref(), Some("1"));
 
     assert_objects_round_trip(vec![
@@ -235,7 +244,13 @@ fn missing_required_property_is_reported() {
         .expect("builder")
         .build()
         .unwrap_err();
-    assert!(matches!(error, BuildError::MissingRequired { property: "types", .. }));
+    assert!(matches!(
+        error,
+        BuildError::MissingRequired {
+            property: "types",
+            ..
+        }
+    ));
 }
 
 #[test]
@@ -248,7 +263,10 @@ fn version_setter_rewrites_compliant_identity() {
         .build()
         .expect("cd");
     assert_eq!(cd.version(), Some("2"));
-    assert_eq!(cd.identity.as_iri().unwrap().as_str(), "https://example.org/lab/versioned/2");
+    assert_eq!(
+        cd.identity.as_iri().unwrap().as_str(),
+        "https://example.org/lab/versioned/2"
+    );
     assert_eq!(
         cd.persistent_identity().unwrap().as_iri().unwrap().as_str(),
         "https://example.org/lab/versioned"

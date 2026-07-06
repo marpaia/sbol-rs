@@ -14,8 +14,8 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use sbol3::SbolIdentified;
 use sbol_fasta::FastaImporter;
+use sbol3::SbolIdentified;
 use serde_json::Value;
 
 fn manifest_dir() -> PathBuf {
