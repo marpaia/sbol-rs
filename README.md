@@ -4,9 +4,11 @@
 Language (SBOL), covering both SBOL 2.3.0 and SBOL 3.1.0. SBOL
 is the community standard for the exchange of synthetic biology designs
 across registries, design-automation tools, and laboratory automation
-pipelines. `sbol-rs` exposes a typed SDK and a CLI for both versions (read, build, rewrite, validate, and losslessly convert SBOL 2 ⇄ SBOL 3),
-plus validators covering the 109 machine-checkable rules of SBOL 3.1.0
-Appendix B and the 239 machine-checkable rules of the SBOL 2.3.0 catalog.
+pipelines. `sbol-rs` exposes a typed SDK and a CLI for both versions
+(read, build, rewrite, validate, and losslessly convert SBOL 2 ⇄
+SBOL 3), plus validators covering the 109 machine-checkable rules of
+SBOL 3.1.0 Appendix B and the 239 machine-checkable rules of the
+SBOL 2.3.0 catalog.
 
 New to the codebase? Start with the [**crate guide**](docs/crate-guide.md).
 
