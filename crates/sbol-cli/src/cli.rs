@@ -8,7 +8,7 @@ use sbol::v3::{ExternalValidationMode, RdfFormat, Severity};
 #[command(
     name = "sbol",
     version = env!("SBOL_VERSION_FULL"),
-    about = "Command-line tool for SBOL 2 and SBOL 3 documents",
+    about = "Command-line tool for SBOL documents",
     propagate_version = true
 )]
 pub(crate) struct Cli {

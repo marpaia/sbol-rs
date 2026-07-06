@@ -12,8 +12,8 @@ is shaped the way it is. Read the others when you need depth.
 
 ## Workspace layout
 
-`sbol-rs` is a dual-version implementation: SBOL 2 and SBOL 3 are both
-first-class, built on a shared version-neutral core.
+`sbol-rs` implements both SBOL 2 and SBOL 3 on a shared version-neutral
+core.
 
 | Crate          | Purpose                                                                                  |
 | -------------- | ---------------------------------------------------------------------------------------- |

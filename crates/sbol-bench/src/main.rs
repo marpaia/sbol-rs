@@ -1,7 +1,7 @@
 //! Cross-implementation performance bench.
 //!
-//! sbol-rs is a native dual-version implementation, so this harness
-//! benchmarks both SBOL 2 and SBOL 3. It times `(parse, serialize)`
+//! This harness compares sbol-rs against the mainstream implementation
+//! of each SBOL version, across SBOL 2 and SBOL 3. It times `(parse, serialize)`
 //! round trips and cross-format conversions against sbol-rs
 //! (in-process), plus the mainstream implementation of each version:
 //! libSBOLj for SBOL 2, and pySBOL3, libSBOLj3, and sboljs for SBOL 3

@@ -1,7 +1,7 @@
 # Cross-implementation performance benchmarks
 
-sbol-rs is a native dual-version implementation: it reads, writes,
-converts, and validates both SBOL 2 and SBOL 3. This harness benchmarks
+sbol-rs reads, writes, converts, and validates both SBOL 2 and SBOL 3.
+This harness benchmarks
 `parse`, `serialize`, `convert`, and `validate` for **both versions**,
 comparing sbol-rs against the mainstream implementation of each version.
 Every implementation, sbol-rs included, is pinned in its own Docker

@@ -1,7 +1,7 @@
 ![sbol-rs: a Rust implementation of SBOL](docs/images/sbol-rs.png)
 
-`sbol-rs` is a native dual-version Rust implementation of the Synthetic
-Biology Open Language: both SBOL 2.3.0 and SBOL 3.1.0, first-class. SBOL
+`sbol-rs` is a Rust implementation of the Synthetic Biology Open
+Language (SBOL), covering both SBOL 2.3.0 and SBOL 3.1.0. SBOL
 is the community standard for the exchange of synthetic biology designs
 across registries, design-automation tools, and laboratory automation
 pipelines. `sbol-rs` exposes a typed SDK and a CLI for both versions (read, build, rewrite, validate, and losslessly convert SBOL 2 ⇄ SBOL 3),
@@ -112,8 +112,8 @@ lab-specific ontologies install on demand into a local cache; see
 
 ## Performance
 
-sbol-rs is a native dual-version implementation, and the benchmark
-harness measures both. Parse cost (median microseconds across 100
+The benchmark harness compares sbol-rs against the mainstream
+implementation of each SBOL version. Parse cost (median microseconds across 100
 measured iterations, 20 warmup; lower is better) with every
 implementation in its own pinned Docker image so the rows are
 apples-to-apples.
@@ -142,7 +142,7 @@ Apple M4 Max (12 performance and 4 efficiency cores), 128 GB RAM, macOS
 RDF/XML and its parser stack is too fragile to reach the other format
 rows; the [bench README](benches/cross-impl/README.md) documents the
 specific failure modes. The [`crates/sbol-bench`](crates/sbol-bench)
-crate runs the dual-version comparison end-to-end; see
+crate runs the cross-implementation comparison end-to-end; see
 [`benches/cross-impl/README.md`](benches/cross-impl/README.md) for the
 full SBOL 2 and SBOL 3 parse, serialize, convert, and validate tables,
 methodology, and per-row caveats.
