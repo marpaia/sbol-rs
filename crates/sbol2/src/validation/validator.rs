@@ -468,26 +468,26 @@ impl<'a> Validator<'a> {
         // 10603 / 11704: a ComponentInstance/Module definition must not refer to
         // the definition object that contains the instance. The containing
         // definition is the object whose composite property lists this instance.
-        if object.has_class(Sbol2Class::Component) || object.has_class(Sbol2Class::Module) {
-            if let (Some(def), Some(parent)) = (
+        if (object.has_class(Sbol2Class::Component) || object.has_class(Sbol2Class::Module))
+            && let (Some(def), Some(parent)) = (
                 object
                     .first_resource(SBOL2_DEFINITION)
                     .and_then(Resource::as_iri),
                 self.parent_definition(identity),
-            ) && def.as_str() == parent
-            {
-                let rule = if object.has_class(Sbol2Class::Module) {
-                    "sbol2-11704"
-                } else {
-                    "sbol2-10603"
-                };
-                self.error(
-                    rule,
-                    object,
-                    Some(SBOL2_DEFINITION),
-                    "a component or module must not refer to its own containing definition",
-                );
-            }
+            )
+            && def.as_str() == parent
+        {
+            let rule = if object.has_class(Sbol2Class::Module) {
+                "sbol2-11704"
+            } else {
+                "sbol2-10603"
+            };
+            self.error(
+                rule,
+                object,
+                Some(SBOL2_DEFINITION),
+                "a component or module must not refer to its own containing definition",
+            );
         }
     }
 

@@ -91,18 +91,18 @@ pub fn generate(rules_toml: &Path, out_dir: &Path, policies_dir: Option<&Path>) 
         validate_blocker(&rule.id, &rule.status, rule.blocker.as_deref());
         validate_coverage_kind(&rule.id, rule.coverage_kind.as_deref());
         validate_gate(&rule.id, rule.gate.as_deref());
-        if let Some(policies_dir) = policies_dir {
-            if rule.blocker.as_deref() == Some("Policy") {
-                let adr_path = policies_dir.join(format!("{}.md", rule.id));
-                if !adr_path.exists() {
-                    panic!(
-                        "rule {}: blocker = \"Policy\" requires {}/{}.md (not found at {})",
-                        rule.id,
-                        policies_dir.display(),
-                        rule.id,
-                        adr_path.display()
-                    );
-                }
+        if let Some(policies_dir) = policies_dir
+            && rule.blocker.as_deref() == Some("Policy")
+        {
+            let adr_path = policies_dir.join(format!("{}.md", rule.id));
+            if !adr_path.exists() {
+                panic!(
+                    "rule {}: blocker = \"Policy\" requires {}/{}.md (not found at {})",
+                    rule.id,
+                    policies_dir.display(),
+                    rule.id,
+                    adr_path.display()
+                );
             }
         }
     }

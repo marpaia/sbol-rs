@@ -105,7 +105,7 @@ pub(crate) fn collect_objects(graph: &RdfGraph) -> BTreeMap<Resource, Object> {
             let top_level = classes
                 .iter()
                 .any(|class| class.is_top_level())
-                .then(|| TopLevel { namespace: None });
+                .then_some(TopLevel { namespace: None });
 
             Some((
                 identity.clone(),
