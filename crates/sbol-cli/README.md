@@ -6,11 +6,12 @@ Command-line tool for SBOL 2 and SBOL 3 documents. Ships the `sbol` binary.
 cargo install sbol-cli
 ```
 
-Eight subcommands cover the common workflows:
+Nine subcommands cover the common workflows:
 
 | Subcommand | Use it to… |
 |---|---|
 | `sbol validate` | Validate an SBOL 2 or SBOL 3 document against the spec |
+| `sbol diff` | Compare two documents of the same version, object by identity |
 | `sbol convert` | Cross-serialize SBOL 3 between Turtle, RDF/XML, JSON-LD, N-Triples |
 | `sbol upgrade` | Convert SBOL 2 RDF (SynBioHub, iGEM, JBEI) to SBOL 3 |
 | `sbol downgrade` | Convert SBOL 3 back to SBOL 2 for legacy tools |
@@ -69,6 +70,34 @@ Exit codes:
 | `1` | Validation errors found (printed with rule IDs) |
 | `2` | I/O failure, unsupported / missing file extension, or bad CLI usage |
 | `3` | `--treat-partial-as-errors` and at least one rule is partially applied |
+
+## `sbol diff`
+
+Compare two documents by object identity rather than by their serialized
+text, so serialization order, blank-node labeling, and RDF format are
+ignored: only genuine changes surface. Both documents must be the same SBOL
+version; the version is detected from each document's RDF namespaces (or
+forced with `--sbol-version {auto|2|3}`).
+
+```sh
+sbol diff old.ttl new.ttl                # object-by-object summary
+sbol diff old.ttl new.ttl --format json  # structured output for tooling
+sbol diff old.ttl new.ttl --exit-code    # exit 1 if the documents differ
+```
+
+The text output marks added objects with `+`, removed objects with `-`, and
+changed objects with `~`, listing the RDF types and per-predicate values
+that moved beneath each change. To compare a design across versions, upgrade
+the SBOL 2 document with `sbol upgrade` first and diff the two SBOL 3
+documents.
+
+Exit codes:
+
+| Code | Meaning |
+| ---- | ---- |
+| `0` | Success (with `--exit-code`, also means the documents are identical) |
+| `1` | `--exit-code` was passed and the documents differ |
+| `2` | I/O failure, unsupported extension, or the two documents are different SBOL versions |
 
 ## `sbol convert`
 

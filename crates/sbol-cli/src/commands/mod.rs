@@ -1,4 +1,5 @@
 pub(crate) mod convert;
+pub(crate) mod diff;
 pub(crate) mod downgrade;
 pub(crate) mod import;
 pub(crate) mod ontology;
@@ -7,6 +8,7 @@ pub(crate) mod upgrade;
 pub(crate) mod validate;
 
 pub(crate) use convert::convert;
+pub(crate) use diff::diff;
 pub(crate) use downgrade::downgrade;
 pub(crate) use import::{import_fasta, import_genbank};
 pub(crate) use ontology::ontology;

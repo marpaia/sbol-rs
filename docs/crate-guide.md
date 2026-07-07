@@ -404,6 +404,8 @@ sbol validate design.rdf         # text output
 sbol validate design.rdf --format json --treat-partial-as-errors
 sbol validate design.rdf --allow sbol3-10502 --deny sbol3-12807
 
+sbol diff old.ttl new.ttl        # compare two documents by identity
+
 sbol ontology install ncit       # install NCIT into the runtime cache
 sbol ontology list               # show installed extensions
 sbol validate design.rdf --ontology ncit  # opt into the cached extension

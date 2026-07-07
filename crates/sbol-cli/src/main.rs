@@ -22,6 +22,7 @@ fn main() -> ExitCode {
     let styles = Styles::resolve(cli.color);
     match cli.command {
         Command::Validate(args) => commands::validate(args, styles),
+        Command::Diff(args) => commands::diff(args, styles),
         Command::Convert(args) => commands::convert(args, styles),
         Command::Upgrade(args) => commands::upgrade(args, styles),
         Command::Downgrade(args) => commands::downgrade(args, styles),

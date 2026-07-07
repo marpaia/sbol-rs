@@ -25,6 +25,8 @@ pub(crate) struct Cli {
 pub(crate) enum Command {
     /// Validate an SBOL 2 or SBOL 3 document against the spec.
     Validate(ValidateArgs),
+    /// Compare two SBOL documents of the same version, object by identity.
+    Diff(DiffArgs),
     /// Convert an SBOL 3 document between RDF serializations.
     Convert(ConvertArgs),
     /// Upgrade an SBOL 2 RDF document to SBOL 3.
@@ -96,6 +98,12 @@ pub(crate) enum OutputFormat {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
 pub(crate) enum RulesFormat {
+    Text,
+    Json,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+pub(crate) enum DiffFormat {
     Text,
     Json,
 }
@@ -493,6 +501,36 @@ pub(crate) struct ConvertArgs {
     /// `--to` is required.
     #[arg(long, short = 'o', default_value = "-")]
     pub(crate) output: String,
+}
+
+#[derive(Args)]
+pub(crate) struct DiffArgs {
+    /// Path to the old (baseline) document. Format is inferred from the
+    /// extension: `.ttl`, `.rdf` / `.xml`, `.jsonld`, or `.nt`.
+    pub(crate) old: PathBuf,
+
+    /// Path to the new (revised) document, in the same SBOL version as
+    /// `old`.
+    pub(crate) new: PathBuf,
+
+    /// Which SBOL version to read both documents as. `auto` detects the
+    /// version from each document's RDF namespaces and requires the two to
+    /// match; `2` and `3` force a reader.
+    #[arg(long, value_enum, default_value_t = SbolVersionArg::Auto)]
+    pub(crate) sbol_version: SbolVersionArg,
+
+    /// Output format.
+    #[arg(long, value_enum, default_value_t = DiffFormat::Text)]
+    pub(crate) format: DiffFormat,
+
+    /// Destination for output. Use `-` (the default) for stdout.
+    #[arg(long, short = 'o', default_value = "-")]
+    pub(crate) output: String,
+
+    /// Exit with status 1 when the documents differ (status 0 when they are
+    /// identical), so the command can gate a script or CI check.
+    #[arg(long)]
+    pub(crate) exit_code: bool,
 }
 
 #[derive(Args)]
