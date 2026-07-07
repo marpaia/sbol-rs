@@ -45,4 +45,5 @@ pub use crate::model::{Identified, SbolClass, TopLevel};
 pub use crate::object::ObjectClasses;
 pub use crate::resolve::{FeatureTrace, ObjectGraph, ReferenceError, VariantSet};
 pub use crate::validation::DocumentSet;
+pub use crate::{Diff, ObjectDiff, PropertyChange};
 pub use crate::{Iri, Literal, Object, RdfFormat, RdfGraph, Resource, Term, Triple};

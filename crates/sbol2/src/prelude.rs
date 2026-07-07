@@ -28,4 +28,7 @@ pub use crate::error::{BuildError, ReadError, WriteError};
 pub use crate::identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
 pub use crate::model::{Identified, Sbol2Class, TopLevel};
 pub use crate::object::ObjectClasses;
-pub use crate::{Iri, Literal, Object, RdfFormat, RdfGraph, Resource, Term, Triple};
+pub use crate::{
+    Diff, Iri, Literal, Object, ObjectDiff, PropertyChange, RdfFormat, RdfGraph, Resource, Term,
+    Triple,
+};

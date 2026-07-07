@@ -158,6 +158,7 @@ pub use owl_conformance::{
     render_owl_conformance_report,
 };
 pub use resolve::{FeatureTrace, ObjectGraph, ReferenceError, VariantSet};
+pub use sbol_core::diff::{Diff, ObjectDiff, PropertyChange};
 pub use sbol_core::document::{ObjectStore, RawDocument};
 pub use sbol_core::object::Object;
 pub use sbol_ontology::{Ontology, OntologyRegistry};

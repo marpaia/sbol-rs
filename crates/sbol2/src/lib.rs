@@ -48,6 +48,7 @@ pub use error::{BuildError, ReadError, WriteError};
 pub use identity::{DisplayId, HashAlgorithm, Namespace, SbolIdentity, SequenceElements};
 pub use model::{Identified, Sbol2Class, TopLevel};
 pub use object::ObjectClasses;
+pub use sbol_core::diff::{Diff, ObjectDiff, PropertyChange};
 pub use sbol_core::document::{ObjectStore, RawDocument};
 pub use sbol_core::object::Object;
 pub use sbol_rdf::{Graph as RdfGraph, Iri, Literal, RdfFormat, Resource, Term, Triple};

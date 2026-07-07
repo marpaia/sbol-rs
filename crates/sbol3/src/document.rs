@@ -135,6 +135,14 @@ impl Document {
         self.raw.get(identity)
     }
 
+    /// Computes the structural difference between this document (treated as the
+    /// old revision) and `other` (the new revision), matching objects by
+    /// identity. `other` is any object store, so it can be another
+    /// [`Document`] or a [`RawDocument`].
+    pub fn diff<S: ObjectStore + ?Sized>(&self, other: &S) -> crate::Diff {
+        crate::Diff::compute(self, other)
+    }
+
     /// Returns the owned typed SBOL objects in the document, in identity order.
     pub fn typed_objects(&self) -> &[SbolObject] {
         &self.typed

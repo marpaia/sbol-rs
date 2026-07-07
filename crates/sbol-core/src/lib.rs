@@ -8,6 +8,7 @@
 //! model builds on. The `sbol2` and `sbol3` crates supply their own class and
 //! rule catalogs on top of these shared primitives.
 
+pub mod diff;
 pub mod document;
 pub mod error;
 pub mod identity;

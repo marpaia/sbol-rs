@@ -3,6 +3,7 @@
 //! `use sbol_core::prelude::*;` brings the shared error, schema-descriptor,
 //! object field-struct, and validation-framework types into scope.
 
+pub use crate::diff::{Diff, ObjectDiff, PropertyChange};
 pub use crate::error::{ReadError, WriteError};
 pub use crate::object::{Identified, TopLevel};
 pub use crate::schema::{Cardinality, FieldDescriptor, ReferenceSpec, TargetClass, ValueKind};

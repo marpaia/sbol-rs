@@ -72,6 +72,61 @@ combinatorial derivations, and inspecting validation reports are covered
 in [`crates/sbol3/examples/`](crates/sbol3/examples/). Run any of them
 with `cargo run -p sbol3 --example <name>`.
 
+## Comparing documents
+
+`Document::diff` compares two documents by object identity rather than by
+their serialized text, so serialization order, blank-node labeling, and
+RDF format are ignored: two serializations of the same design diff clean,
+and a real edit surfaces as the object whose properties moved.
+
+```rust
+use sbol::v3::constants::{SBO_DNA, SO_ENGINEERED_REGION, SO_PROMOTER};
+use sbol::prelude::*;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let namespace = "https://example.org/lab";
+
+    let old = Document::from_objects(vec![SbolObject::Component(
+        Component::builder(namespace, "j23119")?
+            .types([SBO_DNA])
+            .add_component_role(SO_PROMOTER)
+            .name("J23119")
+            .build()?,
+    )])?;
+
+    // A revision that renames the promoter and adds a second role.
+    let new = Document::from_objects(vec![SbolObject::Component(
+        Component::builder(namespace, "j23119")?
+            .types([SBO_DNA])
+            .add_component_role(SO_PROMOTER)
+            .add_component_role(SO_ENGINEERED_REGION)
+            .name("J23119 constitutive promoter")
+            .build()?,
+    )])?;
+
+    let diff = old.diff(&new);
+    print!("{diff}");
+    // ~ https://example.org/lab/j23119
+    //     http://sbols.org/v3#name
+    //         + "J23119 constitutive promoter"
+    //         - "J23119"
+    //     http://sbols.org/v3#role
+    //         + https://identifiers.org/SO:0000804
+    Ok(())
+}
+```
+
+`diff` returns a structured value — added, removed, and changed objects,
+with per-predicate term changes on each changed object — so it also drives
+programmatic checks, not just the printed summary. See
+[`crates/sbol3/examples/diff_documents.rs`](crates/sbol3/examples/diff_documents.rs).
+
+The comparison is meaningful within one SBOL version. To compare a design
+across versions, upgrade the SBOL 2 document to SBOL 3 first
+(`sbol::convert::upgrade_from_sbol2`) and diff the two SBOL 3 documents;
+the two versions otherwise use different identity, type, and predicate IRIs,
+so a direct comparison reports every object as removed and re-added.
+
 ## Crates
 
 `sbol-rs` is a Cargo workspace. Most users depend on the `sbol` umbrella;
