@@ -113,6 +113,7 @@
 mod client;
 mod conformance;
 pub mod constants;
+pub mod design;
 mod document;
 mod error;
 pub mod identity;

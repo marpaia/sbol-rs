@@ -12,6 +12,7 @@ members = [
     "crates/sbol-genbank",
     "crates/sbol-ontology",
     "crates/sbol-rdf",
+    "crates/sbol-utilities",
 ]
 exclude = ["fuzz"]
 resolver = "3"
@@ -38,6 +39,7 @@ sbol-core = { path = "crates/sbol-core", version = "0.2.1" }
 sbol-rulegen = { path = "crates/sbol-rulegen", version = "0.2.1" }
 sbol-fasta = { path = "crates/sbol-fasta", version = "0.2.1" }
 sbol-genbank = { path = "crates/sbol-genbank", version = "0.2.1" }
+sbol-utilities = { path = "crates/sbol-utilities", version = "0.2.1" }
 sbol-ontology = { path = "crates/sbol-ontology", version = "0.2.1" }
 sbol-rdf = { path = "crates/sbol-rdf", version = "0.2.1" }
 sha3 = "0.10"

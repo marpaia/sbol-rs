@@ -1240,6 +1240,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "sbol-utilities"
+version = "0.2.1"
+dependencies = [
+ "sbol3",
+]
+
+[[package]]
 name = "sbol2"
 version = "0.2.1"
 dependencies = [
