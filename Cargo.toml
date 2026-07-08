@@ -14,7 +14,7 @@ members = [
     "crates/sbol-rdf",
     "crates/sbol-utilities",
 ]
-exclude = ["fuzz"]
+exclude = ["fuzz", "crates/sbol-py"]
 resolver = "3"
 
 [workspace.package]
