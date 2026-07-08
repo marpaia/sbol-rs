@@ -9,8 +9,10 @@ use sbol3::vocab as v3;
 /// Maps an SBOL 3 orientation IRI back to its SBOL 2 equivalent.
 pub(super) fn map_orientation(iri: &str) -> Option<&'static str> {
     match iri {
-        v3::SBOL_INLINE => Some(v2::SBOL2_ORIENTATION_INLINE),
-        v3::SBOL_REVERSE_COMPLEMENT => Some(v2::SBOL2_ORIENTATION_REVERSE_COMPLEMENT),
+        v3::SBOL_INLINE | v3::SO_INLINE => Some(v2::SBOL2_ORIENTATION_INLINE),
+        v3::SBOL_REVERSE_COMPLEMENT | v3::SO_REVERSE_COMPLEMENT => {
+            Some(v2::SBOL2_ORIENTATION_REVERSE_COMPLEMENT)
+        }
         _ => None,
     }
 }
@@ -43,26 +45,6 @@ pub(super) fn map_biopax_type(iri: &str) -> Option<&'static str> {
     }
 }
 
-/// Maps a BioPAX type IRI (as preserved under `backport:biopaxType`) to
-/// the SBO term it collapsed to during upgrade. The inverse of
-/// [`crate::upgrade::values::map_biopax_type`].
-///
-/// Used during downgrade to pair a preserved BioPAX hint with the
-/// specific SBOL 3 type triple it originally produced, necessary when
-/// a single Component carries multiple BioPAX variants (e.g. both
-/// `biopax:Dna` and `biopax:DnaRegion` collapsed to `SBO:0000251`,
-/// alongside other distinct BioPAX types).
-pub(super) fn sbo_for_biopax(biopax: &str) -> Option<&'static str> {
-    match biopax {
-        v2::BIOPAX_DNA | v2::BIOPAX_DNA_REGION => Some("https://identifiers.org/SBO:0000251"),
-        v2::BIOPAX_RNA | v2::BIOPAX_RNA_REGION => Some("https://identifiers.org/SBO:0000250"),
-        v2::BIOPAX_PROTEIN => Some("https://identifiers.org/SBO:0000252"),
-        v2::BIOPAX_SMALL_MOLECULE => Some("https://identifiers.org/SBO:0000247"),
-        v2::BIOPAX_COMPLEX => Some("https://identifiers.org/SBO:0000253"),
-        _ => None,
-    }
-}
-
 /// Maps an SBOL 3 Constraint restriction IRI back to the SBOL 2
 /// equivalent. The SBOL 3 IRIs live in `http://sbols.org/v3#`; the
 /// SBOL 2 ones live in `http://sbols.org/v2#` under the same local
@@ -82,10 +64,6 @@ pub(super) fn map_restriction(iri: &str) -> Option<String> {
 /// - restriction `replaces`        + CRef in subject → `useRemote`
 /// - restriction `replaces`        + CRef in object  → `useLocal`
 /// - restriction `verifyIdentical` + CRef in either  → `verifyIdentical`
-///
-/// Used when the source ComponentReference carried no explicit
-/// `backport:mapsToRefinement` hint, i.e. the document originated as
-/// native SBOL 3 rather than an upgraded SBOL 2 file.
 pub(super) fn map_restriction_to_refinement(
     restriction: &str,
     cref_role: CRefPosition,

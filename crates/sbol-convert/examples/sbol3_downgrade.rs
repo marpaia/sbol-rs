@@ -56,12 +56,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (sbol2_graph, report) = sbol_convert::downgrade(&document)?;
     let counts = report.counts();
     println!(
-        "   {} CD, {} MD, {} SubComponent, {} SequenceFeature, {} backport-restored, {} synthesized",
+        "   {} CD, {} MD, {} SubComponent, {} SequenceFeature, {} versioned, {} synthesized",
         counts.components_to_component_definition,
         counts.components_to_module_definition,
         counts.sub_components_emitted,
         counts.sequence_features_emitted,
-        counts.identities_restored_from_backport,
+        counts.identities_versioned,
         counts.identities_synthesized,
     );
     if !report.warnings().is_empty() {

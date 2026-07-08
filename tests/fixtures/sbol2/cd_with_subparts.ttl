@@ -16,6 +16,7 @@
     a sbol:Component ;
     sbol:persistentIdentity <https://example.org/lab/expression_cassette/promoter_sub> ;
     sbol:displayId "promoter_sub" ;
+    sbol:access <http://sbols.org/v2#public> ;
     sbol:version "1" ;
     sbol:definition <https://example.org/lab/J23100/1> .
 
@@ -23,6 +24,7 @@
     a sbol:Component ;
     sbol:persistentIdentity <https://example.org/lab/expression_cassette/cds_sub> ;
     sbol:displayId "cds_sub" ;
+    sbol:access <http://sbols.org/v2#public> ;
     sbol:version "1" ;
     sbol:definition <https://example.org/lab/GFP/1> .
 

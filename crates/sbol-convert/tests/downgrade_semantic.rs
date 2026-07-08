@@ -239,9 +239,9 @@ fn native_component_instances_receive_sbol2_defaults() {
             &graph,
             "https://example.org/lab/cd/sub",
             "http://sbols.org/v2#access",
-            "http://sbols.org/v2#private"
+            "http://sbols.org/v2#public"
         ),
-        "native structural SubComponents should receive the SBOL 2 access default"
+        "ComponentDefinition subcomponents receive access public"
     );
     assert_eq!(
         graph
@@ -410,14 +410,14 @@ fn native_subcomponent_locations_emit_sequence_annotation_wrapper() {
             &graph,
             "https://lab/design",
             "http://sbols.org/v2#sequenceAnnotation",
-            "https://lab/design/part_annotation",
+            "https://lab/design/part_range",
         ),
         "parent CD should point at synthesized SequenceAnnotation"
     );
     assert!(
         has_triple(
             &graph,
-            "https://lab/design/part_annotation",
+            "https://lab/design/part_range",
             "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
             "http://sbols.org/v2#SequenceAnnotation",
         ),
@@ -426,7 +426,7 @@ fn native_subcomponent_locations_emit_sequence_annotation_wrapper() {
     assert!(
         has_triple(
             &graph,
-            "https://lab/design/part_annotation",
+            "https://lab/design/part_range",
             "http://sbols.org/v2#component",
             "https://lab/design/part",
         ),
@@ -435,11 +435,11 @@ fn native_subcomponent_locations_emit_sequence_annotation_wrapper() {
     assert!(
         has_triple(
             &graph,
-            "https://lab/design/part_annotation",
+            "https://lab/design/part_range",
             "http://sbols.org/v2#location",
-            "https://lab/design/part/range",
+            "https://lab/design/part_range/range",
         ),
-        "SequenceAnnotation should carry the SubComponent Location"
+        "SequenceAnnotation should carry the Location nested under it"
     );
     assert!(
         !has_triple(
@@ -588,51 +588,6 @@ fn downgrade_drops_unsupported_sbol3_subjects() {
 }
 
 #[test]
-fn downgrade_uses_longest_top_level_prefix_for_child_versions() {
-    let ttl = r#"
-@prefix sbol3: <http://sbols.org/v3#> .
-@prefix backport: <http://sboltools.org/backport#> .
-
-<https://lab/root> a sbol3:Component ;
-    sbol3:hasNamespace <https://lab> ;
-    sbol3:displayId "root" ;
-    sbol3:type <https://identifiers.org/SBO:0000251> ;
-    backport:sbol2type <http://sbols.org/v2#ComponentDefinition> ;
-    backport:sbol2version "1" .
-
-<https://lab/root/inner> a sbol3:Component ;
-    sbol3:hasNamespace <https://lab/root> ;
-    sbol3:displayId "inner" ;
-    sbol3:type <https://identifiers.org/SBO:0000251> ;
-    sbol3:hasFeature <https://lab/root/inner/sub> ;
-    backport:sbol2type <http://sbols.org/v2#ComponentDefinition> ;
-    backport:sbol2version "2" .
-
-<https://lab/root/inner/sub> a sbol3:SubComponent ;
-    sbol3:displayId "sub" ;
-    sbol3:instanceOf <https://lab/root> .
-"#;
-    let document = Document::read(ttl, RdfFormat::Turtle).expect("parse");
-    let (graph, _report) = sbol_convert::downgrade(&document).expect("downgrade");
-    let saw_inner_child_version = graph
-        .triples()
-        .iter()
-        .any(|t| t.subject.as_iri().map(|i| i.as_str()) == Some("https://lab/root/inner/sub/2"));
-    assert!(
-        saw_inner_child_version,
-        "child under nested top-level should inherit the longest matching top-level version"
-    );
-    let saw_outer_child_version = graph
-        .triples()
-        .iter()
-        .any(|t| t.subject.as_iri().map(|i| i.as_str()) == Some("https://lab/root/inner/sub/1"));
-    assert!(
-        !saw_outer_child_version,
-        "child under nested top-level inherited the shorter outer top-level version"
-    );
-}
-
-#[test]
 fn downgrade_component_shape_uses_all_rdf_types() {
     let ttl = r#"
 @prefix sbol3: <http://sbols.org/v3#> .
@@ -761,7 +716,7 @@ fn native_attachment_properties_downgrade_to_sbol2_surface() {
 }
 
 #[test]
-fn functional_nondirectional_interface_downgrades_to_direction_none() {
+fn functional_nondirectional_interface_downgrades_to_direction_inout() {
     let ttl = r#"
 @prefix sbol: <http://sbols.org/v3#> .
 
@@ -793,17 +748,17 @@ fn functional_nondirectional_interface_downgrades_to_direction_none() {
             &graph,
             "https://lab/module/fc",
             "http://sbols.org/v2#direction",
-            "http://sbols.org/v2#none"
+            "http://sbols.org/v2#inout"
         ),
-        "Interface.nondirectional should downgrade to sbol2:direction none"
+        "Interface.nondirectional should downgrade to sbol2:direction inout"
     );
     assert!(
         !has_triple(
             &graph,
             "https://lab/module/fc",
             "http://sbols.org/v2#direction",
-            "http://sbols.org/v2#inout"
+            "http://sbols.org/v2#none"
         ),
-        "Interface.nondirectional must not be misrepresented as inout"
+        "Interface.nondirectional maps to inout, not none"
     );
 }

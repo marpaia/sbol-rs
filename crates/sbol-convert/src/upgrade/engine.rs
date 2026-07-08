@@ -472,31 +472,26 @@ impl<'a> Engine<'a> {
             return;
         }
 
-        // `backport:sbol3namespace` carries the SBOL 3 object namespace an
-        // sbol-utilities/sbolgraph downgrade stashed on the SBOL 2 side.
-        // It is consumed by `IdentityMap` to derive `hasNamespace` and must
-        // not pass through into the SBOL 3 output.
-        if predicate == v2::BACKPORT_SBOL3_NAMESPACE {
-            return;
-        }
-
-        // Restore a `backport:sbol3_*` predicate to its `sbol3:*` form.
-        // The downgrade archives unmapped SBOL 3 predicates under that
-        // namespace so they don't pollute the SBOL 2 surface; the
-        // upgrade reverses that here.
-        if let Some(local) = predicate.strip_prefix(v2::BACKPORT_SBOL3_PREFIX) {
-            let restored = format!("{}{local}", v3::SBOL_NS);
+        // dcterms:title / dcterms:description are the SBOL 2 spelling of
+        // name / description. The reference converts them to sbol3:name /
+        // sbol3:description and drops the dcterms form.
+        if predicate == v2::DCTERMS_TITLE || predicate == v2::DCTERMS_DESCRIPTION {
+            let target = if predicate == v2::DCTERMS_TITLE {
+                v3::SBOL_NAME
+            } else {
+                v3::SBOL_DESCRIPTION
+            };
             let rewritten = self.identity.rewrite_triple(triple);
             self.output_triples.push(Triple {
                 subject: rewritten.subject,
-                predicate: Iri::new_unchecked(restored),
+                predicate: Iri::from_static(target),
                 object: rewritten.object,
             });
             return;
         }
 
-        // Everything else (PROV, dcterms, custom annotations) passes through
-        // with identity rewriting on subject and object.
+        // Everything else (PROV, custom annotations) passes through with
+        // identity rewriting on subject and object.
         self.output_triples
             .push(self.identity.rewrite_triple(triple));
     }
@@ -533,6 +528,7 @@ impl<'a> Engine<'a> {
         }
 
         let subject = self.identity.rewrite_resource(&triple.subject);
+        let original_iri = triple.subject.as_iri().map(|iri| iri.as_str().to_owned());
 
         let v3_type: Option<&'static str> = match object_iri {
             v2::SBOL2_COMPONENT_DEFINITION | v2::SBOL2_MODULE_DEFINITION => {
@@ -562,18 +558,6 @@ impl<'a> Engine<'a> {
                     self.report.push(UpgradeWarning::UnknownSbol2Type {
                         subject: iri.as_str().to_owned(),
                         sbol2_type: other.to_owned(),
-                    });
-                }
-                let subject_has_known_type = triple
-                    .subject
-                    .as_iri()
-                    .and_then(|iri| self.typed_subjects.get(iri.as_str()))
-                    .is_some_and(|ty| is_known_sbol2_type(ty));
-                if self.options.preserve_backport && !subject_has_known_type {
-                    self.output_triples.push(Triple {
-                        subject,
-                        predicate: Iri::from_static(v2::BACKPORT_SBOL2_TYPE),
-                        object: Term::Resource(Resource::Iri(Iri::new_unchecked(other))),
                     });
                 }
                 return;
@@ -617,7 +601,20 @@ impl<'a> Engine<'a> {
                         ))),
                     });
                 }
-                v2::SBOL2_COMPONENT | v2::SBOL2_MODULE | v2::SBOL2_FUNCTIONAL_COMPONENT => {
+                v2::SBOL2_MODULE => {
+                    self.report.counts.sub_components += 1;
+                    // A SubComponent derived from an SBOL 2 Module carries a
+                    // marker so the downgrade restores it as a Module rather
+                    // than a FunctionalComponent.
+                    if self.options.preserve_backport {
+                        self.output_triples.push(Triple {
+                            subject: subject.clone(),
+                            predicate: Iri::from_static(v2::BACKPORT_SBOL2_ORIGINATES_FROM_MODULE),
+                            object: Term::Literal(sbol_rdf::Literal::simple("true")),
+                        });
+                    }
+                }
+                v2::SBOL2_COMPONENT | v2::SBOL2_FUNCTIONAL_COMPONENT => {
                     self.report.counts.sub_components += 1;
                 }
                 v2::SBOL2_SEQUENCE_ANNOTATION => {
@@ -629,11 +626,19 @@ impl<'a> Engine<'a> {
                 _ => {}
             }
 
-            if self.options.preserve_backport {
+            // Stamp the original SBOL 2 identity on every converted entity so
+            // external tooling can trace it back to its source object. A
+            // SubComponent derived from an SBOL 2 Module is the exception: the
+            // reference converter copies no identified metadata onto it, so it
+            // carries no `sbol2OriginalURI`.
+            if self.options.preserve_backport
+                && object_iri != v2::SBOL2_MODULE
+                && let Some(original) = original_iri.as_ref()
+            {
                 self.output_triples.push(Triple {
                     subject,
-                    predicate: Iri::from_static(v2::BACKPORT_SBOL2_TYPE),
-                    object: Term::Resource(Resource::Iri(Iri::new_unchecked(object_iri))),
+                    predicate: Iri::from_static(v2::BACKPORT_SBOL2_ORIGINAL_URI),
+                    object: Term::Resource(Resource::Iri(Iri::new_unchecked(original.clone()))),
                 });
             }
         }
@@ -666,6 +671,13 @@ impl<'a> Engine<'a> {
 
         let subject = self.identity.rewrite_resource(&triple.subject);
         let object = self.identity.rewrite_term(&triple.object);
+        // The original SBOL 2 subject IRI keys `typed_subjects`, which
+        // disambiguates ontology conversion for shared predicates.
+        let subject_key = triple
+            .subject
+            .as_iri()
+            .map(|iri| iri.as_str().to_owned())
+            .unwrap_or_default();
 
         // Single-predicate rename cases.
         let renamed: Option<&'static str> = match predicate {
@@ -716,7 +728,7 @@ impl<'a> Engine<'a> {
 
         if let Some(target) = renamed {
             let mut object_with_value_rewrites =
-                self.rewrite_value(triple.predicate.as_str(), &object);
+                self.rewrite_value(&subject_key, triple.predicate.as_str(), &object);
 
             // When a Location's IRI got disambiguated during the
             // SA-collapse rewrite, override the displayId literal so it
@@ -732,35 +744,17 @@ impl<'a> Engine<'a> {
                     Term::Literal(sbol_rdf::Literal::simple(override_did.clone()));
             }
 
-            // Preserve the original BioPAX URI when the value got
-            // collapsed (BIOPAX_DNA and BIOPAX_DNA_REGION share an SBO
-            // term, etc.). Without this hint a downgrade has to pick
-            // one variant by convention and round-trip drifts.
-            let biopax_original = (predicate == v2::SBOL2_TYPE)
-                .then(|| object.as_iri().map(|i| i.as_str().to_owned()))
-                .flatten()
-                .filter(|iri| values::map_biopax_type(iri).is_some());
-
             self.output_triples.push(Triple {
-                subject: subject.clone(),
+                subject,
                 predicate: Iri::from_static(target),
                 object: object_with_value_rewrites,
             });
-            if self.options.preserve_backport
-                && let Some(original) = biopax_original
-            {
-                self.output_triples.push(Triple {
-                    subject,
-                    predicate: Iri::from_static(v2::BACKPORT_BIOPAX_TYPE),
-                    object: Term::Resource(Resource::Iri(Iri::new_unchecked(original))),
-                });
-            }
             return;
         }
 
         // Encoding gets a value rewrite as part of the predicate rewrite.
         if predicate == v2::SBOL2_ENCODING {
-            let rewritten = self.rewrite_value(predicate, &object);
+            let rewritten = self.rewrite_value(&subject_key, predicate, &object);
             self.output_triples.push(Triple {
                 subject,
                 predicate: Iri::from_static(v3::SBOL_ENCODING),
@@ -771,7 +765,7 @@ impl<'a> Engine<'a> {
 
         // Orientation is renamed and value-rewritten.
         if predicate == v2::SBOL2_ORIENTATION {
-            let rewritten = self.rewrite_value(predicate, &object);
+            let rewritten = self.rewrite_value(&subject_key, predicate, &object);
             self.output_triples.push(Triple {
                 subject,
                 predicate: Iri::from_static(v3::SBOL_ORIENTATION),
@@ -780,41 +774,13 @@ impl<'a> Engine<'a> {
             return;
         }
 
-        // Persistent identity and version are archived under the backport
-        // namespace if requested.
-        if self.options.preserve_backport {
-            let backport: Option<&'static str> = match predicate {
-                v2::SBOL2_PERSISTENT_IDENTITY => Some(v2::BACKPORT_SBOL2_PERSISTENT_IDENTITY),
-                v2::SBOL2_VERSION => Some(v2::BACKPORT_SBOL2_VERSION),
-                _ => None,
-            };
-            if let Some(target) = backport {
-                self.output_triples.push(Triple {
-                    subject,
-                    predicate: Iri::from_static(target),
-                    object,
-                });
-                return;
-            }
-        }
-
-        // Any other `sbol2:*` triple that reaches this point is one we don't
-        // have a structured SBOL 3 rewrite for (e.g. `sbol2:access`,
-        // `sbol2:direction`, or any future / custom extension predicate in
-        // the SBOL 2 namespace that we haven't recognized). Preserve it
-        // under the backport namespace so callers don't lose data, and so
-        // an eventual SBOL 3 → SBOL 2 downconverter can reconstruct it.
-        // Anything fully absorbed by a structural transform (MapsTo's
-        // `local`/`remote`/`refinement`, collapsed-SA `component`,
-        // `mapsTo` itself) has already been short-circuited above.
-        if self.options.preserve_backport && predicate.starts_with(v2::SBOL2_NS) {
-            let local = &predicate[v2::SBOL2_NS.len()..];
-            let preserved = format!("{}{local}", v2::BACKPORT_SBOL2_PREFIX);
-            self.output_triples.push(Triple {
-                subject,
-                predicate: Iri::new_unchecked(preserved),
-                object,
-            });
-        }
+        // Every SBOL 2 predicate reaching this point has no SBOL 3 rename and
+        // no structural successor: `persistentIdentity` and `version` (both
+        // consumed by identity derivation), plus any unmapped SBOL 2 predicate
+        // such as `access` or `direction`. These are dropped — SBOL 2-only
+        // data with no SBOL 3 home is not carried across. `subject` and
+        // `object` are computed for the rewrite paths above; here they simply
+        // go unused.
+        let _ = (subject, object);
     }
 }

@@ -12,8 +12,8 @@ use sbol3::vocab as v3;
 /// the input is not a recognized SBOL 2 orientation.
 pub(super) fn map_orientation(iri: &str) -> Option<&'static str> {
     match iri {
-        v2::SBOL2_ORIENTATION_INLINE => Some(v3::SBOL_INLINE),
-        v2::SBOL2_ORIENTATION_REVERSE_COMPLEMENT => Some(v3::SBOL_REVERSE_COMPLEMENT),
+        v2::SBOL2_ORIENTATION_INLINE => Some(v3::SO_INLINE),
+        v2::SBOL2_ORIENTATION_REVERSE_COMPLEMENT => Some(v3::SO_REVERSE_COMPLEMENT),
         _ => None,
     }
 }
@@ -126,11 +126,11 @@ mod tests {
     fn orientation_round_trip() {
         assert_eq!(
             map_orientation(v2::SBOL2_ORIENTATION_INLINE),
-            Some(v3::SBOL_INLINE)
+            Some(v3::SO_INLINE)
         );
         assert_eq!(
             map_orientation(v2::SBOL2_ORIENTATION_REVERSE_COMPLEMENT),
-            Some(v3::SBOL_REVERSE_COMPLEMENT),
+            Some(v3::SO_REVERSE_COMPLEMENT),
         );
         assert_eq!(map_orientation("http://example.org/custom"), None);
     }

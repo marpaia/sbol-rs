@@ -1,14 +1,13 @@
 //! SBOL 2 vocabulary IRIs shared by the upgrade and downgrade modules.
 //!
-//! These mirror the constants in `sbols.org/v2` and the
-//! `sboltools/sbolgraph` TypeScript port. They are intentionally kept
-//! `pub(crate)`: SBOL 2 URIs are an implementation detail of the
+//! These mirror the constants in `sbols.org/v2`. They are intentionally
+//! kept `pub(crate)`: SBOL 2 URIs are an implementation detail of the
 //! conversion pipeline, never part of the public SBOL 3 surface.
 //!
-//! Backport namespace constants follow the convention used by
-//! `sbolgraph` for round-trip preservation of SBOL 2-only fields that
-//! no longer have an SBOL 3 home (`persistentIdentity`, `version`, the
-//! original `sbol2type`, and structural-collapse hints).
+//! The backport namespace preserves SBOL 2-only fields that have no SBOL 3
+//! home. Backport annotations are written only during SBOL 2 → SBOL 3;
+//! the SBOL 3 → SBOL 2 direction reads them to reconstruct the original
+//! SBOL 2 form and emits none of its own.
 //!
 //! Both directions of the conversion (upgrade and downgrade) reference
 //! these symbols, which is why they live in a shared module rather
@@ -16,15 +15,51 @@
 #![allow(dead_code)]
 
 pub(crate) const SBOL2_NS: &str = "http://sbols.org/v2#";
-pub(crate) const BACKPORT_NS: &str = "http://sboltools.org/backport#";
 
-/// Prefix for SBOL 2 predicates that the upgrade could not route through
-/// its rename table. The local name follows `sbol2_`.
-pub(crate) const BACKPORT_SBOL2_PREFIX: &str = "http://sboltools.org/backport#sbol2_";
+/// Backport namespace and recommended prefix for SBOL 2-only fields
+/// preserved across an SBOL 2 → SBOL 3 conversion.
+pub(crate) const BACKPORT_NS: &str = "https://sbols.org/backport/2_3#";
+pub(crate) const BACKPORT_PREFIX: &str = "backport2_3";
 
-/// Prefix for SBOL 3 predicates that the downgrade could not route
-/// through its rename table. The local name follows `sbol3_`.
-pub(crate) const BACKPORT_SBOL3_PREFIX: &str = "http://sboltools.org/backport#sbol3_";
+/// The original SBOL 2 identity, stamped on every converted SBOL 3 entity
+/// (and on every `Metadata` synthesized from a nested SBOL 2 annotation).
+pub(crate) const BACKPORT_SBOL2_ORIGINAL_URI: &str =
+    "https://sbols.org/backport/2_3#sbol2OriginalURI";
+
+/// The identity of the SBOL 2 `SequenceAnnotation` a `SubComponent` was
+/// derived from, so the displayId can be restored on the way down.
+pub(crate) const BACKPORT_SBOL2_ORIGINAL_SEQUENCE_ANNOTATION_URI: &str =
+    "https://sbols.org/backport/2_3#sbol2OriginalSequenceAnnotationURI";
+
+/// Marks a `Sequence` synthesized to satisfy a `Component` that had none,
+/// so the downgrade drops it rather than re-emitting an SBOL 2 Sequence.
+pub(crate) const BACKPORT_SBOL3_TEMP_SEQUENCE_URI: &str =
+    "https://sbols.org/backport/2_3#sbol3TempSequenceURI";
+
+/// Records that the source SBOL 2 location had no sequence, so the
+/// downgrade suppresses the sequence it would otherwise re-emit.
+pub(crate) const BACKPORT_SBOL2_LOCATION_SEQUENCE_NULL: &str =
+    "https://sbols.org/backport/2_3#sbol2LocationSequenceNull";
+
+/// Marks a `Metadata` child standing in for an SBOL 2 `GenericLocation`
+/// (which has no SBOL 3 Location equivalent).
+pub(crate) const BACKPORT_SBOL2_GENERIC_LOCATION: &str =
+    "https://sbols.org/backport/2_3#sbol2GenericLocation";
+
+/// Set on a generic-location `Metadata` that carried an orientation.
+pub(crate) const BACKPORT_SBOL2_ENTITY: &str = "https://sbols.org/backport/2_3#sbol2Entity";
+
+/// Marks a `SubComponent` derived from an SBOL 2 `Module` (rather than a
+/// `FunctionalComponent`), so the downgrade restores it as a `Module`.
+pub(crate) const BACKPORT_SBOL2_ORIGINATES_FROM_MODULE: &str =
+    "https://sbols.org/backport/2_3#sbol2OriginatesFromModule";
+
+/// Marks a `ComponentReference` derived from a `MapsTo` owned by an SBOL 2
+/// `FunctionalComponent`, so the downgrade places the restored `MapsTo` on
+/// the `FunctionalComponent` rather than the `Module`.
+pub(crate) const BACKPORT_SBOL2_MAPSTO_ORIGIN_IN_FC: &str =
+    "https://sbols.org/backport/2_3#sbol2MapstoOriginInFC";
+
 pub(crate) const DCTERMS_TITLE: &str = "http://purl.org/dc/terms/title";
 pub(crate) const DCTERMS_DESCRIPTION: &str = "http://purl.org/dc/terms/description";
 
@@ -166,59 +201,3 @@ pub(crate) const SBOL2_SAMPLE: &str = "http://sbols.org/v2#sample";
 pub(crate) const SBOL2_MERGE_ROLES: &str = "http://sbols.org/v2#mergeRoles";
 pub(crate) const SBOL2_OVERRIDE_ROLES: &str = "http://sbols.org/v2#overrideRoles";
 
-// === Backport namespace (SBOL 2 ↔ SBOL 3 round-trip preservation) ===
-
-pub(crate) const BACKPORT_SBOL2_TYPE: &str = "http://sboltools.org/backport#sbol2type";
-pub(crate) const BACKPORT_SBOL2_PERSISTENT_IDENTITY: &str =
-    "http://sboltools.org/backport#sbol2persistentIdentity";
-pub(crate) const BACKPORT_SBOL2_VERSION: &str = "http://sboltools.org/backport#sbol2version";
-pub(crate) const BACKPORT_SBOL2_DIRECTION: &str = "http://sboltools.org/backport#sbol2_direction";
-
-/// FunctionalComponent `access`, preserved through the round trip. Byte
-/// interoperable with sbol-utilities' `BACKPORT_NAMESPACE + 'sbol2_access'`.
-/// The generic `sbol2_` prefix already produces this exact IRI for the
-/// unmapped `sbol2:access` predicate; the named constant documents the
-/// interop contract and lets both directions match on it explicitly.
-pub(crate) const BACKPORT_SBOL2_ACCESS: &str = "http://sboltools.org/backport#sbol2_access";
-
-/// The SBOL 3 object's `hasNamespace`, stashed on the corresponding SBOL 2
-/// object by the downgrade so sbol-utilities / sbolgraph can reconstruct
-/// the SBOL 3 namespace, and read by the upgrade when present. Byte
-/// interoperable with sbol-utilities' `BACKPORT3_NAMESPACE`.
-pub(crate) const BACKPORT_SBOL3_NAMESPACE: &str = "http://sboltools.org/backport#sbol3namespace";
-pub(crate) const BACKPORT_SEQUENCE_ANNOTATION_DISPLAY_ID: &str =
-    "http://sboltools.org/backport#sequenceAnnotationDisplayId";
-pub(crate) const BACKPORT_SEQUENCE_ANNOTATION_PREDICATE_PREFIX: &str =
-    "http://sboltools.org/backport#sequenceAnnotationPredicate_";
-
-/// Records the original `sbol2:refinement` of a MapsTo on the SBOL 3
-/// ComponentReference that replaces it. The forward map from
-/// `{useLocal, useRemote}` collapses to a single `sbol3:replaces`
-/// restriction, so the downgrade needs this hint to restore the
-/// original refinement without guessing.
-pub(crate) const BACKPORT_MAPS_TO_REFINEMENT: &str =
-    "http://sboltools.org/backport#mapsToRefinement";
-
-/// Records the original SBOL 2 MapsTo displayId when the upgrade had to
-/// rename the synthesized SBOL 3 ComponentReference to avoid an IRI
-/// collision under the enclosing Component.
-pub(crate) const BACKPORT_MAPS_TO_DISPLAY_ID: &str =
-    "http://sboltools.org/backport#mapsToDisplayId";
-
-/// Records the original BioPAX type URI from a `sbol2:type` triple on a
-/// ComponentDefinition. The forward map collapses `BIOPAX_DNA` and
-/// `BIOPAX_DNA_REGION` to the same SBO term (and likewise for Rna), so
-/// the downgrade needs this hint to restore the original BioPAX
-/// variant without guessing.
-pub(crate) const BACKPORT_BIOPAX_TYPE: &str = "http://sboltools.org/backport#biopaxType";
-
-/// Stamped on the CD and MD halves of a dual-role Component split so the
-/// inverse direction (and external tools) can see they share an SBOL 3
-/// origin. The object IRI is the original SBOL 3 Component identity.
-pub(crate) const BACKPORT_SBOL3_IDENTITY: &str = "http://sboltools.org/backport#sbol3identity";
-
-/// Marks the synthesized FunctionalComponent that links the MD half of a
-/// dual-role split to its CD half. Object value: this marker IRI.
-pub(crate) const BACKPORT_TYPE: &str = "http://sboltools.org/backport#type";
-pub(crate) const BACKPORT_SPLIT_COMPONENT_COMPOSITION: &str =
-    "http://sboltools.org/backport#SplitComponentComposition";

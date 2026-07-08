@@ -5,8 +5,8 @@
 //! and emits SBOL 3 RDF that can be loaded by the rest of the crate and
 //! validated like any natively-authored SBOL 3 document.
 //!
-//! Conversion happens at the RDF triple level, mirroring the canonical engine
-//! in `sboltools/sbolgraph`'s `fromSBOL2/toSBOL3.ts`. No external runtime is
+//! Conversion happens at the RDF triple level and matches the conversion
+//! decisions of the SynBioDex/SBOL-Converter reference. No external runtime is
 //! required: input goes in as bytes (any RDF serialization the [`RdfFormat`]
 //! enum supports), output comes back as bytes plus an [`UpgradeReport`] of
 //! warnings.
@@ -31,7 +31,7 @@
 //! method if they want a strict pipeline.
 //!
 //! For the full conversion model (workflows organized by what you have, the
-//! `http://sboltools.org/backport#` namespace, structural collapses
+//! `https://sbols.org/backport/2_3#` namespace, structural collapses
 //! (SequenceAnnotation, MapsTo, Interface), known divergences, and known
 //! limitations) see the [conversion guide][conversion-md].
 //!
@@ -67,10 +67,11 @@ pub struct UpgradeOptions {
     /// left without `hasNamespace`.
     pub default_namespace: Option<Iri>,
 
-    /// Whether to preserve SBOL 2-only fields (`persistentIdentity`,
-    /// `version`, and the original `sbol2type`) under the
-    /// `http://sboltools.org/backport#` namespace so a later SBOL 3 → SBOL 2
-    /// downgrade can reconstruct them losslessly. Defaults to `true`.
+    /// Whether to stamp the conversion-provenance annotations (the original
+    /// SBOL 2 identities, collapsed-SequenceAnnotation and temp-sequence
+    /// markers) under the `https://sbols.org/backport/2_3#` namespace so a
+    /// later SBOL 3 → SBOL 2 downgrade can reconstruct the SBOL 2 shape.
+    /// Defaults to `true`.
     pub preserve_backport: bool,
 }
 
@@ -111,18 +112,13 @@ pub enum UpgradeWarning {
     UnresolvedMapsTo { mapsto: String, side: MapsToSide },
     /// A `sbol2:MapsTo` carried a `refinement` value with no SBOL 3
     /// Constraint equivalent (notably `merge`). The Constraint is still
-    /// emitted, with its restriction coerced to `sbol3:verifyIdentical`;
-    /// the original refinement is preserved on the ComponentReference
-    /// as `backport:mapsToRefinement` so a downgrade can restore it.
+    /// emitted, with its restriction coerced to `sbol3:verifyIdentical`.
     UnsupportedRefinement { mapsto: String, refinement: String },
     /// A `sbol2:SequenceAnnotation` referenced a `sbol2:component`. The
     /// upgrade collapsed the SA shell onto the referenced SubComponent.
     SequenceAnnotationWithComponent { annotation: String },
     /// A subject carried an SBOL 2 type the upgrade does not understand.
-    /// Its class is archived as `backport:sbol2type` when backport
-    /// preservation is enabled and no recognized SBOL 2 class shares the
-    /// subject, but the unknown class does not appear in the SBOL 3 typed
-    /// model.
+    /// The subject is dropped; the unknown class has no SBOL 3 equivalent.
     UnknownSbol2Type { subject: String, sbol2_type: String },
     /// A Location belongs to a SequenceFeature on a Component that has no
     /// (or more than one) `sbol2:sequence`, so `sbol3:hasSequence` could not
@@ -600,43 +596,24 @@ fn next_available_child_iri(
     }
 }
 
-/// Returns a `(display_id, cref_iri, constraint_display_id, constraint_iri)`
-/// quadruple whose IRIs aren't already in `used` and inserts them. Disambiguates
-/// repeated displayIds by appending `_2`, `_3`, … starting from the second
-/// hit. The displayId carries the same numbering so SBOL 3 IRI compliance
-/// (`{namespace}/{displayId}`) holds.
-fn next_available_mapsto_iris(
+/// Returns a `(display_id, iri)` for a Constraint synthesized under
+/// `top_level`, using the next available `Constraint<N>` name (1-based). The
+/// counter skips names already taken — including any real SequenceConstraint
+/// on the same Component — matching the reference converter's per-Component
+/// `createConstraint` numbering.
+fn next_available_constraint_iri(
     top_level: &str,
-    base_display_id: &str,
     used: &mut HashSet<String>,
-) -> (String, String, String, String) {
+) -> (String, String) {
     let mut counter: usize = 1;
     loop {
-        let display_id = if counter == 1 {
-            base_display_id.to_owned()
-        } else {
-            format!("{base_display_id}_{counter}")
-        };
-        let cref_iri = format!("{top_level}/{display_id}");
-        let constraint_display_id = format!("{display_id}_constraint");
-        let constraint_iri = format!("{top_level}/{constraint_display_id}");
-        if !used.contains(&cref_iri) && !used.contains(&constraint_iri) {
-            used.insert(cref_iri.clone());
-            used.insert(constraint_iri.clone());
-            return (display_id, cref_iri, constraint_display_id, constraint_iri);
+        let display_id = format!("Constraint{counter}");
+        let iri = format!("{top_level}/{display_id}");
+        if used.insert(iri.clone()) {
+            return (display_id, iri);
         }
         counter += 1;
     }
-}
-
-fn hex_encode(bytes: &[u8]) -> String {
-    const HEX: &[u8; 16] = b"0123456789abcdef";
-    let mut out = String::with_capacity(bytes.len() * 2);
-    for byte in bytes {
-        out.push(HEX[(byte >> 4) as usize] as char);
-        out.push(HEX[(byte & 0x0f) as usize] as char);
-    }
-    out
 }
 
 /// Canonical N-Triples line for a single triple, used by the snapshot

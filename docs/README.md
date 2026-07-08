@@ -44,11 +44,11 @@ them to native SBOL 3, and reverses the SBOL 3 path back to SBOL 2
 for publishing to consumers that still consume the older format.
 
 - **[Conversion guide](conversion.md)**: the canonical reference.
-  Workflows organized by what you have (SBOL 2, GenBank, FASTA,
-  native SBOL 3), the `http://sboltools.org/backport#` namespace and
-  what it preserves, the dual-role Component split for designs that
-  combine structure and function, known intentional divergences,
-  known limitations.
+  Parity with the SynBioDex/SBOL-Converter reference, workflows
+  organized by what you have (SBOL 2, GenBank, FASTA, native SBOL 3),
+  the `https://sbols.org/backport/2_3#` namespace and what it
+  preserves, how each SBOL 3 Component classifies into a single SBOL 2
+  class, known intentional divergences, known limitations.
 
 | You have… | Use… | Module / subcommand |
 |---|---|---|
@@ -66,6 +66,10 @@ For maintainers and CI:
 - [SBOL 3 → SBOL 2 downgrade conformance](sbol3-downgrade-conformance.md):
   round-trip gate (critical, pure Rust) that pairs with the
   upgrade gate.
+- [SBOL-Converter differential conformance](sbol-converter-differential.md):
+  behavioral-parity gate for both conversion directions against the
+  SynBioDex/SBOL-Converter Java reference, on committed goldens (no JDK
+  in CI).
 - [SBOL 3 round-trip smoke test report](sbol3-round-trip-report.md):
   generated per-fixture report of what survives upgrade →
   downgrade → re-upgrade across the committed SBOL 2 fixture corpus.

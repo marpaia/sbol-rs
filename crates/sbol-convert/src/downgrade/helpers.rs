@@ -1,43 +1,7 @@
-//! Free helper functions shared across the downgrade engine: hex codec,
-//! IRI synthesis, and the SBOL 3 -> SBOL 2 type/predicate lookup tables.
+//! Free helper functions shared across the downgrade engine: IRI synthesis
+//! and the SBOL 3 -> SBOL 2 type/predicate lookup tables.
 
 use super::*;
-
-pub(super) fn hex_decode_to_string(encoded: &str) -> Option<String> {
-    if !encoded.len().is_multiple_of(2) {
-        return None;
-    }
-    let mut bytes = Vec::with_capacity(encoded.len() / 2);
-    for chunk in encoded.as_bytes().chunks(2) {
-        let high = hex_value(chunk[0])?;
-        let low = hex_value(chunk[1])?;
-        bytes.push((high << 4) | low);
-    }
-    String::from_utf8(bytes).ok()
-}
-
-pub(super) fn hex_value(byte: u8) -> Option<u8> {
-    match byte {
-        b'0'..=b'9' => Some(byte - b'0'),
-        b'a'..=b'f' => Some(byte - b'a' + 10),
-        b'A'..=b'F' => Some(byte - b'A' + 10),
-        _ => None,
-    }
-}
-
-pub(super) fn canonical_term_key(term: &Term) -> String {
-    match term {
-        Term::Resource(Resource::Iri(iri)) => format!("iri:{}", iri.as_str()),
-        Term::Resource(Resource::BlankNode(blank)) => format!("blank:{}", blank.as_str()),
-        Term::Literal(literal) => format!(
-            "literal:{}|{}|{}",
-            literal.value(),
-            literal.language().unwrap_or(""),
-            literal.datatype().as_str()
-        ),
-        other => format!("{other:?}"),
-    }
-}
 
 /// Appends `/segment` to `iri`, collapsing a doubled `/` when `iri`
 /// already ends with one.
@@ -72,29 +36,6 @@ pub(super) fn next_available_child_iri(
     }
 }
 
-/// Returns an IRI starting from `base` that is not already in `used`,
-/// inserting the chosen IRI. Tries `base`, then `base_2`, `base_3`, …
-/// until it finds one that is available.
-///
-/// Unlike [`next_available_child_iri`], no separator is inserted between
-/// `base` and the disambiguation counter; `base` is taken as the
-/// complete candidate IRI. Used for sibling-style synthesis where the
-/// candidate IRI is built by appending a suffix (e.g. `_component`,
-/// `_module`) directly to an existing IRI rather than by adding a new
-/// path segment.
-pub(super) fn next_available_iri(base: &str, used: &mut HashSet<String>) -> String {
-    if used.insert(base.to_owned()) {
-        return base.to_owned();
-    }
-    let mut counter: usize = 2;
-    loop {
-        let candidate = format!("{base}_{counter}");
-        if used.insert(candidate.clone()) {
-            return candidate;
-        }
-        counter += 1;
-    }
-}
 
 pub(super) fn type_set_contains(
     types_by_subject: &HashMap<String, HashSet<String>>,
@@ -106,42 +47,9 @@ pub(super) fn type_set_contains(
         .is_some_and(|types| types.contains(ty))
 }
 
-pub(super) fn backport_type_applies_to_sbol3_type(backport_type: &str, object_iri: &str) -> bool {
-    match object_iri {
-        v3::SBOL_COMPONENT_CLASS => matches!(
-            backport_type,
-            v2::SBOL2_COMPONENT_DEFINITION | v2::SBOL2_MODULE_DEFINITION
-        ),
-        v3::SBOL_SUB_COMPONENT_CLASS => matches!(
-            backport_type,
-            v2::SBOL2_COMPONENT | v2::SBOL2_FUNCTIONAL_COMPONENT | v2::SBOL2_MODULE
-        ),
-        v3::SBOL_SEQUENCE_FEATURE_CLASS => backport_type == v2::SBOL2_SEQUENCE_ANNOTATION,
-        v3::SBOL_CONSTRAINT_CLASS => backport_type == v2::SBOL2_SEQUENCE_CONSTRAINT,
-        v3::SBOL_SEQUENCE_CLASS => backport_type == v2::SBOL2_SEQUENCE,
-        v3::SBOL_MODEL_CLASS => backport_type == v2::SBOL2_MODEL,
-        v3::SBOL_INTERACTION_CLASS => backport_type == v2::SBOL2_INTERACTION,
-        v3::SBOL_PARTICIPATION_CLASS => backport_type == v2::SBOL2_PARTICIPATION,
-        v3::SBOL_COLLECTION_CLASS => backport_type == v2::SBOL2_COLLECTION,
-        v3::SBOL_IMPLEMENTATION_CLASS => backport_type == v2::SBOL2_IMPLEMENTATION,
-        v3::SBOL_ATTACHMENT_CLASS => backport_type == v2::SBOL2_ATTACHMENT,
-        v3::SBOL_EXPERIMENT_CLASS => backport_type == v2::SBOL2_EXPERIMENT,
-        v3::SBOL_EXPERIMENTAL_DATA_CLASS => backport_type == v2::SBOL2_EXPERIMENTAL_DATA,
-        v3::SBOL_COMBINATORIAL_DERIVATION_CLASS => {
-            backport_type == v2::SBOL2_COMBINATORIAL_DERIVATION
-        }
-        v3::SBOL_VARIABLE_FEATURE_CLASS => backport_type == v2::SBOL2_VARIABLE_COMPONENT,
-        v3::SBOL_RANGE_CLASS => backport_type == v2::SBOL2_RANGE,
-        v3::SBOL_CUT_CLASS => backport_type == v2::SBOL2_CUT,
-        v3::SBOL_LOCATION_CLASS => backport_type == v2::SBOL2_GENERIC_LOCATION,
-        _ => false,
-    }
-}
-
-/// Default SBOL 3 type → SBOL 2 type mapping. Used when the subject
-/// has no `backport:sbol2type` triple to consult. Component is mapped
-/// to ComponentDefinition here; phase 3 refines this to split
-/// dual-role Components into CD + MD.
+/// Default SBOL 3 type → SBOL 2 type mapping. Component maps to
+/// ComponentDefinition here; the classification pass refines a Component to a
+/// ModuleDefinition when its shape calls for it.
 pub(super) fn map_sbol3_type_to_sbol2(iri: &str) -> Option<&'static str> {
     Some(match iri {
         v3::SBOL_COMPONENT_CLASS => v2::SBOL2_COMPONENT_DEFINITION,
@@ -171,8 +79,8 @@ pub(super) fn map_sbol3_type_to_sbol2(iri: &str) -> Option<&'static str> {
 /// SBOL 3 predicate → SBOL 2 predicate. Single-target rewrites only;
 /// predicates that need context to resolve (`hasFeature` could be
 /// `component`, `functionalComponent`, `module`, or `sequenceAnnotation`
-/// depending on what kind of feature it points at) get refined in
-/// phase 3.
+/// depending on what kind of feature it points at) are handled by the
+/// subject-aware predicate pass instead.
 pub(super) fn map_sbol3_predicate_to_sbol2(iri: &str) -> Option<&'static str> {
     Some(match iri {
         v3::SBOL_DISPLAY_ID => v2::SBOL2_DISPLAY_ID,

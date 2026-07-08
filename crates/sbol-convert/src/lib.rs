@@ -13,6 +13,7 @@
 mod downgrade;
 mod sbol2_vocab;
 mod upgrade;
+mod uri;
 
 pub use downgrade::{
     DowngradeCounts, DowngradeError, DowngradeOptions, DowngradeReport, DowngradeWarning,

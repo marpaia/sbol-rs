@@ -2,8 +2,10 @@
 
 How the `sbol-convert` downgrade functions and the `sbol downgrade` subcommand
 are gated in CI. For the conversion model itself (what gets preserved,
-what intentionally diverges, how dual-role Components split), see
-[`conversion.md`](conversion.md).
+what intentionally diverges, how each Component is classified into a
+ComponentDefinition or a ModuleDefinition), see [`conversion.md`](conversion.md).
+For the parity gate against the reference Java converter, see
+[`sbol-converter-differential.md`](sbol-converter-differential.md).
 
 ## Gates
 
@@ -33,7 +35,7 @@ The downgrade tests in `crates/sbol-convert/tests/` fire every
 round-trip and identity-restoration check
 ([`downgrade_round_trip.rs`](../crates/sbol-convert/tests/downgrade_round_trip.rs),
 [`downgrade_semantic.rs`](../crates/sbol-convert/tests/downgrade_semantic.rs)),
-plus the native-SBOL-3 dual-role-split tests
+plus the native-SBOL-3 Component-classification tests
 ([`downgrade_dual_role.rs`](../crates/sbol-convert/tests/downgrade_dual_role.rs))
 that exercise the `sbol_convert::downgrade` machinery without an SBOL 2
 source.
@@ -46,10 +48,11 @@ SBOLTestSuite, SynBioHub, and GenBank-derived intermediates. The
 round-trip is meaningful only for cases where the SBOL 2 source
 exists, so no separate fixture set is needed.
 
-Native-SBOL-3-only behavior (dual-role Component splits, Collection
-membership duplication, SubComponent triple-emit, Interface routing, and
-ComponentInstance default synthesis) is exercised by the
-unit tests in `crates/sbol-convert/tests/downgrade_dual_role.rs` rather than via fixtures,
+Native-SBOL-3-only behavior (the Component → ComponentDefinition /
+ModuleDefinition classification, Collection membership duplication,
+SubComponent routing, Interface routing, and ComponentInstance default
+synthesis) is exercised by the unit tests in
+`crates/sbol-convert/tests/downgrade_dual_role.rs` rather than via fixtures,
 because the corpus would have to invent SBOL 3 designs from scratch.
 
 ## Refreshing the GenBank → SBOL 2 intermediates
@@ -93,8 +96,8 @@ clean over the committed real-world fixtures. The broader gate is
 → 3 → 2 fixed-point over the **full** SBOLTestSuite SBOL 2 corpora:
 **290 fixtures round-trip clean**, 0 drift, 0 parse failures, 0
 upgrade-unsupported, with one documented-lossy fixture allowlisted.
-Native-SBOL-3 → 2 dual-role behavior is exercised by unit tests, not by
-either report.
+Native-SBOL-3 → 2 Component-classification behavior is exercised by unit
+tests, not by either report.
 
 Use the report to decide whether a structural case actually appears in
 real data before investing in deeper coverage.
@@ -119,11 +122,13 @@ pySBOL2 externally.
   Add an allowlist entry only if the divergence is intentional and
   documented in [`conversion.md`](conversion.md#known-intentional-divergences)
   (e.g. BIOPAX `Dna` ↔ `DnaRegion`).
-- **`DualRoleComponent` warning fires on a fixture that should be
-  single-shape** → the classifier in `crates/sbol-convert/src/downgrade/mod.rs`
-  is over-counting structural or functional signals. Check whether the
-  fixture triggers a signal that should be filtered (e.g. a
-  ComponentReference that's actually a MapsTo back-half).
+- **A Component downgrades to the wrong SBOL 2 class** (ModuleDefinition
+  where a ComponentDefinition was expected, or vice versa) → the
+  `isModuleDefinition` classifier in
+  `crates/sbol-convert/src/downgrade/analyze.rs` mis-counted the functional
+  signals (interactions, the `SBO:0000241` type, or a Module-targeting
+  sub-component). Check whether the fixture triggers a signal that should be
+  filtered (e.g. a ComponentReference that's actually a MapsTo back-half).
 - **`OrphanComponentReference` warning** → the downgrade saw a
   ComponentReference without a paired Constraint. Either the source
   document was already malformed or the upgrade emitted an unpaired
@@ -147,7 +152,7 @@ crates/sbol-convert/src/downgrade/
 
 crates/sbol-convert/tests/
 ├── downgrade_round_trip.rs   # round-trip + identity-restoration gates
-├── downgrade_dual_role.rs    # native-SBOL-3 dual-role split gates
+├── downgrade_dual_role.rs    # native-SBOL-3 single-target routing gates
 └── downgrade_semantic.rs     # semantic downgrade checks
 
 crates/sbol-genbank/src/bin/
@@ -157,12 +162,14 @@ crates/sbol-genbank/src/bin/
 ## Related
 
 - [Conversion guide](conversion.md), the user-facing reference for the
-  conversion model: workflows, the backport namespace, dual-role
-  Component splits, known divergences, known limitations.
+  conversion model: workflows, the backport namespace, Component
+  classification, known divergences, known limitations.
+- [SBOL-Converter differential conformance](sbol-converter-differential.md):
+  the parity gate for both directions against the reference Java converter.
 - [SBOL 2 → SBOL 3 upgrade conformance](sbol2-upgrade-conformance.md):
   the inverse direction's CI gate. The two share the
   `crates/sbol-convert/src/sbol2_vocab.rs` vocabulary and the
-  `http://sboltools.org/backport#` namespace.
+  `https://sbols.org/backport/2_3#` namespace.
 - [GenBank → SBOL 3 import conformance](genbank-import-conformance.md):
   pure-Rust GenBank reader; feeds the GenBank-derived round-trip
   fixtures.

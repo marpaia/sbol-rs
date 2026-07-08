@@ -8,7 +8,7 @@
 //!
 //! The point is not regression gating; that lives in
 //! [`crates/sbol-convert/tests/upgrade_conformance.rs`] and
-//! [`crates/sbol-convert/tests/downgrade.rs`]. The point is empirical
+//! `crates/sbol-convert/tests/downgrade_round_trip.rs`. The point is empirical
 //! discovery: turning the question "which deferred enhancements
 //! actually matter on real data?" into "here are the triples that
 //! don't survive the round-trip, fixture by fixture."
@@ -231,8 +231,9 @@ fn render_report(results: &[FixtureResult]) -> String {
          preserve every triple across the committed SBOL 2 fixture corpus under \
          `tests/fixtures/sbol2/real/` (SBOLTestSuite, SynBioHub, and the \
          GenBank-derived intermediates). Native-SBOL-3 → SBOL 2 behavior (in \
-         particular the dual-role Component split) is covered by unit tests \
-         in [`crates/sbol-convert/tests/downgrade.rs`](../crates/sbol-convert/tests/downgrade.rs) \
+         particular the Component → ComponentDefinition / ModuleDefinition \
+         classification) is covered by unit tests \
+         in `crates/sbol-convert/tests/downgrade_dual_role.rs` and \
          rather than this report, because doing so would require inventing \
          SBOL 3 fixtures from scratch.\n\n\
          For every fixture, the report runs:\n\n\
@@ -247,9 +248,10 @@ fn render_report(results: &[FixtureResult]) -> String {
          kinds of delta point at gaps in either the upgrade or the downgrade.\n\n\
          The report is informational. Conformance gating lives in \
          [`crates/sbol-convert/tests/upgrade_conformance.rs`](../crates/sbol-convert/tests/upgrade_conformance.rs) \
-         and [`crates/sbol-convert/tests/downgrade.rs`](../crates/sbol-convert/tests/downgrade.rs). \
-         The conversion model itself (the backport namespace, dual-role splits, \
-         known divergences) is documented in [`conversion.md`](conversion.md).\n\n",
+         and `crates/sbol-convert/tests/downgrade_round_trip.rs`. \
+         The conversion model itself (the backport namespace, Component \
+         classification, known divergences) is documented in \
+         [`conversion.md`](conversion.md).\n\n",
     );
 
     let n = results.len();

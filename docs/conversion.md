@@ -19,6 +19,20 @@ Most published synthetic biology data lives in formats that predate SBOL 3.1.0:
 
 Everything runs in pure Rust: no Docker, no Python sidecar, no network calls.
 
+## The reference: SynBioDex/SBOL-Converter
+
+The SBOL 2 ↔ SBOL 3 conversion tracks the **observable behavior** of the
+canonical Java converter, [SynBioDex/SBOL-Converter][ref]. Given the same
+input, `sbol-rs` makes the same conversion decisions the reference does — the
+same identities, the same class choices, the same vocabulary, the same backport
+annotations — so files interoperate with the SynBioDex toolchain.
+
+That parity is enforced in CI by a differential test against committed
+reference outputs (no JVM required to run the suite); see
+[`sbol-converter-differential.md`](sbol-converter-differential.md). The
+round-trip and self-snapshot gates ([`sbol2-upgrade-conformance.md`](sbol2-upgrade-conformance.md),
+[`sbol3-downgrade-conformance.md`](sbol3-downgrade-conformance.md)) back it up.
+
 ## Workflows
 
 ### Pulling a part down from SynBioHub
@@ -49,7 +63,13 @@ sbol upgrade BBa_F2620.xml --output BBa_F2620.ttl --validate
 
 The result is fully native SBOL 3: all the typed accessors (`document.components()`, `document.sequences()`, etc.) work, all spec rules apply, and the document round-trips through any of the supported RDF serializations.
 
-**A note on identities.** SBOL 2 embeds versions in IRIs as a trailing path segment: `…/BBa_F2620/1`. SBOL 3 doesn't version IRIs. The upgrade strips trailing version segments (`/1`, `/2.3`, …) so `…/BBa_F2620/1` becomes `…/BBa_F2620`. The original version isn't lost: it's preserved under [the backport namespace](#the-backport-namespace) so a future `sbol downgrade` rebuilds the SBOL 2 identity exactly.
+**A note on identities.** SBOL 2 and SBOL 3 place the version segment in
+different spots. SBOL 2 puts it last (`…/BBa_F2620/1`); SBOL 3 puts it before
+the displayId (`…/1/BBa_F2620`). The upgrade rewrites the IRI accordingly, and
+the downgrade reverses it — the same `createSBOL3Uri` / `createSBOL2Uri`
+algebra the reference uses. An unversioned reference (`…/BBa_F2620`) resolves to
+the highest-version object that declares it as its `persistentIdentity`, again
+matching the reference (`getLatestUri`).
 
 ### Importing a GenBank file from SnapGene
 
@@ -128,108 +148,113 @@ sbol upgrade BBa_F2620.xml --output BBa_F2620.ttl
 sbol downgrade BBa_F2620.ttl --to rdfxml --output BBa_F2620_updated.xml
 ```
 
-This works because the upgrade preserves SBOL 2 identities, types, versions, and unmapped predicates under a `http://sboltools.org/backport#` namespace. The downgrade reads those triples to rebuild the original SBOL 2 shape. The `corpus_round_trip` test drives the SBOL 2 → 3 → 2 fixed-point over the **full** SBOLTestSuite SBOL 2 corpora and asserts triple-for-triple equality: **290 fixtures round-trip clean** (0 drift, 0 parse failures, 0 upgrade-unsupported), with a single documented-lossy fixture allowlisted. The backport namespace is also interoperable with sbol-utilities / sbolgraph: the downgrade emits `backport:sbol3namespace` and FunctionalComponent access via `backport:sbol2_access` byte-for-byte matching the predicate IRIs those tools use, and the upgrade honors them (verified in `crates/sbol-convert/tests/interop_backport.rs`). The [empirical per-fixture report](sbol3-round-trip-report.md) covers the committed SynBioHub, iGEM, and SBOLTestSuite real-world fixtures.
+This works because the upgrade records the SBOL 2 detail that has no SBOL 3
+home under [the backport namespace](#the-backport-namespace), and the downgrade
+reads it back to rebuild the SBOL 2 shape. The `corpus_round_trip` test drives
+the SBOL 2 → 3 → 2 fixed-point over the **full** SBOLTestSuite SBOL 2 corpora
+and asserts triple-for-triple equality: **290 fixtures round-trip clean**
+(0 drift, 0 parse failures, 0 upgrade-unsupported), with a single
+documented-lossy fixture allowlisted. The [empirical per-fixture report](sbol3-round-trip-report.md)
+covers the committed SynBioHub, iGEM, and SBOLTestSuite real-world fixtures.
 
-### Authoring a design that combines structure and function
-
-SBOL 3 unified what SBOL 2 split: a single SBOL 3 `Component` can carry both **structural** data (a sequence, sub-parts) AND **functional** data (interactions, an interface). For example: a CRISPR guide RNA with a defined sequence (structural) AND an interaction binding Cas9 (functional). SBOL 2 has no single class for that.
-
-When you downgrade such a "dual-role" Component, `sbol-rs` splits it. See [Dual-role Components](#dual-role-components) below for the full mechanism.
-
-## The backport namespace
-
-`http://sboltools.org/backport#` is a namespace `sbol-rs` reads and writes to preserve SBOL 2 detail that has no SBOL 3 home. After `sbol upgrade`, your SBOL 3 document will contain triples like:
-
-```turtle
-<https://example.org/lab/BBa_F2620>
-    a sbol3:Component ;
-    sbol3:displayId "BBa_F2620" ;
-    backport:sbol2type sbol2:ComponentDefinition ;
-    backport:sbol2version "1" ;
-    backport:sbol2persistentIdentity <https://example.org/lab/BBa_F2620> .
-```
-
-These triples are **not** part of SBOL 3: they're round-trip metadata that downstream SBOL 3 consumers can safely ignore. The validator does ignore them. What they record:
-
-| Backport predicate | What it preserves |
-|---|---|
-| `sbol2type` | Original SBOL 2 rdf:type (`ComponentDefinition`, `ModuleDefinition`, `FunctionalComponent`, `Module`, etc.) so the downgrade restores the exact class the source used |
-| `sbol2version` | Version string SBOL 2 embedded in the trailing IRI segment, so the downgrade rebuilds `…/BBa_F2620/1` from `…/BBa_F2620` |
-| `sbol2persistentIdentity` | Unversioned identity the SBOL 2 source used in its `persistentIdentity` triples; usually equals the SBOL 3 IRI, recorded explicitly for cases where it differs |
-| `sequenceAnnotationDisplayId` | `displayId` of an SBOL 2 SequenceAnnotation that the upgrade [collapsed into a SubComponent](#reversible-structural-collapses) |
-| `sequenceAnnotationPredicate_<hex>` | Non-structural triples from that collapsed SequenceAnnotation shell, with the original predicate hex-encoded so the downgrade can replay it on the rebuilt SA |
-| `mapsToRefinement` | Original `sbol2:refinement` of a MapsTo. SBOL 3 encodes `useLocal` / `useRemote` / `verifyIdentical` via the Constraint's subject/object position per SBOL 3.1.0 §10.2, so this hint is strictly needed only to preserve `sbol2:merge` literally (the spec collapses `merge` to `useRemote`) and to round-trip extension refinement IRIs the converter doesn't recognize. It's also emitted for the spec-encodable values as defense-in-depth against tools that mutate the Constraint shape downstream. |
-| `mapsToDisplayId` | Original `displayId` of an SBOL 2 MapsTo when the synthesized SBOL 3 ComponentReference had to be renamed to avoid an IRI collision |
-| `sbol2_<predicate>` | Any SBOL 2 predicate the upgrade doesn't know how to map (e.g. `sbol2:access`) is preserved verbatim under the `sbol2_` prefix |
-| `sbol3identity` | On a split CD/MD pair, the original SBOL 3 Component IRI (so external tools and a future re-merge step can match them up) |
-| `type = SplitComponentComposition` | Marks the synthesized FunctionalComponent that links a split CD half to its MD half |
-
-A document with backport triples round-trips through SBOL 2 ⇄ SBOL 3 with no structural loss. A document **without** them (one authored natively in SBOL 3) loses more on the way back to SBOL 2: the downgrade has nothing to consult for the original class and falls back to heuristics.
-
-## Reversible structural collapses
-
-SBOL 3 made several SBOL 2 idioms more compact. The upgrade folds them down; the downgrade re-emits the SBOL 2 shape from the backport hints.
-
-**SequenceAnnotation that references a component.** SBOL 2 expresses "this sub-part lives at positions 100–200" as a SequenceAnnotation wrapping a Component reference and a Location. SBOL 3 collapses this: the SubComponent itself carries the locations directly. On upgrade, the SA's locations migrate to the SubComponent, the SA's `displayId` is preserved as `backport:sequenceAnnotationDisplayId`, and non-structural SA triples are archived under encoded `backport:sequenceAnnotationPredicate_<hex>` predicates. On downgrade, the SA is rebuilt from those hints.
-
-**MapsTo.** SBOL 2's `MapsTo` (mapping a sub-component's port to a parent context) decomposes in SBOL 3 into a `ComponentReference` (carrying `inChildOf` + `refersTo`) plus a `Constraint` (carrying `subject` + `object` + `restriction`). On downgrade, the pair is found by following the Constraint's `object` back to its ComponentReference; the original `<sbol2:MapsTo>` is rebuilt under the carrier SubComponent.
-
-**Interface synthesis.** SBOL 2 expresses port visibility and direction via `sbol2:access` and, for FunctionalComponents, `sbol2:direction` (`in`/`out`/`inout`/`none`). SBOL 3 hoists directional FunctionalComponents, public direction-`none` FunctionalComponents, and public structural Components into a single `sbol3:Interface` object. On downgrade, FunctionalComponent entries flatten back to `sbol2:direction` plus public access for native SBOL 3 inputs; structural Component entries flatten to `sbol2:access public`. When an upgraded document preserved original SBOL 2 access or direction under backport metadata, that original value wins.
-
-## Dual-role Components
+## Component classification: one SBOL 3 Component, one SBOL 2 class
 
 SBOL 2 split design into two top-level classes:
 
 - **`ComponentDefinition`**, the structural half: types (DNA/RNA/protein), roles (promoter, CDS), sequence, sub-parts, sequence annotations, constraints.
 - **`ModuleDefinition`**, the functional half: interactions, functional components, models, interface.
 
-SBOL 3 unified both into a single `Component`. That means a native SBOL 3 design can carry BOTH structural AND functional data in one object: a CRISPR guide RNA with a sequence AND an interaction binding Cas9, a metabolic enzyme with both a CDS sequence AND a kinetic interaction. SBOL 2 has no way to put both on a single object.
+SBOL 3 unified both into a single `Component`. Going the other way, each SBOL 3
+Component downgrades to **exactly one** SBOL 2 class — never both. The choice
+follows the reference's `isModuleDefinition` predicate:
 
-When you downgrade such a dual-role Component, `sbol-rs` splits it:
+> A Component becomes a **ModuleDefinition** when it has interactions, **or**
+> carries the `SBO:0000241` (functional entity) type, **or** (recursively)
+> contains a sub-component whose `instanceOf` target is itself a
+> ModuleDefinition. Otherwise it becomes a **ComponentDefinition**.
 
+A sub-component of a ModuleDefinition-shaped parent becomes a `Module` when its
+target is another ModuleDefinition (the upgrade marks this with
+`backport:sbol2OriginatesFromModule`), otherwise a `FunctionalComponent`.
+
+This mirrors the reference exactly, so an SBOL 2 document that mixed
+ComponentDefinitions and ModuleDefinitions round-trips each object back to the
+class it started in.
+
+## The backport namespace
+
+`https://sbols.org/backport/2_3#` (prefix `backport2_3`) is the namespace the
+reference converter uses to record SBOL 2 detail that has no SBOL 3 home. It is
+written **only** during `sbol upgrade` (SBOL 2 → SBOL 3); a downgrade emits no
+backport annotations. After an upgrade your SBOL 3 document may contain triples
+like:
+
+```turtle
+<https://example.org/lab/1/BBa_F2620>
+    a sbol3:Component ;
+    sbol3:displayId "BBa_F2620" ;
+    backport2_3:sbol2OriginalURI <https://example.org/lab/BBa_F2620/1> .
 ```
-sbol3:Component   →   sbol2:ComponentDefinition  (structural half: type, role, sequence, SAs)
-                  +   sbol2:ModuleDefinition     (functional half: interactions, FCs, models)
-                  +   sbol2:FunctionalComponent  (synthesized, links the MD half to the CD half)
-```
 
-**Which half keeps the bare IRI?** If the source carried `backport:sbol2type` (i.e. the SBOL 3 came from a prior `sbol upgrade`), that half keeps the original IRI and the synthesized half gets a `_component` or `_module` suffix. For native SBOL 3 (no backport hint), the heuristic is: if the Component has interactions, the MD keeps the bare IRI; otherwise the CD keeps it.
+These triples are **not** part of SBOL 3: they are round-trip metadata that
+downstream SBOL 3 consumers can safely ignore, and the validator does. The
+namespace defines eight terms; `sbol-rs` writes five on the way up and reads
+four back on the way down (identical to the reference):
 
-**How is dual-role detected?** Per-Component classification:
+| Backport term | Written on upgrade | Read on downgrade | What it records |
+|---|:---:|:---:|---|
+| `sbol2OriginalURI` | ✓ | | The object's original SBOL 2 IRI, on every converted entity, as provenance for external tooling |
+| `sbol2OriginalSequenceAnnotationURI` | ✓ | ✓ | The identity of an SBOL 2 SequenceAnnotation [collapsed onto a SubComponent](#reversible-structural-collapses), so the downgrade restores its displayId |
+| `sbol3TempSequenceURI` | ✓ | ✓ | An empty Sequence synthesized so every SBOL 3 Location has one; dropped on downgrade |
+| `sbol2LocationSequenceNull` | ✓ | ✓ | Marks a Location whose SBOL 2 source carried no sequence, so the downgrade doesn't re-emit one |
+| `sbol2OriginatesFromModule` | ✓ | ✓ | Marks a SubComponent derived from an SBOL 2 `Module`, so it downgrades to `Module` rather than `FunctionalComponent` |
+| `sbol2GenericLocation` / `sbol2Entity` / `sbol2MapstoOriginInFC` | | | Defined by the reference vocabulary; not yet exercised by `sbol-rs` |
 
-- **CD-only**: has structural signals only (type, role, hasSequence, hasFeature → SequenceFeature or located SubComponent, hasConstraint) OR a `backport:sbol2type = ComponentDefinition` hint. Most SBOL 2 ComponentDefinitions round-trip through this branch and emit as plain CDs.
-- **MD-only**: has functional signals only (hasInteraction, hasInterface, hasModel, `sbol3:type = SBO:functionalEntity`) OR a `backport:sbol2type = ModuleDefinition` hint. Most SBOL 2 ModuleDefinitions round-trip through this branch.
-- **Dual-role**: has BOTH structural and functional signals. Triggers the split.
+`sbol2OriginalURI` is provenance the reference emits but never consumes:
+round-trip identity fidelity comes from the version-in-IRI algebra, not from
+reading this term back.
 
-A `DowngradeWarning::DualRoleComponent` is emitted for each split with the original SBOL 3 IRI and both halves' SBOL 2 IRIs so callers can audit the choice.
+## Reversible structural collapses
 
-**Collection members.** When a Collection lists a dual-role Component as a member, the downgrade emits the membership twice (once for each half) so SBOL 2 consumers see both the structural and functional view.
+SBOL 3 made several SBOL 2 idioms more compact. The upgrade folds them down; the downgrade re-emits the SBOL 2 shape.
 
-**SubComponents under a dual-role parent.** Each SubComponent triple-emits into three SBOL 2 objects: a `sbol2:Component` under the CD half (`_c` suffix), a `sbol2:FunctionalComponent` under the MD half (`_fc`), and a `sbol2:Module` under the MD half (`_m`, only when the SubComponent's target is itself MD-shaped). Whichever variant matches the SubComponent's `backport:sbol2type` hint keeps the bare IRI. The downgrade allocates the suffixed variants against a pass-wide used-IRI set, so any collision with an existing subject (e.g. siblings named `foo` and `foo_fc` where `foo`'s FC variant would otherwise land on `foo_fc`) gets disambiguated by appending `_2`, `_3`, ….
+**SequenceAnnotation that references a component.** SBOL 2 expresses "this sub-part lives at positions 100–200" as a SequenceAnnotation wrapping a Component reference and a Location. SBOL 3 collapses this: the SubComponent itself carries the locations directly. On upgrade, the SA's locations migrate to the SubComponent and the SA's identity is recorded as `backport:sbol2OriginalSequenceAnnotationURI`. On downgrade, the SequenceAnnotation is rebuilt — its displayId restored from that hint when present, otherwise synthesized as `{subComponent}_{firstLocation}` (matching the reference).
+
+**MapsTo.** SBOL 2's `MapsTo` (mapping a sub-component's port to a parent context) decomposes in SBOL 3 into a `ComponentReference` (carrying `inChildOf` + `refersTo`) plus a `Constraint` (carrying `subject` + `object` + `restriction`). On downgrade, the pair is matched and the original `<sbol2:MapsTo>` is rebuilt under the carrier SubComponent. The refinement (`useLocal` / `useRemote` / `verifyIdentical`) is recovered from the Constraint's restriction and the ComponentReference's subject/object position per SBOL 3.1.0 §10.2.
+
+**Interface synthesis.** SBOL 2 expresses port visibility and direction via `sbol2:access` and, for FunctionalComponents, `sbol2:direction` (`in`/`out`/`inout`/`none`). SBOL 3 hoists these into a single `sbol3:Interface` object (`input` / `output` / `nondirectional`). On downgrade the Interface flattens back: `input` → `in`, `output` → `out`, `nondirectional` → `inout`, each with public access, matching the reference.
+
+**Empty sequences.** SBOL 3 requires every Location to reference a Sequence, which SBOL 2 does not. When a SBOL 2 ComponentDefinition has a location but no sequence, the upgrade synthesizes an empty one (marked `backport:sbol3TempSequenceURI`) and flags the location `backport:sbol2LocationSequenceNull`; the downgrade drops both.
 
 ## Known intentional divergences
 
-Some triples don't survive SBOL 2 → 3 → 2 byte-for-byte. These are documented because the conversion is *correct*: they're irreversible folds, not bugs.
+Some triples don't survive SBOL 2 → 3 → 2 byte-for-byte. These are documented because the conversion is *correct*: they're irreversible folds the reference makes too, not bugs.
 
-- **`biopax:Dna` vs `biopax:DnaRegion`**: both map to `SBO:DNA` on upgrade. Documents upgraded by `sbol-rs` preserve the original BioPAX value under backport metadata and restore it losslessly; native SBOL 3 inputs without that hint downgrade to the `*Region` convention. Same for `Rna` / `RnaRegion`.
-- **Native SBOL 3 ComponentInstance defaults**: native SubComponents have no SBOL 2 `access` field. Downgrade emits private access by default, and emits `direction none` for native FunctionalComponents unless an Interface supplies a direction. Upgraded SBOL 2 inputs keep their original access/direction instead of receiving synthesized defaults.
-- **`dcterms:title` ↔ `sbol3:name`** (and `dcterms:description` ↔ `sbol3:description`): the upgrade preserves the Dublin Core triple as-is AND synthesizes the SBOL 3 form. The downgrade emits a single `dcterms:title` to avoid duplication.
-- **`SBO:functionalEntity` on MD-derived Components**: the upgrade adds this so SBOL 3's type cardinality is satisfied (every Component needs ≥1 type). The downgrade drops it when emitting back to `ModuleDefinition`.
+- **`biopax:Dna` vs `biopax:DnaRegion`**: both map to the same SBO term on upgrade, and the downgrade emits the `*Region` form. The `Dna`/`DnaRegion` (and `Rna`/`RnaRegion`) distinction is not preserved — the reference collapses it identically.
+- **Ontology-term spelling**: SO / SBO / EDAM term IRIs are rewritten between the SBOL 2 and SBOL 3 conventions (e.g. `http://identifiers.org/so/SO:` ⇄ `https://identifiers.org/SO:`). The value is semantically identical; only the spelling changes.
+- **`dcterms:title` ↔ `sbol3:name`** (and `dcterms:description` ↔ `sbol3:description`): the upgrade converts Dublin Core metadata to the SBOL 3 form; the downgrade converts it back.
+- **`SBO:0000241` (functional entity) on ModuleDefinition-derived Components**: the upgrade adds this so SBOL 3's type cardinality is satisfied (every Component needs ≥1 type). The downgrade drops it when emitting back to `ModuleDefinition`.
+- **Feature orientation and FunctionalComponent locations**: SBOL 2 has no place for a feature's own orientation or a FunctionalComponent's locations, so the `3 → 2` step drops them (the reference does too). A subsequent re-upgrade cannot restore what the SBOL 2 model does not hold.
 - **`sbol3:hasNamespace`**: dropped on downgrade. SBOL 2 has no explicit namespace property; the namespace is implicit in the persistentIdentity.
 
 ## Known limitations
 
-- **Native SBOL 3 → SBOL 2 → SBOL 3 re-merge.** When a native (no-backport) SBOL 3 dual-role Component is downgraded to a CD + MD pair, the upgrade currently doesn't re-fuse them: the two halves come back as separate Components. The `backport:sbol3identity` stamps are already in place to enable the re-merge; the upgrade-side detection isn't yet implemented. Documents that originated as SBOL 2 round-trip cleanly because the backport hints disambiguate.
-- **LocalSubComponent / ExternallyDefined / ComponentReference under dual-role parents.** Currently treated like SubComponents but without bespoke triple-emit handling. The basic shape works; specialized SBOL 2 surface (e.g. `sbol2:ExternalDefinition`) isn't fully covered.
+- **Generic locations and FC-owned MapsTo provenance.** The reference defines
+  `sbol2GenericLocation`, `sbol2Entity`, and `sbol2MapstoOriginInFC` for a few
+  edge cases (a Location with no coordinates, a MapsTo owned by a
+  FunctionalComponent). `sbol-rs` does not yet emit these; no fixture in the
+  differential corpus exercises them.
 - **No native SBOL 2 schema validator.** `sbol downgrade --validate` round-trips the output back through SBOL 3 and validates *that*: a proxy for SBOL 2 structural correctness, not an SBOL 2 spec check.
 
 ## Where to look next
 
 - **API reference**: the conversion functions live in [`sbol-convert`](https://docs.rs/sbol-convert) (re-exported as `sbol::convert`); GenBank and FASTA importers under [`sbol_genbank`](https://docs.rs/sbol-genbank) and [`sbol_fasta`](https://docs.rs/sbol-fasta).
+- **Parity with the reference converter**: [`sbol-converter-differential.md`](sbol-converter-differential.md).
 - **Per-fixture round-trip results**: [`sbol3-round-trip-report.md`](sbol3-round-trip-report.md), regenerated by `cargo run -p sbol-convert --bin generate-round-trip-report` against the committed SBOL 2 fixture corpus.
 - **Conformance gates and how the test harness works**: [`sbol2-upgrade-conformance.md`](sbol2-upgrade-conformance.md), [`sbol3-downgrade-conformance.md`](sbol3-downgrade-conformance.md).
 - **Import paths in depth**: [`genbank-import-conformance.md`](genbank-import-conformance.md), [`fasta-import-conformance.md`](fasta-import-conformance.md).
 
+[ref]: https://github.com/SynBioDex/SBOL-Converter
 [`sbol_convert::upgrade_from_sbol2`]: https://docs.rs/sbol-convert/latest/sbol_convert/fn.upgrade_from_sbol2.html
 [`sbol_convert::downgrade`]: https://docs.rs/sbol-convert/latest/sbol_convert/fn.downgrade.html
 [`sbol_genbank::GenbankImporter`]: https://docs.rs/sbol-genbank/latest/sbol_genbank/struct.GenbankImporter.html

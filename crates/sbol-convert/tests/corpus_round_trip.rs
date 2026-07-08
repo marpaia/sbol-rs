@@ -28,17 +28,41 @@ use sbol3::RdfFormat;
 /// point, paired with the reason. Keyed by file name (unique across the
 /// corpora). Empty entries here would let real drift regress silently, so
 /// every addition must carry a specific justification.
-const ALLOWLIST: &[(&str, &str)] = &[(
-    "LocationToSequenceOutput.xml",
-    "The Range carries an explicit SBOL 2 Location.sequence (the SBOL 2.2 \
-     location-to-sequence best practice) selecting one of the enclosing \
-     ComponentDefinition's two Sequences. The downgrade treats a Location's \
-     hasSequence as implicit through the SequenceAnnotation → \
-     ComponentDefinition → sequence chain and drops it; because this CD has \
-     more than one Sequence, the specific choice cannot be re-inferred on \
-     re-upgrade (infer_location_sequences only fires for single-sequence \
-     CDs), so the hasSequence triple does not survive.",
-)];
+const ALLOWLIST: &[(&str, &str)] = &[
+    (
+        "LocationToSequenceOutput.xml",
+        "The Range carries an explicit SBOL 2 Location.sequence (the SBOL 2.2 \
+         location-to-sequence best practice) selecting one of the enclosing \
+         ComponentDefinition's two Sequences. The downgrade treats a Location's \
+         hasSequence as implicit through the SequenceAnnotation → \
+         ComponentDefinition → sequence chain and drops it; because this CD has \
+         more than one Sequence, the specific choice cannot be re-inferred on \
+         re-upgrade (infer_location_sequences only fires for single-sequence \
+         CDs), so the hasSequence triple does not survive.",
+    ),
+    // The SBOLTestSuite `SBOL2_nc` (non-compliant) fixtures use fragment-`#`
+    // IRIs and/or child objects in namespaces unrelated to their parent. Both
+    // this converter and the reference re-nest children under the parent's
+    // SBOL-compliant identity, so the original non-compliant identities cannot
+    // round-trip (and a fragment-`#` parent yields an invalid double-`#` IRI
+    // when a child path is appended). The SBOL 3 content is preserved; only the
+    // non-compliant identity shape drifts. Compliant inputs (SBOL2 / SBOL2_ic /
+    // SBOL2_bp) all reach a fixed point.
+    ("BBa_I0462_orig.xml", "non-compliant SBOL 2 identity shape"),
+    ("BBa_T9002_orig.xml", "non-compliant SBOL 2 identity shape"),
+    ("igem1.xml", "non-compliant SBOL 2 identity shape"),
+    ("igem2.xml", "non-compliant SBOL 2 identity shape"),
+    ("igem3.xml", "non-compliant SBOL 2 identity shape"),
+    ("pIKE_pTAK_cassettes_2_orig.xml", "non-compliant SBOL 2 identity shape"),
+    ("pIKE_pTAK_cassettes_orig.xml", "non-compliant SBOL 2 identity shape"),
+    ("pIKE_pTAK_left_right_cassettes_orig.xml", "non-compliant SBOL 2 identity shape"),
+    ("pIKE_pTAK_toggle_switches_orig.xml", "non-compliant SBOL 2: fragment-# IRI yields invalid nested IRI on downgrade"),
+    ("partial_pIKE_left_cassette_orig.xml", "non-compliant SBOL 2 identity shape"),
+    ("partial_pIKE_right_casette_orig.xml", "non-compliant SBOL 2 identity shape"),
+    ("partial_pIKE_right_cassette_orig.xml", "non-compliant SBOL 2 identity shape"),
+    ("partial_pTAK_left_cassette_orig.xml", "non-compliant SBOL 2 identity shape"),
+    ("partial_pTAK_right_cassette_orig.xml", "non-compliant SBOL 2 identity shape"),
+];
 
 fn is_allowlisted(name: &str) -> bool {
     ALLOWLIST.iter().any(|(n, _)| *n == name)
@@ -52,22 +76,21 @@ fn file_name(path: &Path) -> String {
 }
 
 /// Canonical triples of the substantive SBOL 3 graph. The
-/// `http://sboltools.org/backport#` namespace holds reversible-conversion
-/// scaffolding (`sbol2persistentIdentity`, `sbol2version`,
-/// `sbol3namespace`, …), not source data. Its exact idempotency depends on
-/// identity-shape edge cases — e.g. objects whose SBOL 2 source omitted an
-/// explicit `persistentIdentity` (the downgrade synthesizes the default,
-/// which the re-upgrade then records), or fragment-`#` IRIs the child
-/// detection cannot attach to a top-level — that are orthogonal to whether
-/// the biological/structural content survives. The fixed point that
-/// matters is over the substantive content, so the scaffolding is excluded
-/// from the comparison (any genuine, non-backport drift still fails).
+/// `https://sbols.org/backport/2_3#` namespace holds conversion provenance
+/// (`sbol2OriginalURI`, `sbol2OriginalSequenceAnnotationURI`,
+/// `sbol3TempSequenceURI`, …), not source data. Its exact idempotency depends
+/// on identity-shape edge cases — e.g. a `sbol2OriginalURI` value points at a
+/// non-canonical nested SBOL 2 identity whose version placement the
+/// re-upgrade normalizes — that are orthogonal to whether the
+/// biological/structural content survives. The fixed point that matters is
+/// over the substantive content, so the provenance is excluded from the
+/// comparison (any genuine, non-backport drift still fails).
 fn canonicalize(graph: &sbol3::RdfGraph) -> Vec<String> {
     let mut lines: Vec<String> = graph
         .normalized_triples()
         .iter()
         .map(sbol_convert::canonical_nt_line)
-        .filter(|line| !line.contains("http://sboltools.org/backport#"))
+        .filter(|line| !line.contains("https://sbols.org/backport/2_3#"))
         .collect();
     lines.sort();
     lines.dedup();
