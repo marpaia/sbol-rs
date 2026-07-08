@@ -30,32 +30,24 @@
 //! and `ModuleDefinition`) into a single `Component`. The downgrade is
 //! therefore not strictly bijective; the [`DowngradeReport`] surfaces
 //! warnings for cases where the SBOL 2 surface forces a representation
-//! choice (dual-role Component split, MapsTo reconstruction from
+//! choice (unsupported SBOL 3-only types, MapsTo reconstruction from
 //! `ComponentReference`+`Constraint` pairs, etc.).
 //!
 //! Documents produced via [`crate::upgrade::sbol2_to_sbol3`] round-trip
-//! losslessly because the upgrade preserves SBOL 2 provenance under
-//! the `http://sboltools.org/backport#` namespace; the downgrade reads
-//! those triples to restore the original SBOL 2 identities and types.
+//! back to SBOL 2 through the version-in-IRI identity model and the
+//! `https://sbols.org/backport/2_3#` hints the upgrade records.
 //! Documents authored as native SBOL 3 will lose more on downgrade;
 //! the report explains where.
 //!
-//! # Dual-role Components
+//! # Component classification
 //!
-//! SBOL 3 lets one `Component` carry both structural data (sequence,
-//! sub-parts) and functional data (interactions, an interface). SBOL 2
-//! splits these concerns across `ComponentDefinition` and
-//! `ModuleDefinition`. When a downgraded Component carries both, this
-//! module emits BOTH classes plus a synthesized `FunctionalComponent`
-//! linking them, and pushes a [`DowngradeWarning::DualRoleComponent`]
-//! into the report. Classification respects `backport:sbol2type` when
-//! present (so SBOL 2 → 3 → 2 round-trips stay single-shape); the
-//! split only fires for native SBOL 3 designs that genuinely combine
-//! the two concerns.
+//! Each SBOL 3 `Component` maps to exactly one SBOL 2 class: a
+//! `ModuleDefinition` when it carries functional signals (interactions,
+//! the FunctionalEntity type, or a subcomponent that is itself a
+//! module-definition), otherwise a `ComponentDefinition`. A Component is
+//! never split across both classes.
 //!
-//! For the full conversion model (the backport namespace, structural
-//! collapses, dual-role classification rules, known divergences,
-//! known limitations) see the [conversion guide][conversion-md].
+//! For the full conversion model see the [conversion guide][conversion-md].
 //!
 //! [`RdfGraph`]: sbol3::RdfGraph
 //! [conversion-md]: https://github.com/marpaia/sbol-rs/blob/master/docs/conversion.md
@@ -78,39 +70,15 @@ mod preflight;
 mod values;
 
 /// Configuration for [`sbol3_to_sbol2`].
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 #[non_exhaustive]
 pub struct DowngradeOptions {
-    /// Version string to assign top-level objects whose source did not
-    /// carry `backport:sbol2version`. `None` (the default) leaves them
-    /// unversioned. SBOL 2 makes `sbol2:version` optional, and the
-    /// round-trip stays bit-identical for sources that omitted it.
-    /// `Some("1")` matches the libSBOLj / SynBioHub convention of
-    /// always carrying a version segment.
+    /// Version string to assign top-level objects whose SBOL 3 IRI carried
+    /// no version segment. `None` (the default) leaves them unversioned.
+    /// SBOL 2 makes `sbol2:version` optional, and the round-trip stays
+    /// bit-identical for sources that omitted it. `Some("1")` matches the
+    /// libSBOLj / SynBioHub convention of always carrying a version segment.
     pub default_version: Option<String>,
-
-    /// When a [`Component`](sbol3::Component) carries both
-    /// `hasSequence` and `hasInteraction`, the unified SBOL 3 view
-    /// can't be represented as a single SBOL 2 object. With this
-    /// option `true` (the default) the downgrade emits BOTH a
-    /// `ComponentDefinition` (for the structural side) AND a
-    /// `ModuleDefinition` (for the functional side), linked via a
-    /// synthesized `FunctionalComponent`. A
-    /// [`DowngradeWarning::DualRoleComponent`] is emitted for every
-    /// such split so the choice is visible in the report. When this is
-    /// `false`, the Component is emitted as one SBOL 2 object; functional
-    /// signals win over structural signals, so dual-role Components collapse
-    /// to `ModuleDefinition`.
-    pub split_dual_role_components: bool,
-}
-
-impl Default for DowngradeOptions {
-    fn default() -> Self {
-        Self {
-            default_version: None,
-            split_dual_role_components: true,
-        }
-    }
 }
 
 impl DowngradeOptions {
@@ -125,16 +93,6 @@ impl DowngradeOptions {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum DowngradeWarning {
-    /// A `Component` carried both `hasSequence` and `hasInteraction`.
-    /// With [`DowngradeOptions::split_dual_role_components`] the
-    /// downgrade split it into a `ComponentDefinition` plus a
-    /// `ModuleDefinition`; the synthesized half receives the same
-    /// `displayId` with `_component` or `_module` appended.
-    DualRoleComponent {
-        component: String,
-        component_definition: String,
-        module_definition: String,
-    },
     /// A `Constraint` couldn't be folded back into a `MapsTo` because
     /// its `subject` or `object` didn't match the expected
     /// `ComponentReference` pattern. The constraint is emitted as a
@@ -147,16 +105,15 @@ pub enum DowngradeWarning {
     /// A subject of `rdf:type sbol3:T` had no SBOL 2 equivalent for
     /// `T`. The subject and its triples are dropped from the output.
     UnsupportedSbol3Type { subject: String, sbol3_type: String },
-    /// A top-level object had no `backport:sbol2version` and
+    /// A top-level object carried no version in its IRI and
     /// [`DowngradeOptions::default_version`] was set, so the downgrade
     /// synthesized this version on it. Only fires when synthesis is
     /// opted into.
     SynthesizedVersion { subject: String, version: String },
     /// Two or more distinct SBOL 3 subjects rewrite to the same SBOL 2
-    /// versioned IRI. For example, a Component at `<lab/foo>` carrying
-    /// `backport:sbol2version "1"` (rewritten to `<lab/foo/1>`) and a
-    /// separate Component at `<lab/foo/1>` carrying no preserved
-    /// version (rewritten to `<lab/foo/1>` unchanged). The conversion
+    /// versioned IRI — for example a Component at `<lab/1/foo>` and a
+    /// separate Component at `<lab/foo/1>` both mapping to `<lab/foo/1>`.
+    /// The conversion
     /// proceeds and every input triple is preserved, but they all land
     /// at the same SBOL 2 subject, silently merging the entities into
     /// a single chimeric ComponentDefinition / ModuleDefinition / etc.
@@ -203,11 +160,10 @@ impl DowngradeReport {
 pub struct DowngradeCounts {
     pub components_to_component_definition: usize,
     pub components_to_module_definition: usize,
-    pub components_split_into_both: usize,
     pub sub_components_emitted: usize,
     pub sequence_features_emitted: usize,
     pub maps_to_reconstructed: usize,
-    pub identities_restored_from_backport: usize,
+    pub identities_versioned: usize,
     pub identities_synthesized: usize,
 }
 
@@ -273,56 +229,24 @@ pub fn downgrade_with(
 struct Engine<'a> {
     input: &'a Document,
     options: DowngradeOptions,
-    /// Subject IRI → version string (from `backport:sbol2version`, or
-    /// the synthesized default). Determines the `/version` suffix
+    /// Subject IRI → version string (from the version segment of the SBOL 3
+    /// IRI, or the synthesized default). Determines the `/version` suffix
     /// added back to top-level identities.
     versions: HashMap<String, String>,
-    /// Subjects whose version came from an explicit `backport:sbol2version`
-    /// triple in the source document, rather than being synthesized by
-    /// [`Engine::version_for`]. Only these get a `sbol2:version` property
-    /// triple emitted in the SBOL 2 output. Synthesizing the IRI segment
-    /// is necessary for SBOL 2 structure, but emitting a fake version
-    /// triple would pollute round-trips of documents that originally
-    /// carried no `sbol2:version` (the SBOL 2 spec makes it optional).
+    /// Subjects whose version came from the SBOL 3 IRI itself, rather than
+    /// being synthesized from [`DowngradeOptions::default_version`]. Only
+    /// these get a `sbol2:version` property triple emitted in the SBOL 2
+    /// output. Synthesizing the IRI segment is necessary for SBOL 2
+    /// structure, but emitting a fake version triple would pollute
+    /// round-trips of documents that originally carried no `sbol2:version`
+    /// (the SBOL 2 spec makes it optional).
     preserved_versions: HashSet<String>,
-    /// Subject IRI → original SBOL 2 persistent identity (from
-    /// `backport:sbol2persistentIdentity`).
+    /// Subject IRI → its SBOL 2 persistent identity (the unversioned IRI,
+    /// recomputed during identity restoration).
     persistent_identities: HashMap<String, String>,
-    /// Subject IRI → original SBOL 2 rdf:type IRI (from
-    /// `backport:sbol2type`). When present, the downgrade uses this
-    /// instead of inferring the type from SBOL 3 shape.
-    backport_types: HashMap<String, String>,
-    /// Subject IRI → set of original BioPAX type IRIs (from
-    /// `backport:biopaxType`). Preserves which BioPAX variant
-    /// (`Dna` vs `DnaRegion`, etc.) the SBOL 2 source carried so the
-    /// downgrade restores it instead of always picking the `*Region`
-    /// form for SBO terms that collapse on the way up.
-    ///
-    /// The actual triple-by-triple resolution lives in
-    /// [`Engine::biopax_variant_queue`] / [`Engine::biopax_variant_cursor`];
-    /// this set is the raw input to that precomputation.
-    backport_biopax_types: HashMap<String, HashSet<String>>,
-    /// `(subject, sbo_term)` → ordered list of preserved BioPAX variant
-    /// IRIs that map to that SBO term. Derived from
-    /// [`Engine::backport_biopax_types`] in preflight.
-    ///
-    /// Allows multiple distinct BioPAX variants under the *same* SBO
-    /// target (e.g. a Component carrying both `biopax:Dna` and
-    /// `biopax:DnaRegion`, both of which collapse to `SBO:0000251`) to
-    /// round-trip distinctly: each input `sbol3:type` triple consumes
-    /// one variant from the head of its list via
-    /// [`Engine::biopax_variant_cursor`].
-    biopax_variant_queue: HashMap<(String, String), Vec<String>>,
-    /// `(subject, sbo_term)` → index of the next BioPAX variant to
-    /// consume from [`Engine::biopax_variant_queue`]. Each
-    /// reverse-mapped `sbol3:type` triple advances the cursor by 1;
-    /// once it exceeds the queue length the resolver falls back to the
-    /// default `*Region`-style mapping.
-    biopax_variant_cursor: HashMap<(String, String), usize>,
-    /// Subject IRI → primary resolved SBOL 2 type. Combines `backport_types`
-    /// with the default SBOL 3→SBOL 2 type table. Used by phase 3 to
-    /// disambiguate context-dependent predicates (e.g. `hasFeature`
-    /// becomes `component` for CDs, `functionalComponent` for MDs).
+    /// Subject IRI → primary resolved SBOL 2 type, from the SBOL 3 → SBOL 2
+    /// type table. Used to disambiguate context-dependent predicates (e.g.
+    /// `hasFeature` becomes `component` for CDs, `functionalComponent` for MDs).
     resolved_types: HashMap<String, String>,
     /// Subject IRI → every resolved SBOL 2 type asserted for the subject.
     /// Used when a context-sensitive predicate cares about an additional
@@ -333,6 +257,15 @@ struct Engine<'a> {
     /// emitted as `Module` (target is MD) or `FunctionalComponent`
     /// (target is CD).
     subcomponent_targets: HashMap<String, String>,
+    /// SubComponent IRIs the upgrade marked (`backport:sbol2OriginatesFromModule`)
+    /// as derived from an SBOL 2 `Module`, so the downgrade restores them as
+    /// `Module` rather than `FunctionalComponent`.
+    module_origin_subcomponents: HashSet<String>,
+    /// Location IRIs the upgrade marked (`backport:sbol2LocationSequenceNull`)
+    /// as having had no explicit sequence in SBOL 2. Their SBOL 3 `hasSequence`
+    /// (inferred from the parent or a synthesized empty Sequence) is dropped on
+    /// the way down rather than re-emitted as `sbol2:sequence`.
+    null_sequence_locations: HashSet<String>,
     /// Top-level subjects whose IRIs need a version suffix appended.
     top_levels: HashSet<String>,
     /// SBOL 3 subject IRI → its `sbol3:hasNamespace` value. Emitted back
@@ -368,44 +301,22 @@ struct Engine<'a> {
     /// recovered from the enclosing Interface's
     /// input/output/nondirectional triples.
     fc_directions: HashMap<String, FcDirection>,
-    /// FunctionalComponent subjects whose original SBOL 2 direction was
-    /// restored from `backport:sbol2_direction`. Interface-derived direction
-    /// emission must skip these subjects to avoid writing a contradictory
-    /// second `sbol2:direction` triple.
-    restored_fc_directions: HashSet<String>,
     /// Interface IRIs to drop from the output (their data is folded
     /// into per-FC `sbol2:direction` triples).
     interface_subjects: HashSet<String>,
     /// Per-Component split decision. SBOL 2 separates the structural
     /// (ComponentDefinition) and functional (ModuleDefinition) concerns
     /// that SBOL 3 unifies into one [`Component`]. The downgrade
-    /// classifies each Component into a shape and, for dual-role
-    /// Components, emits both halves linked by a synthesized
-    /// FunctionalComponent.
+    /// classifies each Component into a single SBOL 2 class (CD or MD).
     component_splits: HashMap<String, ComponentSplit>,
-    /// SBOL 3 SubComponent IRI → its triple-emitted SBOL 2 variants when
-    /// it lives under a dual-role parent. For SubComponents under a
-    /// single-shape parent the map is empty and the existing
-    /// `handle_has_feature` path emits the single appropriate variant.
-    subcomponent_splits: HashMap<String, SubComponentSplit>,
-    /// SBOL 3 SubComponent IRI → the SBOL 2 IRI a Participation should
-    /// point at when its participant is this SubComponent. For
-    /// single-shape parents this is the SubComponent's own rewritten
-    /// IRI; for dual-role parents it is the MD-side FunctionalComponent
-    /// variant. Populated by `handle_dual_role_has_feature` during the
-    /// main convert walk; consumed by `rewrite_participants` at the end
-    /// of `convert` so all Participation triples already exist in
-    /// `output_triples` by the time the rewrite runs.
-    participant_remap: HashMap<String, String>,
     /// SBOL 3 SubComponent IRI → SBOL 3 Component IRI of its enclosing
     /// parent (built from the input `sbol3:hasFeature` index in
-    /// preflight). Lets us look up the parent's split shape.
+    /// preflight). Lets us look up the parent's classified shape.
     feature_parent: HashMap<String, String>,
     /// Every IRI the downgrade has either observed in the input graph
     /// or allocated as a synthesized SBOL 2 subject so far. Every
-    /// IRI-synthesis site (linking FC, SubComponent triple-split
-    /// variants, dual-role CD/MD halves, SA wrapper, reconstructed
-    /// MapsTo) routes its candidate IRI through one of the
+    /// IRI-synthesis site (SA wrapper, reconstructed MapsTo, synthesized
+    /// Constraint) routes its candidate IRI through one of the
     /// `next_available_*` helpers against this set. The invariant the
     /// pool enforces is: **no two distinct SBOL 2 entities ever land at
     /// the same IRI**, regardless of how creatively the input names
@@ -433,75 +344,15 @@ enum ComponentShape {
     CdOnly,
     /// Maps to a single `sbol2:ModuleDefinition`.
     MdOnly,
-    /// Splits into both a CD and an MD. The Component's structural data
-    /// (`sbol3:type`, `sbol3:role`, `sbol3:hasSequence`, SequenceFeature
-    /// children, Constraints) goes onto the CD; functional data
-    /// (`sbol3:hasInteraction`, `sbol3:hasModel`, interfaces) goes onto
-    /// the MD; a `sbol2:FunctionalComponent` is synthesized to link the
-    /// MD's functional view to the CD's structural one.
-    DualRole,
 }
 
 #[derive(Clone)]
-/// Per-Component IRI/displayId assignments built during preflight.
-///
-/// For [`ComponentShape::CdOnly`] and [`ComponentShape::MdOnly`] the CD
-/// and MD IRIs both equal the Component's own SBOL 2 IRI; the
-/// non-applicable half is never emitted. For [`ComponentShape::DualRole`]
-/// the two IRIs differ: whichever half the SBOL 2 source originally was
-/// (per `backport:sbol2type`) keeps the bare IRI; the synthesized half
-/// gets a `_component` or `_module` suffix.
+/// Each SBOL 3 Component maps to exactly one SBOL 2 class. `cd_iri` and
+/// `md_iri` both hold the Component's own SBOL 2 IRI; only the half matching
+/// [`ComponentShape`] is emitted.
 struct ComponentSplit {
     shape: ComponentShape,
-    /// SBOL 2 IRI of the CD half (versioned via `iri_rewrites`).
     cd_iri: String,
-    /// SBOL 2 IRI of the MD half.
-    md_iri: String,
-    /// SBOL 2 IRI of the synthesized linking FunctionalComponent (only
-    /// populated for [`ComponentShape::DualRole`]).
-    linking_fc_iri: Option<String>,
-    /// `displayId` for the synthesized linking FunctionalComponent. The
-    /// canonical case is the parent's displayId; when that IRI would
-    /// collide with an existing child (e.g. a SubComponent named after
-    /// its parent) the IRI gets a `_2` / `_3` / … suffix and this
-    /// displayId carries the same suffix so SBOL 2 IRI compliance
-    /// (`displayId` == last segment of `persistentIdentity`) holds.
-    linking_fc_display_id: Option<String>,
-    /// Suffix applied to the CD's `displayId` (`""` for the half that
-    /// kept the original identity, `"_component"` for the synthesized
-    /// half).
-    cd_display_suffix: &'static str,
-    /// Suffix applied to the MD's `displayId`.
-    md_display_suffix: &'static str,
-    /// Original SBOL 3 displayId (used to construct the synthesized FC's
-    /// displayId).
-    original_display_id: String,
-}
-
-#[derive(Clone)]
-/// A SubComponent under a [`ComponentShape::DualRole`] parent triples
-/// into three SBOL 2 objects:
-///
-/// - a `sbol2:Component` under the CD half
-/// - a `sbol2:FunctionalComponent` under the MD half
-/// - a `sbol2:Module` under the MD half (only when the SubComponent's
-///   target is itself an MD)
-///
-/// Whichever variant matches the SubComponent's original SBOL 2 class
-/// (per `backport:sbol2type`) keeps the bare IRI; the others get `_c` /
-/// `_fc` / `_m` suffixes. Suffixed variants go through
-/// [`next_available_child_iri`] against the pass-wide `used_iris`
-/// set, so a sibling SubComponent already at e.g. `parent/foo_fc`
-/// pushes `foo`'s FC variant to `foo_fc_2` rather than overwriting
-/// the sibling's triples.
-struct SubComponentSplit {
-    /// SBOL 2 IRI for the CD-side `sbol2:Component` variant.
-    component_iri: String,
-    /// SBOL 2 IRI for the MD-side `sbol2:FunctionalComponent` variant.
-    functional_component_iri: String,
-    /// SBOL 2 IRI for the MD-side `sbol2:Module` variant. Only set when
-    /// the SubComponent's target is itself an MD-shaped Component.
-    module_iri: Option<String>,
 }
 
 /// Direction recovered from an SBOL 3 Interface for an enclosed
@@ -511,7 +362,6 @@ enum FcDirection {
     In,
     Out,
     Inout,
-    NoneDirection,
 }
 
 #[derive(Clone, Copy)]
@@ -527,7 +377,6 @@ impl FcDirection {
             FcDirection::In => v2::SBOL2_DIRECTION_IN,
             FcDirection::Out => v2::SBOL2_DIRECTION_OUT,
             FcDirection::Inout => v2::SBOL2_DIRECTION_INOUT,
-            FcDirection::NoneDirection => v2::SBOL2_DIRECTION_NONE,
         }
     }
 }
@@ -547,26 +396,16 @@ struct MapsToReconstruction {
     /// carrier's instanceOf target, recovered from the
     /// ComponentReference's `refersTo`.
     remote_v3: String,
-    /// MapsTo `refinement` value. Resolved in priority order:
-    ///
-    /// 1. Explicit `backport:mapsToRefinement` hint on the
-    ///    ComponentReference. Lossless for `merge` and for any
-    ///    refinement IRI position alone can't encode.
-    /// 2. Otherwise, position-aware inference from the Constraint's
-    ///    restriction plus the CRef's position in the
-    ///    `sbol3:subject` / `sbol3:object` pair per SBOL 3.1.0 §10.2:
+    /// MapsTo `refinement` value, inferred from the Constraint's restriction
+    /// and the CRef's position in the `sbol3:subject` / `sbol3:object` pair
+    /// per SBOL 3.1.0 §10.2:
     ///    - `replaces` + CRef in subject → `useRemote`
     ///    - `replaces` + CRef in object  → `useLocal`
     ///    - `verifyIdentical` + CRef in either → `verifyIdentical`
-    /// 3. `None` when even position can't resolve it; the emitter
-    ///    then synthesizes `useLocal` so no data is lost.
+    ///
+    /// `None` when position can't resolve it; the emitter then synthesizes
+    /// `useLocal` so no data is lost.
     refinement: Option<String>,
-}
-
-#[derive(Clone)]
-struct PreservedSaTriple {
-    predicate: String,
-    object: Term,
 }
 
 /// Records what the downgrade needs to know about a SubComponent whose
@@ -576,25 +415,21 @@ struct PreservedSaTriple {
 /// `hasLocation`.
 struct SaCollapseInfo {
     /// `displayId` the SBOL 2 SequenceAnnotation should carry. For
-    /// round-tripped SBOL 2 this is preserved by the upgrade as
-    /// `backport:sequenceAnnotationDisplayId`; for native SBOL 3 it is
-    /// synthesized from the SubComponent displayId.
+    /// round-tripped SBOL 2 this is restored from the upgrade's
+    /// `backport:sbol2OriginalSequenceAnnotationURI`; for native SBOL 3 it is
+    /// synthesized as `{subComponent}_{firstLocation}`.
     sa_display_id: String,
-    /// SBOL 2 IRI of the reconstructed SequenceAnnotation, minus the
-    /// version suffix. Derived as `{parent_cd_unversioned}/{sa_display_id}` or
-    /// collision-disambiguated for native SBOL 3 inputs.
+    /// SBOL 2 IRI of the reconstructed SequenceAnnotation, minus the version
+    /// suffix. Derived as `{parent_cd}/{sa_display_id}`, collision-disambiguated
+    /// against the shared used-IRI pool.
     sa_iri_unversioned: String,
-    /// Original SBOL 3 IRI of the parent Component. Used to inherit the
-    /// preserved/synthesized top-level version even when `parent_cd` is a
-    /// synthetic dual-role split half.
+    /// Original SBOL 3 IRI of the parent Component, used to inherit its
+    /// top-level version.
     parent_component: String,
-    /// SBOL 3 IRI of the CD half that owns the SequenceAnnotation in the SBOL
-    /// 2 output. Usually equals `parent_component`; for native dual-role
-    /// Components it may be the synthesized `_component` half.
+    /// SBOL 3 IRI of the Component that owns the SequenceAnnotation in the
+    /// SBOL 2 output.
     parent_cd: String,
     /// SBOL 3 IRIs of every Location attached to the SubComponent via
     /// `hasLocation`. The reconstructed SA emits `sbol2:location` to each.
     locations: Vec<String>,
-    /// Non-structural triples archived from the collapsed SBOL 2 SA shell.
-    preserved_metadata: Vec<PreservedSaTriple>,
 }

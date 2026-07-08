@@ -55,18 +55,12 @@ fn upgrade_writes_sbol3_to_explicit_output() {
         contents.contains("http://sbols.org/v3#Component"),
         "output should contain SBOL 3 Component type: {contents}"
     );
-    // SBOL 2 IRIs only appear as object values of backport predicates
-    // (sbol2type, sbol2persistentIdentity, sbol2version) — never as subject
-    // identities or active predicates.
-    for line in contents.lines() {
-        if let Some(predicate_start) = line.find("http://sbols.org/v2#") {
-            let before = &line[..predicate_start];
-            assert!(
-                before.contains("http://sboltools.org/backport#"),
-                "non-backport SBOL2 reference in line: {line}"
-            );
-        }
-    }
+    // The upgrade fully translates SBOL 2 classes and predicates to SBOL 3,
+    // so no `sbols.org/v2#` IRI survives in the output.
+    assert!(
+        !contents.contains("http://sbols.org/v2#"),
+        "SBOL 2 namespace leaked into the SBOL 3 output: {contents}"
+    );
 }
 
 #[test]

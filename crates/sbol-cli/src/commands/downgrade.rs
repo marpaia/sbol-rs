@@ -105,15 +105,14 @@ pub(crate) fn downgrade(args: DowngradeArgs, styles: Styles) -> ExitCode {
     // Print the conversion summary to stderr, same style as upgrade.
     let counts = report.counts();
     eprintln!(
-        "downgraded: {} CD, {} MD, {} split-into-both, {} SubComponent, \
-         {} SequenceFeature, {} MapsTo, {} backport-restored, {} synthesized{}",
+        "downgraded: {} CD, {} MD, {} SubComponent, \
+         {} SequenceFeature, {} MapsTo, {} versioned, {} synthesized{}",
         counts.components_to_component_definition,
         counts.components_to_module_definition,
-        counts.components_split_into_both,
         counts.sub_components_emitted,
         counts.sequence_features_emitted,
         counts.maps_to_reconstructed,
-        counts.identities_restored_from_backport,
+        counts.identities_versioned,
         counts.identities_synthesized,
         if report.warnings().is_empty() {
             String::new()
@@ -167,15 +166,6 @@ pub(crate) fn downgrade(args: DowngradeArgs, styles: Styles) -> ExitCode {
 
 fn format_downgrade_warning(warning: &DowngradeWarning) -> String {
     match warning {
-        DowngradeWarning::DualRoleComponent {
-            component,
-            component_definition,
-            module_definition,
-        } => format!(
-            "Component <{component}> carries both structure and function; \
-             split into ComponentDefinition <{component_definition}> + \
-             ModuleDefinition <{module_definition}>"
-        ),
         DowngradeWarning::UnresolvableConstraintToMapsTo { constraint, reason } => {
             format!("Constraint <{constraint}> couldn't fold back into a MapsTo: {reason}")
         }

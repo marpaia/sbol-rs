@@ -1,6 +1,6 @@
 //! The main conversion pass and the synthesized-triple emitters
-//! (dual-role splits, MapsTo decompositions, FunctionalComponent
-//! directions, SequenceAnnotation wrappers, instance defaults).
+//! (MapsTo decompositions, FunctionalComponent directions,
+//! SequenceAnnotation wrappers, instance defaults).
 
 use super::helpers::*;
 use super::*;
@@ -20,168 +20,8 @@ impl<'a> Engine<'a> {
         self.emit_sa_wrappers();
         self.emit_mapsto_decompositions();
         self.emit_fc_directions();
-        self.emit_dual_role_components();
-        self.duplicate_collection_memberships();
         self.emit_backport_metadata();
         self.emit_component_instance_defaults();
-        self.rewrite_participants();
-    }
-
-    /// For each `sbol2:member` triple whose object is the bare-IRI
-    /// half of a dual-role split, emit a companion member pointing at
-    /// the other half. Without this an SBOL 2 Collection in the output
-    /// would only reference one half, losing the structural OR
-    /// functional view of the split Component.
-    pub(super) fn duplicate_collection_memberships(&mut self) {
-        if self.component_splits.is_empty() {
-            return;
-        }
-        let mut additions = Vec::new();
-        // Build a lookup from each split's bare-IRI to its other-half
-        // versioned IRI. The bare IRI is whichever side has an empty
-        // display_suffix.
-        let mut other_half: HashMap<String, String> = HashMap::new();
-        for split in self.component_splits.values() {
-            if split.shape != ComponentShape::DualRole {
-                continue;
-            }
-            let cd_v2 = self.rewrite_iri(&split.cd_iri).to_owned();
-            let md_v2 = self.rewrite_iri(&split.md_iri).to_owned();
-            if split.cd_display_suffix.is_empty() {
-                other_half.insert(cd_v2, md_v2);
-            } else if split.md_display_suffix.is_empty() {
-                other_half.insert(md_v2, cd_v2);
-            }
-        }
-        for triple in self.output_triples.iter() {
-            if triple.predicate.as_str() != v2::SBOL2_MEMBER {
-                continue;
-            }
-            let Some(object_iri) = triple.object.as_iri() else {
-                continue;
-            };
-            if let Some(other) = other_half.get(object_iri.as_str()) {
-                additions.push(Triple {
-                    subject: triple.subject.clone(),
-                    predicate: triple.predicate.clone(),
-                    object: Term::Resource(Resource::Iri(Iri::new_unchecked(other.clone()))),
-                });
-            }
-        }
-        self.output_triples.extend(additions);
-    }
-
-    /// Synthesizes the linking FunctionalComponent for each dual-role
-    /// Component split and stamps `backport:sbol3identity` on both
-    /// halves so the inverse direction can re-merge.
-    pub(super) fn emit_dual_role_components(&mut self) {
-        let mut entries: Vec<(String, ComponentSplit)> = self
-            .component_splits
-            .iter()
-            .filter(|(_, split)| split.shape == ComponentShape::DualRole)
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect();
-        entries.sort_by(|a, b| a.0.cmp(&b.0));
-
-        for (sbol3_iri, split) in entries {
-            let cd_v2 = self.rewrite_iri(&split.cd_iri).to_owned();
-            let md_v2 = self.rewrite_iri(&split.md_iri).to_owned();
-
-            // Stamp backport:sbol3identity on both halves so downstream
-            // tools (and a future re-upgrade pass) can see they share
-            // an SBOL 3 origin.
-            let sbol3_identity_object =
-                Term::Resource(Resource::Iri(Iri::new_unchecked(sbol3_iri)));
-            self.output_triples.push(Triple {
-                subject: Resource::Iri(Iri::new_unchecked(cd_v2.clone())),
-                predicate: Iri::from_static(v2::BACKPORT_SBOL3_IDENTITY),
-                object: sbol3_identity_object.clone(),
-            });
-            self.output_triples.push(Triple {
-                subject: Resource::Iri(Iri::new_unchecked(md_v2.clone())),
-                predicate: Iri::from_static(v2::BACKPORT_SBOL3_IDENTITY),
-                object: sbol3_identity_object,
-            });
-
-            // Synthesize the linking FunctionalComponent on the MD
-            // pointing at the CD via `sbol2:definition`. Without this
-            // the MD half is dangling: SBOL 2 ModuleDefinitions are
-            // only useful when their FCs reference real CDs.
-            let Some(fc_iri) = split.linking_fc_iri.as_ref() else {
-                continue;
-            };
-            let fc_v2 = self.rewrite_iri(fc_iri).to_owned();
-            let fc_resource = Resource::Iri(Iri::new_unchecked(fc_v2.clone()));
-            self.output_triples.push(Triple {
-                subject: Resource::Iri(Iri::new_unchecked(md_v2)),
-                predicate: Iri::from_static(v2::SBOL2_FUNCTIONAL_COMPONENT_PROP),
-                object: Term::Resource(fc_resource.clone()),
-            });
-            self.output_triples.push(Triple {
-                subject: fc_resource.clone(),
-                predicate: Iri::from_static(v3::RDF_TYPE),
-                object: Term::Resource(Resource::Iri(Iri::new_unchecked(
-                    v2::SBOL2_FUNCTIONAL_COMPONENT,
-                ))),
-            });
-            // Prefer the disambiguated displayId stored alongside
-            // `linking_fc_iri`. Falling back to `original_display_id`
-            // would re-introduce the SBOL 2 compliance mismatch the
-            // collision-avoidance allocator was designed to prevent.
-            let fc_display_id = split
-                .linking_fc_display_id
-                .clone()
-                .unwrap_or_else(|| split.original_display_id.clone());
-            self.output_triples.push(Triple {
-                subject: fc_resource.clone(),
-                predicate: Iri::from_static(v2::SBOL2_DISPLAY_ID),
-                object: Term::Literal(sbol_rdf::Literal::simple(fc_display_id)),
-            });
-            self.output_triples.push(Triple {
-                subject: fc_resource.clone(),
-                predicate: Iri::from_static(v2::SBOL2_DEFINITION),
-                object: Term::Resource(Resource::Iri(Iri::new_unchecked(cd_v2))),
-            });
-            self.output_triples.push(Triple {
-                subject: fc_resource.clone(),
-                predicate: Iri::from_static(v2::SBOL2_ACCESS),
-                object: Term::Resource(Resource::Iri(Iri::new_unchecked(v2::SBOL2_ACCESS_PUBLIC))),
-            });
-            self.output_triples.push(Triple {
-                subject: fc_resource.clone(),
-                predicate: Iri::from_static(v2::SBOL2_DIRECTION),
-                object: Term::Resource(Resource::Iri(Iri::new_unchecked(v2::SBOL2_DIRECTION_NONE))),
-            });
-            self.output_triples.push(Triple {
-                subject: fc_resource,
-                predicate: Iri::from_static(v2::BACKPORT_TYPE),
-                object: Term::Resource(Resource::Iri(Iri::new_unchecked(
-                    v2::BACKPORT_SPLIT_COMPONENT_COMPOSITION,
-                ))),
-            });
-        }
-    }
-
-    /// Rewrites every `sbol2:participant` object that points at an
-    /// SBOL 3 SubComponent under a dual-role parent to land on its
-    /// FunctionalComponent variant instead. SBOL 2 Participations
-    /// reference FCs, not bare Components.
-    pub(super) fn rewrite_participants(&mut self) {
-        if self.participant_remap.is_empty() {
-            return;
-        }
-        let remap = self.participant_remap.clone();
-        for triple in &mut self.output_triples {
-            if triple.predicate.as_str() != v2::SBOL2_PARTICIPANT {
-                continue;
-            }
-            let Some(target_iri) = triple.object.as_iri().map(|i| i.as_str().to_owned()) else {
-                continue;
-            };
-            if let Some(fc_iri) = remap.get(&target_iri) {
-                triple.object = Term::Resource(Resource::Iri(Iri::new_unchecked(fc_iri.clone())));
-            }
-        }
     }
 
     /// Re-emits the SBOL 2 MapsTo for every ComponentReference + Constraint
@@ -206,6 +46,20 @@ impl<'a> Engine<'a> {
                 None => self.options.default_version.clone(),
             };
 
+            // The MapsTo nests under the carrier's SBOL 2 identity, so the
+            // parent IRI must be the *downgraded* carrier — not the SBOL 3
+            // `inChildOf`, whose version-in-IRI shape would otherwise leak
+            // into the SBOL 2 MapsTo identity. The MapsTo hangs off the
+            // carrier's version-free persistent identity and carries its own
+            // version segment.
+            let carrier_v2 = self.rewrite_iri(&info.carrier_v3).to_owned();
+            let carrier_base = match crate::uri::version_sbol2(&carrier_v2) {
+                Some(v) if !v.is_empty() => carrier_v2
+                    .strip_suffix(&format!("/{v}"))
+                    .unwrap_or(&carrier_v2)
+                    .to_owned(),
+                _ => carrier_v2.clone(),
+            };
             // Route the synthesized MapsTo IRI through the shared used-IRI
             // pool. Canonical form is `{carrier}/{display_id}`; if a
             // pre-existing subject already lives at that IRI (a Location
@@ -214,7 +68,7 @@ impl<'a> Engine<'a> {
             // suffix and the emitted displayId picks up the new last
             // segment to stay SBOL 2 sbol-12302 compliant.
             let (mapsto_display_id, mapsto_unversioned) =
-                next_available_child_iri(&info.carrier_v3, &info.display_id, &mut self.used_iris);
+                next_available_child_iri(&carrier_base, &info.display_id, &mut self.used_iris);
             let mapsto_v2_iri = match &version {
                 Some(v) => append_segment(&mapsto_unversioned, v),
                 None => mapsto_unversioned.clone(),
@@ -222,7 +76,6 @@ impl<'a> Engine<'a> {
             let mapsto_resource = Resource::Iri(Iri::new_unchecked(mapsto_v2_iri.clone()));
 
             // Attach the MapsTo to its carrier.
-            let carrier_v2 = self.rewrite_iri(&info.carrier_v3).to_owned();
             self.output_triples.push(Triple {
                 subject: Resource::Iri(Iri::new_unchecked(carrier_v2)),
                 predicate: Iri::from_static(v2::SBOL2_MAPS_TO_PROP),
@@ -298,36 +151,29 @@ impl<'a> Engine<'a> {
             let Some((subject, emits_as)) = self.interface_feature_emission(&fc_v3) else {
                 continue;
             };
-            let native_feature = !self.backport_types.contains_key(&fc_v3);
             match emits_as {
                 InterfaceFeatureKind::Component => {
-                    if native_feature {
-                        self.emit_default_if_missing(
-                            &mut existing,
-                            &subject,
-                            v2::SBOL2_ACCESS,
-                            v2::SBOL2_ACCESS_PUBLIC,
-                        );
-                    }
+                    self.emit_default_if_missing(
+                        &mut existing,
+                        &subject,
+                        v2::SBOL2_ACCESS,
+                        v2::SBOL2_ACCESS_PUBLIC,
+                    );
                 }
                 InterfaceFeatureKind::Module => {}
                 InterfaceFeatureKind::FunctionalComponent => {
-                    if native_feature {
-                        self.emit_default_if_missing(
-                            &mut existing,
-                            &subject,
-                            v2::SBOL2_ACCESS,
-                            v2::SBOL2_ACCESS_PUBLIC,
-                        );
-                    }
-                    if !self.restored_fc_directions.contains(&fc_v3) {
-                        self.emit_default_if_missing(
-                            &mut existing,
-                            &subject,
-                            v2::SBOL2_DIRECTION,
-                            direction.sbol2_iri(),
-                        );
-                    }
+                    self.emit_default_if_missing(
+                        &mut existing,
+                        &subject,
+                        v2::SBOL2_ACCESS,
+                        v2::SBOL2_ACCESS_PUBLIC,
+                    );
+                    self.emit_default_if_missing(
+                        &mut existing,
+                        &subject,
+                        v2::SBOL2_DIRECTION,
+                        direction.sbol2_iri(),
+                    );
                 }
             }
         }
@@ -337,13 +183,6 @@ impl<'a> Engine<'a> {
         &self,
         feature_v3: &str,
     ) -> Option<(String, InterfaceFeatureKind)> {
-        if let Some(split) = self.subcomponent_splits.get(feature_v3) {
-            return Some((
-                self.rewrite_iri(&split.functional_component_iri).to_owned(),
-                InterfaceFeatureKind::FunctionalComponent,
-            ));
-        }
-
         let feature_v2 = self.rewrite_iri(feature_v3).to_owned();
         let parent_type = self
             .feature_parent
@@ -376,11 +215,6 @@ impl<'a> Engine<'a> {
     }
 
     pub(super) fn emit_component_instance_defaults(&mut self) {
-        let backported_subjects: HashSet<String> = self
-            .backport_types
-            .keys()
-            .map(|subject| self.rewrite_iri(subject).to_owned())
-            .collect();
         let mut components = HashSet::new();
         let mut functional_components = HashSet::new();
         for triple in &self.output_triples {
@@ -413,9 +247,6 @@ impl<'a> Engine<'a> {
         let mut components: Vec<String> = components.into_iter().collect();
         components.sort();
         for subject in components {
-            if backported_subjects.contains(&subject) {
-                continue;
-            }
             self.emit_default_if_missing(
                 &mut existing,
                 &subject,
@@ -427,9 +258,6 @@ impl<'a> Engine<'a> {
         let mut functional_components: Vec<String> = functional_components.into_iter().collect();
         functional_components.sort();
         for subject in functional_components {
-            if backported_subjects.contains(&subject) {
-                continue;
-            }
             self.emit_default_if_missing(
                 &mut existing,
                 &subject,
@@ -562,35 +390,15 @@ impl<'a> Engine<'a> {
                 });
             }
 
-            let has_preserved_persistent_identity = info
-                .preserved_metadata
-                .iter()
-                .any(|metadata| metadata.predicate == v2::SBOL2_PERSISTENT_IDENTITY);
-            let has_preserved_version = info
-                .preserved_metadata
-                .iter()
-                .any(|metadata| metadata.predicate == v2::SBOL2_VERSION);
-
-            for metadata in &info.preserved_metadata {
-                self.output_triples.push(Triple {
-                    subject: sa_resource.clone(),
-                    predicate: Iri::new_unchecked(metadata.predicate.clone()),
-                    object: self.rewrite_term(&metadata.object),
-                });
-            }
-
-            // SA identity metadata: emit defaults only when the original SA
-            // did not preserve explicit identity/version metadata.
-            if !has_preserved_persistent_identity {
-                self.output_triples.push(Triple {
-                    subject: sa_resource.clone(),
-                    predicate: Iri::from_static(v2::SBOL2_PERSISTENT_IDENTITY),
-                    object: Term::Resource(Resource::Iri(Iri::new_unchecked(
-                        info.sa_iri_unversioned.clone(),
-                    ))),
-                });
-            }
-            if !has_preserved_version && let Some(v) = version {
+            // SA identity metadata.
+            self.output_triples.push(Triple {
+                subject: sa_resource.clone(),
+                predicate: Iri::from_static(v2::SBOL2_PERSISTENT_IDENTITY),
+                object: Term::Resource(Resource::Iri(Iri::new_unchecked(
+                    info.sa_iri_unversioned.clone(),
+                ))),
+            });
+            if let Some(v) = version {
                 self.output_triples.push(Triple {
                     subject: sa_resource.clone(),
                     predicate: Iri::from_static(v2::SBOL2_VERSION),

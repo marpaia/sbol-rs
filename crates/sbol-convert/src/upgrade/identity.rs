@@ -16,8 +16,9 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::sbol2_vocab as v2;
+use crate::uri;
 use sbol_rdf::Graph;
-use sbol_rdf::{Iri, Literal, Resource, Term, Triple};
+use sbol_rdf::{Iri, Resource, Term, Triple};
 use sbol3::vocab as v3;
 
 /// Result of pre-scanning the SBOL 2 graph for everything needed to compute
@@ -36,27 +37,29 @@ pub(super) struct IdentityMap {
 
 impl IdentityMap {
     /// Builds the identity map from a parsed SBOL 2 graph.
+    ///
+    /// A top-level SBOL 2 object maps to `<namespace>/<version>/<displayId>`
+    /// ([`uri::create_sbol3_uri`]), and its `hasNamespace` is its SBOL 2 prefix
+    /// ([`uri::uri_prefix_sbol2`]). A child nests directly under its owning
+    /// top-level's SBOL 3 identity as `<topLevelSbol3>/<relativePath>` — the
+    /// version appears once, on the top-level, exactly as the reference
+    /// converter's object model produces it. References to objects outside the
+    /// document fall back to structural decomposition.
     pub(super) fn build(graph: &Graph) -> Self {
-        let mut persistent_identity: HashMap<String, String> = HashMap::new();
-        let mut display_id: HashMap<String, String> = HashMap::new();
+        let mut identified: HashSet<String> = HashSet::new();
         let mut rewrite_candidates: HashSet<String> = HashSet::new();
-        // Subject IRI → SBOL 3 namespace stashed by an sbol-utilities /
-        // sbolgraph downgrade under `backport:sbol3namespace`. When present
-        // it overrides the persistentIdentity/displayId derivation below.
-        let mut sbol3_namespace_hints: HashMap<String, String> = HashMap::new();
+        // child IRI → owning parent IRI, via SBOL 2 containment predicates.
+        let mut owned_by: HashMap<String, String> = HashMap::new();
+        // subject IRI → its `persistentIdentity` and `version`, to resolve an
+        // unversioned reference to the highest-version object carrying it.
+        let mut persistent_identity_of: HashMap<String, String> = HashMap::new();
+        let mut version_of: HashMap<String, String> = HashMap::new();
 
         for triple in graph.triples() {
             let subject = match triple.subject.as_iri() {
                 Some(iri) => iri.as_str().to_owned(),
                 None => continue,
             };
-            if triple.predicate.as_str() == v2::BACKPORT_SBOL3_NAMESPACE {
-                if let Some(iri) = triple.object.as_iri() {
-                    sbol3_namespace_hints.insert(subject.clone(), iri.as_str().to_owned());
-                } else if let Some(value) = literal_value(&triple.object) {
-                    sbol3_namespace_hints.insert(subject.clone(), value.to_owned());
-                }
-            }
             match triple.predicate.as_str() {
                 v3::RDF_TYPE => {
                     if triple
@@ -64,25 +67,31 @@ impl IdentityMap {
                         .as_iri()
                         .is_some_and(|iri| iri.as_str().starts_with(v2::SBOL2_NS))
                     {
-                        rewrite_candidates.insert(subject);
+                        rewrite_candidates.insert(subject.clone());
                     }
                 }
                 v2::SBOL2_PERSISTENT_IDENTITY => {
                     rewrite_candidates.insert(subject.clone());
-                    if let Some(value) = literal_value(&triple.object) {
-                        persistent_identity.insert(subject, value.to_owned());
-                    } else if let Some(iri) = triple.object.as_iri() {
-                        // Some serializations emit persistentIdentity as an IRI
-                        // object rather than a string literal.
-                        persistent_identity.insert(subject, iri.as_str().to_owned());
+                    if let Some(iri) = triple.object.as_iri() {
+                        persistent_identity_of.insert(subject.clone(), iri.as_str().to_owned());
+                    }
+                }
+                v2::SBOL2_VERSION => {
+                    if let Some(lit) = triple.object.as_literal() {
+                        version_of.insert(subject.clone(), lit.value().to_owned());
                     }
                 }
                 v2::SBOL2_DISPLAY_ID => {
-                    if let Some(value) = literal_value(&triple.object) {
-                        display_id.insert(subject, value.to_owned());
-                    }
+                    rewrite_candidates.insert(subject.clone());
+                    identified.insert(subject.clone());
                 }
                 _ => {}
+            }
+
+            if is_sbol2_containment_predicate(triple.predicate.as_str())
+                && let Some(child) = triple.object.as_iri()
+            {
+                owned_by.insert(child.as_str().to_owned(), subject.clone());
             }
 
             if is_sbol2_identity_reference_predicate(triple.predicate.as_str())
@@ -92,38 +101,71 @@ impl IdentityMap {
             }
         }
 
+        // For each `persistentIdentity`, the highest-version subject that
+        // carries it. A reference to a bare persistentIdentity resolves to
+        // this latest object (the reference converter's `getLatestUri`).
+        let mut latest: HashMap<String, String> = HashMap::new();
+        for (subject, pid) in &persistent_identity_of {
+            let entry = latest.entry(pid.clone()).or_insert_with(|| subject.clone());
+            let current = version_of.get(subject).map(String::as_str).unwrap_or("");
+            let best = version_of.get(entry).map(String::as_str).unwrap_or("");
+            if compare_versions(current, best).is_gt() {
+                *entry = subject.clone();
+            }
+        }
+
+        // A top-level is an identified subject that nothing owns.
+        let mut top_info: HashMap<String, TopLevelInfo> = HashMap::new();
+        for subject in &identified {
+            if owned_by.contains_key(subject) {
+                continue;
+            }
+            let Some(namespace) = uri::uri_prefix_sbol2(subject) else {
+                continue;
+            };
+            let display_id = uri::display_id_sbol2(subject).unwrap_or("");
+            top_info.insert(
+                subject.clone(),
+                TopLevelInfo {
+                    namespace: namespace.to_owned(),
+                    persistent_identity: format!("{namespace}/{display_id}"),
+                    sbol3: uri::create_sbol3_uri(subject),
+                },
+            );
+        }
+
         let mut rewrites: HashMap<String, String> = HashMap::new();
         let mut namespaces: HashMap<String, String> = HashMap::new();
 
-        for iri in rewrite_candidates {
-            let canonical = canonical_identity(&iri, &persistent_identity);
-            if canonical != iri {
-                rewrites.insert(iri, canonical);
+        for iri in &rewrite_candidates {
+            // Resolve a bare persistentIdentity reference to the latest object
+            // that carries it before computing the SBOL 3 identity.
+            let resolved: &str = latest.get(iri).map(String::as_str).unwrap_or(iri);
+            let sbol3 = match owning_top_level(resolved, &owned_by, &top_info) {
+                Some(top) => {
+                    let info = &top_info[&top];
+                    if resolved == top {
+                        info.sbol3.clone()
+                    } else if let Some(relative) =
+                        child_relative_path(resolved, &info.persistent_identity)
+                    {
+                        format!("{}/{}", info.sbol3, relative)
+                    } else {
+                        uri::create_sbol3_uri(resolved)
+                    }
+                }
+                None => uri::create_sbol3_uri(resolved),
+            };
+            if &sbol3 != iri {
+                rewrites.insert(iri.clone(), sbol3);
             }
         }
 
-        for (original, did) in display_id.iter() {
-            let canonical = rewrites
-                .get(original)
-                .cloned()
-                .unwrap_or_else(|| original.clone());
-            let namespace = persistent_identity
-                .get(original)
-                .and_then(|pid| strip_suffix_segment(pid, did))
-                .or_else(|| strip_suffix_segment(&canonical, did))
-                .map(str::to_owned);
-            if let Some(namespace) = namespace {
-                namespaces.insert(canonical, namespace);
-            }
-        }
-
-        // An explicit `backport:sbol3namespace` annotation wins over the
-        // derived namespace: it records exactly what the SBOL 3 source
-        // (round-tripped through sbol-rs, sbol-utilities, or sbolgraph)
-        // carried, which derivation can only approximate.
-        for (subject, namespace) in sbol3_namespace_hints {
-            let canonical = rewrites.get(&subject).cloned().unwrap_or(subject);
-            namespaces.insert(canonical, namespace);
+        // `hasNamespace`, keyed by SBOL 3 identity; the caller emits it only
+        // for top-levels.
+        for (top, info) in &top_info {
+            let sbol3 = rewrites.get(top).cloned().unwrap_or_else(|| top.clone());
+            namespaces.insert(sbol3, info.namespace.clone());
         }
 
         Self {
@@ -186,68 +228,84 @@ impl IdentityMap {
     }
 }
 
-/// Computes the SBOL 3 identity from an SBOL 2 IRI. Prefers an explicit
-/// `persistentIdentity` (canonical case); otherwise falls back to stripping a
-/// trailing `/digits(.digits)*` segment.
-fn canonical_identity(iri: &str, persistent_identity: &HashMap<String, String>) -> String {
-    if let Some(pid) = persistent_identity.get(iri) {
-        return pid.clone();
+/// Compares dotted version strings (`"1"`, `"1.0"`, `"2.10.3"`) segment by
+/// segment: numerically when both segments parse as integers, otherwise
+/// lexically. Missing trailing segments count as `0` so `"1"` == `"1.0"`.
+fn compare_versions(a: &str, b: &str) -> std::cmp::Ordering {
+    use std::cmp::Ordering;
+    let a_parts: Vec<&str> = a.trim().split('.').collect();
+    let b_parts: Vec<&str> = b.trim().split('.').collect();
+    for i in 0..a_parts.len().max(b_parts.len()) {
+        let sa = a_parts.get(i).copied().unwrap_or("0");
+        let sb = b_parts.get(i).copied().unwrap_or("0");
+        let ord = match (sa.parse::<i64>(), sb.parse::<i64>()) {
+            (Ok(ia), Ok(ib)) => ia.cmp(&ib),
+            _ => sa.cmp(sb),
+        };
+        if ord != Ordering::Equal {
+            return ord;
+        }
     }
-    strip_trailing_version(iri).unwrap_or_else(|| iri.to_owned())
+    Ordering::Equal
 }
 
-/// Strips a trailing version segment (one or more dot-separated numeric
-/// components) preceded by `/` for URL-form IRIs, or by `:` for URN-form
-/// IRIs (`urn:nid:…`). Returns `None` if no such suffix is present.
-///
-/// URN-form `:` stripping is gated on the `urn:` prefix because URL-form
-/// IRIs commonly contain colons in path segments (e.g. ontology terms like
-/// `http://identifiers.org/so/SO:0000167`) that must NOT be confused with
-/// version suffixes.
-pub(super) fn strip_trailing_version(iri: &str) -> Option<String> {
-    let is_urn = iri.starts_with("urn:");
-    let last_slash = iri.rfind('/');
-    let sep_pos = if is_urn {
-        let last_colon = iri.rfind(':');
-        match (last_slash, last_colon) {
-            (Some(s), Some(c)) if s > c => Some(s),
-            (Some(s), None) => Some(s),
-            (_, Some(c)) => Some(c),
-            (None, None) => None,
-        }
-    } else {
-        last_slash
-    }?;
-    let tail = &iri[sep_pos + 1..];
-    if tail.is_empty() {
-        return None;
-    }
-    if !tail
-        .chars()
-        .next()
-        .map(|c| c.is_ascii_digit())
-        .unwrap_or(false)
-    {
-        return None;
-    }
-    if !tail.chars().all(|c| c.is_ascii_digit() || c == '.') {
-        return None;
-    }
-    Some(iri[..sep_pos].to_owned())
+/// Namespace, persistent identity, and SBOL 3 identity of a top-level object,
+/// used to nest its children.
+struct TopLevelInfo {
+    namespace: String,
+    persistent_identity: String,
+    sbol3: String,
 }
 
-/// Removes a trailing `{separator}<segment>` from `value` where `separator`
-/// is either `/` (URL form) or `:` (URN form). Returns the namespace prefix
-/// without the displayId, or `None` when the value doesn't end with the
-/// expected suffix.
-fn strip_suffix_segment<'a>(value: &'a str, segment: &str) -> Option<&'a str> {
-    for separator in ['/', ':'] {
-        let suffix = format!("{separator}{segment}");
-        if let Some(stripped) = value.strip_suffix(&suffix) {
-            return Some(stripped);
+/// SBOL 2 predicates by which a parent owns a child object.
+fn is_sbol2_containment_predicate(predicate: &str) -> bool {
+    matches!(
+        predicate,
+        v2::SBOL2_SEQUENCE_ANNOTATION_PROP
+            | v2::SBOL2_SEQUENCE_CONSTRAINT_PROP
+            | v2::SBOL2_LOCATION_PROP
+            | v2::SBOL2_COMPONENT_PROP
+            | v2::SBOL2_FUNCTIONAL_COMPONENT_PROP
+            | v2::SBOL2_MODULE_PROP
+            | v2::SBOL2_INTERACTION_PROP
+            | v2::SBOL2_PARTICIPATION_PROP
+            | v2::SBOL2_MAPS_TO_PROP
+            | v2::SBOL2_VARIABLE_COMPONENT_PROP
+    )
+}
+
+/// Walks the ownership chain from `iri` to the top-level that transitively
+/// owns it. Returns the top-level IRI when it is a known top-level.
+fn owning_top_level(
+    iri: &str,
+    owned_by: &HashMap<String, String>,
+    top_info: &HashMap<String, TopLevelInfo>,
+) -> Option<String> {
+    if top_info.contains_key(iri) {
+        return Some(iri.to_owned());
+    }
+    let mut current = iri.to_owned();
+    for _ in 0..64 {
+        let parent = owned_by.get(&current)?;
+        if top_info.contains_key(parent) {
+            return Some(parent.clone());
         }
+        current = parent.clone();
     }
     None
+}
+
+/// Strips `<persistent_identity>/` and any trailing version segment from a
+/// child IRI, yielding its path relative to the owning top-level. `None` when
+/// the child does not sit under that identity.
+fn child_relative_path(iri: &str, persistent_identity: &str) -> Option<String> {
+    let rest = iri.strip_prefix(&format!("{persistent_identity}/"))?;
+    match uri::version_sbol2(iri) {
+        Some(v) if !v.is_empty() => {
+            Some(rest.strip_suffix(&format!("/{v}")).unwrap_or(rest).to_owned())
+        }
+        _ => Some(rest.to_owned()),
+    }
 }
 
 fn is_sbol2_identity_reference_predicate(predicate: &str) -> bool {
@@ -283,43 +341,3 @@ fn is_sbol2_identity_reference_predicate(predicate: &str) -> bool {
     )
 }
 
-fn literal_value(term: &Term) -> Option<&str> {
-    term.as_literal().map(Literal::value)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn strips_single_digit_version() {
-        assert_eq!(
-            strip_trailing_version("https://synbiohub.org/public/igem/BBa_E0040/1").as_deref(),
-            Some("https://synbiohub.org/public/igem/BBa_E0040"),
-        );
-    }
-
-    #[test]
-    fn strips_semantic_version() {
-        assert_eq!(
-            strip_trailing_version("https://example.org/lab/design/1.2.3").as_deref(),
-            Some("https://example.org/lab/design"),
-        );
-    }
-
-    #[test]
-    fn preserves_iri_without_version_suffix() {
-        assert_eq!(
-            strip_trailing_version("https://example.org/lab/design").as_deref(),
-            None,
-        );
-    }
-
-    #[test]
-    fn preserves_non_numeric_suffix() {
-        assert_eq!(
-            strip_trailing_version("https://example.org/lab/promoter_v1").as_deref(),
-            None,
-        );
-    }
-}

@@ -62,20 +62,30 @@ fn real_sa_with_component_collapses_locations_onto_subcomponent() {
 }
 
 #[test]
-fn location_without_inferable_sequence_emits_warning() {
-    let (_document, report) = upgrade_real("CD_SA_Range_Example.xml");
-    let has_location_warning = report.warnings().iter().any(|w| {
-        matches!(
-            w,
-            UpgradeWarning::LocationWithoutSequence {
-                sequence_count: 0,
-                ..
-            }
-        )
-    });
+fn location_without_sequence_synthesizes_empty_sequence() {
+    // A ComponentDefinition with a Range/Cut location but no sequence of its
+    // own gets an empty Sequence synthesized so SBOL 3's requirement that
+    // every Location reference a Sequence is met, matching the reference
+    // converter. The location is flagged `sbol2LocationSequenceNull` so the
+    // downgrade knows the SBOL 2 location carried no sequence.
+    let (document, report) = upgrade_real("CD_SA_Range_Example.xml");
+
+    // No CD in this fixture declares a sequence, so every attached sequence
+    // is synthesized.
     assert!(
-        has_location_warning,
-        "expected LocationWithoutSequence warning, got: {:?}",
+        document.sequences().count() >= 1,
+        "expected a synthesized empty Sequence, found none"
+    );
+    assert!(
+        report.counts().locations_with_inferred_sequence >= 1,
+        "expected ≥1 location to receive an inferred/synthesized sequence"
+    );
+    assert!(
+        !report
+            .warnings()
+            .iter()
+            .any(|w| matches!(w, UpgradeWarning::LocationWithoutSequence { .. })),
+        "synthesis should replace the LocationWithoutSequence warning, got: {:?}",
         report.warnings()
     );
 }
@@ -114,37 +124,6 @@ fn upgrade_counts_collapsed_sequence_annotations() {
 }
 
 #[test]
-fn unknown_sbol2_predicates_survive_as_backport_triples() {
-    // `sbol2:access` has no SBOL 3 home but should be preserved under the
-    // backport namespace so it isn't silently lost.
-    let input = r#"
-@prefix sbol: <http://sbols.org/v2#> .
-@prefix biopax: <http://www.biopax.org/release/biopax-level3.owl#> .
-@prefix so: <https://identifiers.org/SO:> .
-
-<https://example.org/lab/cd/1>
-    a sbol:ComponentDefinition ;
-    sbol:persistentIdentity <https://example.org/lab/cd> ;
-    sbol:displayId "cd" ;
-    sbol:version "1" ;
-    sbol:type biopax:Dna ;
-    sbol:role so:0000167 ;
-    sbol:access <http://sbols.org/v2#public> .
-"#;
-    let (document, _report) =
-        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
-    let backport_access = document
-        .rdf_graph()
-        .triples()
-        .iter()
-        .find(|t| t.predicate.as_str() == "http://sboltools.org/backport#sbol2_access");
-    assert!(
-        backport_access.is_some(),
-        "sbol2:access should be preserved under backport namespace"
-    );
-}
-
-#[test]
 fn upgrade_does_not_strip_numeric_external_annotation_iris() {
     let input = r#"
 @prefix sbol: <http://sbols.org/v2#> .
@@ -178,50 +157,6 @@ fn upgrade_does_not_strip_numeric_external_annotation_iris() {
     assert!(
         stripped_taxon_object.is_none(),
         "upgrade stripped a numeric external annotation IRI"
-    );
-}
-
-/// Two distinct SBOL 2 subjects whose canonical SBOL 3 forms coincide
-/// (e.g. `<lab/foo/1>` version-strips to `<lab/foo>` and is then
-/// indistinguishable from a separately-typed `<lab/foo>` subject in
-/// the same document) silently merge into one chimeric SBOL 3 subject.
-/// The input is non-conformant SBOL 2, but the merge is otherwise
-/// invisible; the upgrade now surfaces the collision via
-/// [`UpgradeWarning::IdentityCollision`] so callers can audit.
-#[test]
-fn colliding_canonical_identities_emit_warning() {
-    let input = r#"
-@prefix sbol: <http://sbols.org/v2#> .
-@prefix biopax: <http://www.biopax.org/release/biopax-level3.owl#> .
-
-<https://lab/foo/1>
-    a sbol:ComponentDefinition ;
-    sbol:persistentIdentity <https://lab/foo> ;
-    sbol:displayId "foo" ;
-    sbol:version "1" ;
-    sbol:type biopax:DnaRegion .
-
-<https://lab/foo>
-    a sbol:Sequence ;
-    sbol:displayId "foo" ;
-    sbol:elements "ACGT" .
-"#;
-    let (_document, report) =
-        sbol_convert::upgrade_from_sbol2(input, RdfFormat::Turtle).expect("upgrade");
-    let collision = report.warnings().iter().find_map(|w| match w {
-        UpgradeWarning::IdentityCollision { canonical, sources } => {
-            Some((canonical.clone(), sources.clone()))
-        }
-        _ => None,
-    });
-    let (canonical, sources) = collision.expect("expected IdentityCollision warning");
-    assert_eq!(canonical, "https://lab/foo");
-    assert_eq!(
-        sources,
-        vec![
-            "https://lab/foo".to_string(),
-            "https://lab/foo/1".to_string(),
-        ]
     );
 }
 
@@ -331,7 +266,7 @@ fn sa_collapse_locations_with_same_display_id_round_trip_distinctly() {
 
     // The disambiguated Range's displayId must match its IRI's last
     // segment — sbol3-10204 compliance check.
-    let disambig_iri = "https://lab/parent/sub/range1_2";
+    let disambig_iri = "https://lab/1/parent/sub/range1_2";
     assert_eq!(
         coord(disambig_iri, "http://sbols.org/v3#displayId").as_deref(),
         Some("range1_2"),

@@ -128,10 +128,12 @@ cargo run -p sbol-convert --example synbiohub_upgrade --features http-resolver -
 
 - [Conversion guide](conversion.md): user-facing reference for the
   conversion model itself (the backport namespace, structural
-  collapses, dual-role splits, known divergences).
+  collapses, Component classification, known divergences).
 - [SBOL 3 → SBOL 2 downgrade conformance](sbol3-downgrade-conformance.md):
   the inverse direction, with the round-trip gate that pairs with
   the self-snapshot gate above.
+- [SBOL-Converter differential conformance](sbol-converter-differential.md):
+  the parity gate against the reference Java converter, both directions.
 - [SBOL 3 round-trip smoke test report](sbol3-round-trip-report.md):
   per-fixture lossless-round-trip verification across the whole
   real corpus.

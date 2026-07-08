@@ -163,7 +163,7 @@ for the loss model.
 Notable flags:
 
 - `--default-version <VERSION>` sets the version string assigned to
-  top-level objects whose source didn't carry `backport:sbol2version`.
+  top-level objects whose SBOL 3 IRI carried no version segment.
   Omit it to leave those objects unversioned; pass `--default-version 1`
   to match the SynBioHub / libSBOLj convention.
 - `--from <FORMAT>` overrides input-format inference (useful for SBOL 3

@@ -8,31 +8,6 @@ impl<'a> Engine<'a> {
     pub(super) fn handle_sbol3_predicate(&mut self, triple: &Triple) {
         let predicate = triple.predicate.as_str();
 
-        // SubComponent under a dual-role parent: route to the three
-        // SBOL 2 variants emitted in `emit_subcomponent_split_types`.
-        if let Some(subject_iri) = triple.subject.as_iri() {
-            let s = subject_iri.as_str().to_owned();
-            if let Some(sc_split) = self.subcomponent_splits.get(&s).cloned() {
-                self.handle_subcomponent_split_predicate(triple, &sc_split);
-                return;
-            }
-        }
-
-        // Dual-role Component: every predicate routes to the structural
-        // half (CD), the functional half (MD), or both, based on whether
-        // it describes structure (sequence, role, type) or function
-        // (interaction, model). Identified properties (displayId, name,
-        // description) land on both halves.
-        if let Some(subject_iri) = triple.subject.as_iri() {
-            let s = subject_iri.as_str().to_owned();
-            if let Some(split) = self.component_splits.get(&s).cloned()
-                && split.shape == ComponentShape::DualRole
-            {
-                self.handle_dual_role_predicate(triple, &split);
-                return;
-            }
-        }
-
         // Drop predicates that have no SBOL 2 equivalent. `hasNamespace`
         // is the most important one: the namespace is implicit in
         // the restored persistentIdentity / versioned IRI in SBOL 2.
@@ -60,30 +35,24 @@ impl<'a> Engine<'a> {
             return;
         }
 
-        // `sbol3:type` on an MD-derived Component drops the
-        // synthesized `SBO:functionalEntity` term; SBOL 2 MDs don't
-        // carry it. The original SBOL 2 type triples (if any) are
-        // still emitted because they pass through the same predicate.
-        if predicate == v3::SBOL_TYPE
+        // A Component classified as a ModuleDefinition carries neither a
+        // `type` nor a `hasSequence` in SBOL 2 (both are ComponentDefinition
+        // properties), so those triples are dropped.
+        if matches!(predicate, v3::SBOL_TYPE | v3::SBOL_HAS_SEQUENCE)
             && let Some(subject_iri) = triple.subject.as_iri()
             && self
-                .backport_types
+                .component_splits
                 .get(subject_iri.as_str())
-                .map(String::as_str)
-                == Some(v2::SBOL2_MODULE_DEFINITION)
-            && triple.object.as_iri().map(|i| i.as_str())
-                == Some("https://identifiers.org/SBO:0000241")
+                .is_some_and(|split| split.shape == ComponentShape::MdOnly)
         {
             return;
         }
 
-        // SBOL 3 requires `hasSequence` on every Range / Cut /
-        // Location; SBOL 2 represents that linkage implicitly through
-        // the location's parent SequenceAnnotation → ComponentDefinition
-        // → sequence chain. Forwarding `hasSequence` here would emit a
-        // bare `sbol2:sequence` triple on the Range, which the upgrade
-        // round-trip then duplicates against the inferred location
-        // sequence. Drop on Location-typed subjects.
+        // A Location's `sbol3:hasSequence` maps back to `sbol2:sequence` on
+        // the Range / Cut, except when the upgrade recorded that the SBOL 2
+        // location had no sequence of its own (`sbol2LocationSequenceNull`):
+        // that sequence was inferred from the parent or synthesized, so it is
+        // dropped to preserve the original SBOL 2 shape.
         if predicate == v3::SBOL_HAS_SEQUENCE
             && let Some(subject_iri) = triple.subject.as_iri()
         {
@@ -91,10 +60,30 @@ impl<'a> Engine<'a> {
                 .resolved_types
                 .get(subject_iri.as_str())
                 .map(String::as_str);
-            if matches!(
+            let is_location = matches!(
                 resolved,
                 Some(v2::SBOL2_RANGE) | Some(v2::SBOL2_CUT) | Some(v2::SBOL2_GENERIC_LOCATION)
-            ) {
+            );
+            if is_location && self.null_sequence_locations.contains(subject_iri.as_str()) {
+                return;
+            }
+        }
+
+        // SBOL 3 carries orientation on a Feature; SBOL 2 carries it only on a
+        // Location. A SubComponent's own orientation therefore has no SBOL 2
+        // home and is dropped (the Location keeps its own orientation).
+        if predicate == v3::SBOL_ORIENTATION
+            && let Some(subject_iri) = triple.subject.as_iri()
+        {
+            let resolved = self
+                .resolved_types
+                .get(subject_iri.as_str())
+                .map(String::as_str);
+            let is_location = matches!(
+                resolved,
+                Some(v2::SBOL2_RANGE) | Some(v2::SBOL2_CUT) | Some(v2::SBOL2_GENERIC_LOCATION)
+            );
+            if !is_location {
                 return;
             }
         }
@@ -155,22 +144,9 @@ impl<'a> Engine<'a> {
         map_sbol3_predicate_to_sbol2(predicate)
     }
 
-    /// Unknown SBOL 3 predicates (something added to the spec since we last
-    /// updated the table, or a private extension authored in the v3
-    /// namespace) cannot be emitted verbatim in an SBOL 2 graph. Archive them
-    /// under the backport namespace so the data is preserved for a future
-    /// re-upgrade without polluting the SBOL 2 surface.
-    pub(super) fn archive_unknown_sbol3_predicate(&mut self, triple: &Triple) {
-        let Some(local) = triple.predicate.as_str().strip_prefix(v3::SBOL_NS) else {
-            return;
-        };
-        let preserved = format!("{}{local}", v2::BACKPORT_SBOL3_PREFIX);
-        self.output_triples.push(Triple {
-            subject: self.rewrite_resource(&triple.subject),
-            predicate: Iri::new_unchecked(preserved),
-            object: self.rewrite_term(&triple.object),
-        });
-    }
+    /// SBOL 3 predicates with no SBOL 2 equivalent are dropped. The reference
+    /// converter does not carry SBOL 3-only data across to SBOL 2.
+    pub(super) fn archive_unknown_sbol3_predicate(&mut self, _triple: &Triple) {}
 
     /// Returns true if the input document already carries a
     /// `(subject, predicate, object)` triple for one of the indexed
@@ -244,39 +220,12 @@ impl<'a> Engine<'a> {
         });
     }
 
-    /// Consumes the next preserved BioPAX variant for
-    /// `(subject, sbo_term)` and advances the per-pair cursor. Returns
-    /// `None` when the subject has no preserved variants for that SBO
-    /// target or when the queue is exhausted; the caller then falls
-    /// back to the default `*Region`-style mapping.
-    pub(super) fn consume_biopax_variant(
-        &mut self,
-        subject: Option<&str>,
-        sbo_iri: &str,
-    ) -> Option<String> {
-        let subject = subject?;
-        let key = (subject.to_owned(), sbo_iri.to_owned());
-        let queue = self.biopax_variant_queue.get(&key)?;
-        let cursor = self.biopax_variant_cursor.entry(key).or_insert(0);
-        let variant = queue.get(*cursor)?.clone();
-        *cursor += 1;
-        Some(variant)
-    }
-
     /// Reverses value-level mappings (orientation, encoding, type,
-    /// restriction). When `subject` is `Some`, consults the
-    /// subject-keyed backport hints for value mappings that are lossy
-    /// by themselves (e.g. BioPAX `Dna`/`DnaRegion` collapse).
-    ///
-    /// Takes `&mut self` because the `sbol3:type` reverse mapping for
-    /// BioPAX advances a per-`(subject, sbo_term)` cursor: each input
-    /// triple that maps to the same SBO target consumes the next
-    /// preserved variant from
-    /// [`Engine::biopax_variant_queue`]. Without that statefulness, two
-    /// `sbol3:type SBO:0000251` triples both fall back to the first
-    /// preserved variant and the second BioPAX type is lost.
+    /// restriction, role, framework, language). `subject` supplies the
+    /// subject's resolved SBOL 2 type, which disambiguates the ontology for
+    /// the `type`/`role` predicates shared across entity kinds.
     pub(super) fn reverse_value_for_subject(
-        &mut self,
+        &self,
         subject: Option<&str>,
         predicate_str: &str,
         object: &Term,
@@ -285,37 +234,46 @@ impl<'a> Engine<'a> {
             Some(iri) => iri.as_str(),
             None => return object.clone(),
         };
+        // `type`/`role` are shared across entity kinds, so the subject's SBOL 3
+        // type decides the ontology: an Interaction's `type` and a
+        // Participation's `role` are SBO terms; a Component's `role` is an SO
+        // term and its `type` a BioPAX/SO term.
+        // `resolved_type_sets` holds each subject's resolved SBOL 2 class.
+        let is_interaction = subject
+            .and_then(|s| self.resolved_type_sets.get(s))
+            .is_some_and(|set| set.contains(v2::SBOL2_INTERACTION));
+        let is_participation = subject
+            .and_then(|s| self.resolved_type_sets.get(s))
+            .is_some_and(|set| set.contains(v2::SBOL2_PARTICIPATION));
         let mapped: Option<String> = match predicate_str {
             v3::SBOL_ORIENTATION => values::map_orientation(iri).map(String::from),
             v3::SBOL_ENCODING => values::map_encoding(iri).map(String::from),
-            // Multi-valued `sbol3:type` on a Component can mix BioPAX
-            // collapses (SBO:DNA, …) with topology / role types (SO:linear).
-            // Only the BioPAX side benefits from the backport hint;
-            // leave SO and friends to pass through untouched.
-            //
-            // For each input `sbol3:type` triple that maps to an SBO
-            // term the upgrade collapses BioPAX onto, consume the next
-            // preserved variant for `(subject, sbo_term)`. This handles
-            // the otherwise-lossy case where two distinct BioPAX
-            // variants share an SBO target (e.g. `biopax:Dna` and
-            // `biopax:DnaRegion` both collapse to `SBO:0000251`): each
-            // input triple gets a distinct variant in restoration order.
-            // Fall back to the default `*Region`-style mapping when no
-            // hint exists or the queue is exhausted.
-            v3::SBOL_TYPE => values::map_biopax_type(iri).map(|default| {
-                self.consume_biopax_variant(subject, iri)
-                    .unwrap_or_else(|| default.to_owned())
-            }),
+            v3::SBOL_TYPE if is_interaction => Some(crate::uri::convert_sbo_3_to_2(iri)),
+            // A Component's `sbol3:type` is a BioPAX-derived SBO term
+            // (mapped to its canonical `*Region` SBOL 2 form) or, when it
+            // isn't one, an SO / foreign term canonicalized to its SBOL 2
+            // spelling. The SBOL 2 → SBOL 3 map sends both `biopax:Dna` and
+            // `biopax:DnaRegion` to the same SBO term, so the reverse always
+            // yields the `*Region` form.
+            v3::SBOL_TYPE => Some(
+                values::map_biopax_type(iri)
+                    .map(str::to_owned)
+                    .unwrap_or_else(|| crate::uri::component_type_3_to_2(iri)),
+            ),
+            v3::SBOL_ROLE if is_participation => Some(crate::uri::convert_sbo_3_to_2(iri)),
+            v3::SBOL_ROLE => Some(crate::uri::convert_so_3_to_2(iri)),
+            v3::SBOL_FRAMEWORK => Some(crate::uri::convert_sbo_3_to_2(iri)),
+            v3::SBOL_LANGUAGE => Some(crate::uri::convert_edam_3_to_2(iri)),
             v3::SBOL_RESTRICTION => values::map_restriction(iri),
             v3::SBOL_CARDINALITY => values::map_cardinality(iri).map(String::from),
             v3::SBOL_STRATEGY => values::map_strategy(iri).map(String::from),
             v3::SBOL_ROLE_INTEGRATION => values::map_role_integration(iri).map(String::from),
             _ => None,
         };
-        match mapped {
-            Some(sbol2_iri) => Term::Resource(Resource::Iri(Iri::new_unchecked(sbol2_iri))),
-            None => object.clone(),
+        if let Some(sbol2_iri) = mapped {
+            return Term::Resource(Resource::Iri(Iri::new_unchecked(sbol2_iri)));
         }
+        object.clone()
     }
 
     pub(super) fn emit_backport_metadata(&mut self) {
@@ -325,7 +283,7 @@ impl<'a> Engine<'a> {
         // (top-levels and their children) and emit both triples.
         //
         // The version for a child is the parent's version, propagated
-        // through `iri_rewrites` (see `build_iri_rewrites` phase 2).
+        // through `iri_rewrites` (see `build_iri_rewrites`).
         let mut entries: Vec<(String, String)> = self
             .iri_rewrites
             .iter()
@@ -348,33 +306,8 @@ impl<'a> Engine<'a> {
             }
             let subject = Resource::Iri(Iri::new_unchecked(sbol2_iri.clone()));
 
-            if !self.resolved_types.contains_key(&sbol3_iri)
-                && let Some(backport_type) = self.backport_types.get(&sbol3_iri)
-            {
-                self.output_triples.push(Triple {
-                    subject: subject.clone(),
-                    predicate: Iri::from_static(v3::RDF_TYPE),
-                    object: Term::Resource(Resource::Iri(Iri::new_unchecked(
-                        backport_type.clone(),
-                    ))),
-                });
-            }
-
-            // sbol3namespace: stash the SBOL 3 object's `hasNamespace` on
-            // the SBOL 2 object so sbol-utilities / sbolgraph (and a
-            // future sbol-rs re-upgrade) can reconstruct the SBOL 3
-            // namespace without re-deriving it from the identity IRI.
-            if let Some(namespace) = self.sbol3_namespaces.get(&sbol3_iri) {
-                self.output_triples.push(Triple {
-                    subject: subject.clone(),
-                    predicate: Iri::from_static(v2::BACKPORT_SBOL3_NAMESPACE),
-                    object: Term::Resource(Resource::Iri(Iri::new_unchecked(namespace.clone()))),
-                });
-            }
-
-            // persistentIdentity: prefer the recorded backport value;
-            // otherwise the unversioned SBOL 3 IRI itself is the
-            // persistent identity.
+            // persistentIdentity: the recomputed value for the subject, or
+            // the unversioned SBOL 3 IRI itself when none was derived.
             let persistent = self
                 .persistent_identities
                 .get(&sbol3_iri)
@@ -386,10 +319,9 @@ impl<'a> Engine<'a> {
                 object: Term::Resource(Resource::Iri(Iri::new_unchecked(persistent))),
             });
 
-            // Version: emit when the subject's owning top-level has
-            // either a preserved `backport:sbol2version` or
-            // synthesis enabled via `default_version`; otherwise skip
-            // (SBOL 2 makes `sbol2:version` optional).
+            // Version: emit when the subject's owning top-level carries a
+            // version (from its IRI) or synthesis is enabled via
+            // `default_version`; otherwise skip (SBOL 2 makes it optional).
             if let Some(version) = self.effective_version_for_iri(&sbol3_iri) {
                 self.output_triples.push(Triple {
                     subject,
@@ -441,11 +373,6 @@ impl<'a> Engine<'a> {
         subject_iri: &str,
         object_iri: &str,
     ) -> Option<String> {
-        if let Some(backport_type) = self.backport_types.get(subject_iri)
-            && backport_type_applies_to_sbol3_type(backport_type, object_iri)
-        {
-            return Some(backport_type.clone());
-        }
         if object_iri == v3::SBOL_SUB_COMPONENT_CLASS {
             return Some(self.default_subcomponent_type(subject_iri).to_owned());
         }
@@ -472,6 +399,12 @@ impl<'a> Engine<'a> {
             .and_then(|parent| self.component_sbol2_type(parent));
         match parent_type {
             Some(v2::SBOL2_MODULE_DEFINITION) => {
+                // A SubComponent whose target is a ModuleDefinition, or that
+                // the upgrade marked as Module-derived, restores as a Module;
+                // otherwise a FunctionalComponent.
+                if self.module_origin_subcomponents.contains(subject_iri) {
+                    return v2::SBOL2_MODULE;
+                }
                 let target_type = self
                     .subcomponent_targets
                     .get(subject_iri)
@@ -486,11 +419,6 @@ impl<'a> Engine<'a> {
     }
 
     pub(super) fn component_sbol2_type(&self, component_iri: &str) -> Option<&'static str> {
-        match self.backport_types.get(component_iri).map(String::as_str) {
-            Some(v2::SBOL2_COMPONENT_DEFINITION) => return Some(v2::SBOL2_COMPONENT_DEFINITION),
-            Some(v2::SBOL2_MODULE_DEFINITION) => return Some(v2::SBOL2_MODULE_DEFINITION),
-            _ => {}
-        }
         self.component_splits
             .get(component_iri)
             .map(|split| match split.shape {

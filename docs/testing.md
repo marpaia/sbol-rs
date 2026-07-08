@@ -17,7 +17,7 @@ to add a new case, and how the fixture corpora are produced.
 | Property tests                     | `crates/sbol3/tests/properties.rs`                      | Spec-derived invariants under `proptest`-generated input.                           |
 | SBOL 3 fixtures                    | `crates/sbol3/tests/sbol3_fixtures.rs`                  | All 33 valid SBOL 3 fixtures parse, validate, and round-trip in every RDF format.   |
 | SBOL 2 corpora                     | `crates/sbol2/tests/conformance.rs`, `crates/sbol2/tests/invalid_files.rs` | The four SBOLTestSuite SBOL 2 corpora and the per-rule negative corpus.             |
-| Migration round-trip               | `crates/sbol-convert/tests/*.rs`                        | SBOL 2 → 3 upgrade, SBOL 3 → 2 downgrade, and 2 → 3 → 2 fixed-point over the full corpus. |
+| Migration round-trip               | `crates/sbol-convert/tests/*.rs`                        | SBOL 2 → 3 upgrade, SBOL 3 → 2 downgrade, 2 → 3 → 2 fixed-point over the full corpus, and a differential gate against the SynBioDex/SBOL-Converter reference. |
 | Importer oracles                   | `crates/sbol-fasta/tests/*.rs`, `crates/sbol-genbank/tests/*.rs` | FASTA / GenBank import against SO-mapping and BioPython reference oracles.           |
 | Cross-implementation conformance   | `crates/sbol3/tests/cross_impl.rs`, `crates/sbol3/tests/cross_impl_pysbol3.rs`, `crates/sbol2/tests/cross_impl.rs` | Triple-set equivalence against libSBOLj3 1.0.5.2 and pySBOL3 1.2 (132 combos each), plus SBOL 2 RDF/XML equivalence against libSBOLj 2.4.0. |
 | Catalog freshness gates            | `crates/sbol3/tests/validation_rules.rs`, `crates/sbol3/tests/conformance_report.rs`, `crates/sbol2/tests/conformance_report.rs` | `rules.toml` invariants and `docs/conformance.md` / `docs/sbol2-conformance.md` freshness. |
@@ -119,17 +119,20 @@ explicitly in `invalid_files_deferred.in`). The full grid is rendered into
   against self-snapshots (see
   [`sbol2-upgrade-conformance.md`](sbol2-upgrade-conformance.md)).
 - `downgrade_round_trip.rs` / `downgrade_dual_role.rs` /
-  `downgrade_semantic.rs`: SBOL 3 → SBOL 2, including the dual-role
-  Component split (see
+  `downgrade_semantic.rs`: SBOL 3 → SBOL 2, including the
+  Component → ComponentDefinition / ModuleDefinition classification (see
   [`sbol3-downgrade-conformance.md`](sbol3-downgrade-conformance.md)).
 - `corpus_round_trip.rs`: the SBOL 2 → 3 → 2 fixed-point cycle over the
   **full** SBOLTestSuite SBOL 2 corpora, asserting triple-for-triple
-  equality: **290 fixtures round-trip clean**, 0 drift, 0 parse failures,
-  0 upgrade-unsupported, with a single documented-lossy fixture
-  allowlisted in `SBOL2_bp`.
-- `interop_backport.rs`: verifies the `http://sboltools.org/backport#`
-  namespace against the sbol-utilities reference (`sbol3namespace` /
-  `sbol2_access`) with string parity.
+  equality: **290 fixtures round-trip clean**, 0 unexpected drift, 0 parse
+  failures, 0 upgrade-unsupported, with a single documented-lossy fixture
+  (a non-compliant-identity `SBOL2_nc` case) allowlisted.
+- `cross_impl_reference.rs`: the differential gate against the reference
+  Java converter (SynBioDex/SBOL-Converter) — SBOL 2 → SBOL 3 via the
+  reference vs sbol-rs and SBOL 3 → SBOL 2 vice versa, plus cross-tool
+  round-trips, compared on logical equivalence against committed goldens
+  (no JDK in CI). See
+  [`sbol-converter-differential.md`](sbol-converter-differential.md).
 
 The informational per-fixture report over the committed real-world
 fixtures is [`sbol3-round-trip-report.md`](sbol3-round-trip-report.md),
@@ -156,6 +159,11 @@ See [`fasta-import-conformance.md`](fasta-import-conformance.md) and
 [`genbank-import-conformance.md`](genbank-import-conformance.md).
 
 ## Cross-implementation conformance
+
+This section covers RDF **serialization** equivalence for the `sbol3` / `sbol2`
+crates. The `sbol-convert` **converter** has its own differential against the
+SynBioDex/SBOL-Converter reference — see
+[`sbol-converter-differential.md`](sbol-converter-differential.md).
 
 `tests/fixtures/cross-impl/` holds libSBOLj3 1.0.5.2 reference outputs for
 every SBOLTestSuite SBOL 3 fixture, one file per format:

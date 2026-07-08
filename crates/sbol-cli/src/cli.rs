@@ -378,11 +378,11 @@ pub(crate) struct DowngradeArgs {
     #[arg(long, short = 'o', default_value = "-")]
     pub(crate) output: String,
 
-    /// Version string assigned to top-level objects whose source
-    /// document didn't carry `backport:sbol2version`. Omit to leave
-    /// such subjects unversioned (SBOL 2 makes `sbol2:version`
-    /// optional); pass `--default-version 1` to match the libSBOLj /
-    /// SynBioHub convention of always emitting one.
+    /// Version string assigned to top-level objects whose SBOL 3 IRI
+    /// carried no version segment. Omit to leave such subjects
+    /// unversioned (SBOL 2 makes `sbol2:version` optional); pass
+    /// `--default-version 1` to match the libSBOLj / SynBioHub
+    /// convention of always emitting one.
     #[arg(long, value_name = "VERSION")]
     pub(crate) default_version: Option<String>,
 

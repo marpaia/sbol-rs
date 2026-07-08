@@ -235,35 +235,35 @@ Where conversion code lives:
 | Path | Role |
 |---|---|
 | `crates/sbol-convert/src/upgrade/mod.rs` | SBOL 2 → SBOL 3 engine: preflight, type / predicate rewrites, structural-collapse synthesis (MapsTo → CRef+Constraint, FC.direction → Interface, SA-with-component → SubComponent.location). |
-| `crates/sbol-convert/src/upgrade/identity.rs` | SBOL 2 IRI versioning policy: strips trailing `/digits` segments, derives `hasNamespace` from `persistentIdentity` ÷ `displayId`. |
+| `crates/sbol-convert/src/uri.rs` | Version-in-IRI algebra shared by both directions: `createSBOL3Uri` / `createSBOL2Uri` decomposition and the SO / SBO / EDAM ontology-term spelling maps. |
+| `crates/sbol-convert/src/upgrade/identity.rs` | Upgrade identity map: `prefix/version/displayId` construction and `getLatestUri` resolution of unversioned references. |
 | `crates/sbol-convert/src/upgrade/values.rs` | Forward enumerated-value maps (orientation, encoding, BioPAX → SBO, MapsTo refinement → Constraint restriction). |
-| `crates/sbol-convert/src/downgrade/mod.rs` | SBOL 3 → SBOL 2 engine: type/predicate dispatch, MapsTo and SA reconstruction, FC direction restoration, dual-role Component classifier and split. |
+| `crates/sbol-convert/src/downgrade/mod.rs` | SBOL 3 → SBOL 2 engine: type/predicate dispatch, MapsTo and SA reconstruction, FC direction restoration, Component → ComponentDefinition / ModuleDefinition classification. |
 | `crates/sbol-convert/src/downgrade/values.rs` | Reverse enumerated-value maps. |
-| `crates/sbol-convert/src/sbol2_vocab.rs` | Shared SBOL 2 IRI constants plus the `http://sboltools.org/backport#` namespace constants. |
+| `crates/sbol-convert/src/sbol2_vocab.rs` | Shared SBOL 2 IRI constants plus the `https://sbols.org/backport/2_3#` namespace constants. |
 | `crates/sbol-genbank/src/importer.rs` | GenBank → SBOL 3 importer; emits the same shape the downgrade expects when re-emitting to SBOL 2. |
 | `crates/sbol-fasta/src/importer.rs` | FASTA → SBOL 3 importer; bare sequences + alphabet auto-detection. |
 
-The downgrade engine classifies every SBOL 3 `Component` into one of
-three shapes before emitting:
+The downgrade engine classifies every SBOL 3 `Component` into exactly one
+SBOL 2 class before emitting, following the reference's `isModuleDefinition`
+predicate:
 
-- **`CdOnly`**: emits a single `sbol2:ComponentDefinition`. Triggered
-  by `backport:sbol2type = ComponentDefinition` (round-tripped SBOL 2)
-  or by structural-only signals (`sbol3:type` with a non-functional
-  value, `sbol3:role`, `sbol3:hasSequence`, `sbol3:hasFeature` →
-  `SequenceFeature`, `sbol3:hasConstraint`).
-- **`MdOnly`**: emits a single `sbol2:ModuleDefinition`. Triggered by
-  `backport:sbol2type = ModuleDefinition` or by functional-only signals
-  (`sbol3:hasInteraction`, `sbol3:hasInterface`, `sbol3:hasModel`, the
-  synthesized `SBO:functionalEntity` type marker).
-- **`DualRole`**: emits BOTH a CD and an MD plus a synthesized linking
-  `sbol2:FunctionalComponent`. Triggered by Components carrying both
-  structural and functional signals: the SBOL 2 surface can't express
-  this in a single object.
+- **`MdOnly`**: emits a single `sbol2:ModuleDefinition`. Chosen when the
+  Component has interactions, carries the `SBO:0000241` functional-entity
+  type, or (recursively) contains a sub-component whose `instanceOf` target
+  is itself a ModuleDefinition.
+- **`CdOnly`**: emits a single `sbol2:ComponentDefinition`. Every other
+  Component.
 
-The user-facing story (workflows, the backport namespace, dual-role
-classification rules, known divergences) lives in
-[`conversion.md`](conversion.md). The per-direction conformance gates
-are in [`sbol2-upgrade-conformance.md`](sbol2-upgrade-conformance.md)
+A Component is never split across both classes; the SBOL 2 IRI is the
+Component's own.
+
+The user-facing story (workflows, the backport namespace, the classification
+rule, known divergences) lives in [`conversion.md`](conversion.md). The
+parity gate against the reference converter is in
+[`sbol-converter-differential.md`](sbol-converter-differential.md); the
+per-direction conformance gates are in
+[`sbol2-upgrade-conformance.md`](sbol2-upgrade-conformance.md)
 and [`sbol3-downgrade-conformance.md`](sbol3-downgrade-conformance.md);
 empirical round-trip coverage lives in
 [`sbol3-round-trip-report.md`](sbol3-round-trip-report.md).
