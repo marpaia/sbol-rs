@@ -36,7 +36,6 @@ pub(super) fn next_available_child_iri(
     }
 }
 
-
 pub(super) fn type_set_contains(
     types_by_subject: &HashMap<String, HashSet<String>>,
     subject: &str,

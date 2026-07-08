@@ -42,18 +42,32 @@ use sbol3::{Document, RdfFormat};
 
 /// stem -> SBOL 2 source fixture (relative to tests/fixtures/sbol2/).
 const SBOL2_SOURCES: &[(&str, &str)] = &[
-    ("component_definition_output", "SBOLTestSuite/SBOL2/ComponentDefinitionOutput.xml"),
-    ("module_definition_output", "SBOLTestSuite/SBOL2/ModuleDefinitionOutput.xml"),
-    ("sequence_constraint_output", "SBOLTestSuite/SBOL2/SequenceConstraintOutput.xml"),
-    ("repression_model", "SBOLTestSuite/SBOL2/RepressionModel.xml"),
+    (
+        "component_definition_output",
+        "SBOLTestSuite/SBOL2/ComponentDefinitionOutput.xml",
+    ),
+    (
+        "module_definition_output",
+        "SBOLTestSuite/SBOL2/ModuleDefinitionOutput.xml",
+    ),
+    (
+        "sequence_constraint_output",
+        "SBOLTestSuite/SBOL2/SequenceConstraintOutput.xml",
+    ),
+    (
+        "repression_model",
+        "SBOLTestSuite/SBOL2/RepressionModel.xml",
+    ),
 ];
 
 /// stem -> SBOL 3 source fixture (relative to tests/fixtures/sbol3/).
 const SBOL3_SOURCES: &[(&str, &str)] = &[
-    ("bba_f2620", "SBOLTestSuite/SBOL3/BBa_F2620_PoPSReceiver/BBa_F2620_PoPSReceiver.ttl"),
+    (
+        "bba_f2620",
+        "SBOLTestSuite/SBOL3/BBa_F2620_PoPSReceiver/BBa_F2620_PoPSReceiver.ttl",
+    ),
     ("model", "SBOLTestSuite/SBOL3/entity/model/model.ttl"),
 ];
-
 
 fn fixtures() -> PathBuf {
     let mut p = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -131,7 +145,10 @@ fn logical(lines: &BTreeSet<String>) -> BTreeSet<String> {
         .into_iter()
         .map(|(iri, mut parts)| {
             parts.sort_unstable();
-            (iri.to_owned(), format!("urn:constraint:{}", parts.join("\u{1f}")))
+            (
+                iri.to_owned(),
+                format!("urn:constraint:{}", parts.join("\u{1f}")),
+            )
         })
         .collect();
 
@@ -231,7 +248,12 @@ fn cross_impl_reference_matrix() {
 
         let ref_set = canon(&ref_text, RdfFormat::NTriples);
         let rs_set = canon_graph(rs_doc.rdf_graph());
-        let n = report(&format!("2->3 agreement: {stem}"), &ref_set, &rs_set, logical);
+        let n = report(
+            &format!("2->3 agreement: {stem}"),
+            &ref_set,
+            &rs_set,
+            logical,
+        );
         if n > 0 {
             over_budget.push((format!("2->3 agreement: {stem}"), n));
         }
@@ -243,7 +265,12 @@ fn cross_impl_reference_matrix() {
         let rs2_nt = rs2.write(RdfFormat::NTriples).expect("write nt");
         let orig_set = canon(&src, format_of(rel));
         let label = format!("ref-up->rs-down vs original: {stem}");
-        let n = report(&label, &orig_set, &canon(&rs2_nt, RdfFormat::NTriples), logical_roundtrip);
+        let n = report(
+            &label,
+            &orig_set,
+            &canon(&rs2_nt, RdfFormat::NTriples),
+            logical_roundtrip,
+        );
         if n > 0 {
             over_budget.push((label, n));
         }
@@ -276,8 +303,8 @@ fn cross_impl_reference_matrix() {
         compared += 1;
 
         // Cross-tool (reported, not gated): reference 3->2, sbol-rs 2->3, vs original.
-        let (rs3_doc, _) = sbol_convert::upgrade_from_sbol2(&ref_text, RdfFormat::RdfXml)
-            .expect("upgrade ref2");
+        let (rs3_doc, _) =
+            sbol_convert::upgrade_from_sbol2(&ref_text, RdfFormat::RdfXml).expect("upgrade ref2");
         report(
             &format!("ref-down->rs-up vs original: {stem}"),
             &canon(&src, RdfFormat::Turtle),

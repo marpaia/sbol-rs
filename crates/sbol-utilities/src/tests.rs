@@ -70,6 +70,43 @@ fn engineered_region_orders_parts_and_copies_roles() {
 }
 
 #[test]
+fn engineered_region_places_detached_feature_as_configured() {
+    let mut d = Design::new(NS).unwrap();
+    let plac = d.promoter("pLac", "caatacg").add();
+    let tetr = d.cds("tetR", "atggtg").add();
+
+    // A detached feature instancing the promoter but carrying a CDS role of
+    // its own; the region keeps the feature's config rather than copying the
+    // instantiated component's roles.
+    let custom = d
+        .detached_sub_component("custom")
+        .instance_of(plac)
+        .role(SO_CDS)
+        .add();
+
+    let parts: [Part; 3] = [plac.into(), custom.into(), tetr.into()];
+    d.engineered_region("tu", parts).add();
+
+    let doc = d.finish().unwrap();
+
+    let region = doc
+        .components()
+        .find(|c| c.display_id() == Some("tu"))
+        .unwrap();
+    assert_eq!(region.features.len(), 3);
+    assert_eq!(region.constraints.len(), 2); // 3 features -> 2 meets
+
+    let custom_sub = doc
+        .sub_components()
+        .find(|s| s.display_id() == Some("custom"))
+        .unwrap();
+    assert_eq!(custom_sub.feature.roles, vec![SO_CDS]);
+    assert!(custom_sub.instance_of.is_some());
+
+    assert!(doc.check().is_ok());
+}
+
+#[test]
 fn part_without_roles_is_reported() {
     let mut d = Design::new(NS).unwrap();
     // A bare component with no role — the DNAplotlib precondition should fire.

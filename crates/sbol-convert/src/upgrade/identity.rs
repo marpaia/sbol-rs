@@ -301,9 +301,11 @@ fn owning_top_level(
 fn child_relative_path(iri: &str, persistent_identity: &str) -> Option<String> {
     let rest = iri.strip_prefix(&format!("{persistent_identity}/"))?;
     match uri::version_sbol2(iri) {
-        Some(v) if !v.is_empty() => {
-            Some(rest.strip_suffix(&format!("/{v}")).unwrap_or(rest).to_owned())
-        }
+        Some(v) if !v.is_empty() => Some(
+            rest.strip_suffix(&format!("/{v}"))
+                .unwrap_or(rest)
+                .to_owned(),
+        ),
         _ => Some(rest.to_owned()),
     }
 }
@@ -340,4 +342,3 @@ fn is_sbol2_identity_reference_predicate(predicate: &str) -> bool {
             | v2::SBOL2_EXPERIMENTAL_DATA_PROP
     )
 }
-

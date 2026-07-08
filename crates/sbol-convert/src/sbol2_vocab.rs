@@ -200,4 +200,3 @@ pub(crate) const SBOL2_SAMPLE: &str = "http://sbols.org/v2#sample";
 // SBOL 2 Component / FunctionalComponent roleIntegration values.
 pub(crate) const SBOL2_MERGE_ROLES: &str = "http://sbols.org/v2#mergeRoles";
 pub(crate) const SBOL2_OVERRIDE_ROLES: &str = "http://sbols.org/v2#overrideRoles";
-

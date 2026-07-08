@@ -96,9 +96,30 @@ pub(crate) fn feature_key_to_so(kind: &str) -> Option<&'static str> {
         .map(|(_, iri)| *iri)
 }
 
+/// Returns the canonical GenBank feature key for a Sequence Ontology
+/// IRI, or `None` if no curated key carries that term. This is the
+/// inverse of [`feature_key_to_so`], used when writing GenBank.
+///
+/// When several GenBank keys share a Sequence Ontology term, the first
+/// entry in [`GENBANK_SO_MAP`] wins, which is the canonical INSDC
+/// spelling: `SO:0000139` yields `RBS` rather than
+/// `ribosome_binding_site`, `SO:0000553` yields `polyA_site` rather than
+/// `polyA_secondary_structure`, and `SO:0000413` yields `misc_difference`
+/// rather than `old_sequence`.
+pub(crate) fn so_to_feature_key(iri: &str) -> Option<&'static str> {
+    GENBANK_SO_MAP
+        .iter()
+        .find(|(_, so)| *so == iri)
+        .map(|(key, _)| *key)
+}
+
 /// `SO:0000110`, the umbrella "sequence_feature" term used as a
 /// fallback when a GenBank feature key isn't in our curated mapping.
 pub(crate) const GENERIC_FEATURE: &str = "https://identifiers.org/SO:0000110";
+
+/// The GenBank feature key emitted when a SequenceFeature carries no
+/// role that maps back to a curated GenBank key.
+pub(crate) const GENERIC_GENBANK_KEY: &str = "misc_feature";
 
 #[cfg(test)]
 mod parity_tests {

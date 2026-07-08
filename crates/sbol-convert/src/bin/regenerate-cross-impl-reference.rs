@@ -49,10 +49,7 @@ const SBOL3_FIXTURES: &[(&str, &str)] = &[
         "bba_f2620",
         "SBOLTestSuite/SBOL3/BBa_F2620_PoPSReceiver/BBa_F2620_PoPSReceiver.ttl",
     ),
-    (
-        "model",
-        "SBOLTestSuite/SBOL3/entity/model/model.ttl",
-    ),
+    ("model", "SBOLTestSuite/SBOL3/entity/model/model.ttl"),
 ];
 
 fn main() -> ExitCode {
@@ -91,7 +88,10 @@ fn main() -> ExitCode {
     for (stem, rel) in SBOL3_FIXTURES {
         let src = sbol3_root.join(rel);
         if !src.exists() {
-            eprintln!("skip {stem}: SBOL 3 fixture not present ({})", src.display());
+            eprintln!(
+                "skip {stem}: SBOL 3 fixture not present ({})",
+                src.display()
+            );
             continue;
         }
         let out = expected.join(format!("{stem}.sbolconverter.to-sbol2.rdf"));
@@ -107,7 +107,12 @@ fn main() -> ExitCode {
     ExitCode::SUCCESS
 }
 
-fn run_reference(source: &Path, direction: &str, format: &str, output: &Path) -> std::io::Result<()> {
+fn run_reference(
+    source: &Path,
+    direction: &str,
+    format: &str,
+    output: &Path,
+) -> std::io::Result<()> {
     let parent = source
         .parent()
         .ok_or_else(|| std::io::Error::other("source has no parent"))?;

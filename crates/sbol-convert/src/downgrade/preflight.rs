@@ -375,7 +375,10 @@ impl<'a> Engine<'a> {
                 .cloned()
                 .unwrap_or_else(|| self.rewrite_iri(&parent_cd).to_owned());
             let sa_pid = format!("{parent_pid}/{sa_display_id}");
-            self.sa_collapses.get_mut(&subcomp).unwrap().sa_iri_unversioned = sa_pid.clone();
+            self.sa_collapses
+                .get_mut(&subcomp)
+                .unwrap()
+                .sa_iri_unversioned = sa_pid.clone();
 
             let version = self.effective_version_for_top_level(&parent_component);
             for loc in locations {
