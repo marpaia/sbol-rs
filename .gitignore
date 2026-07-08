@@ -15,3 +15,6 @@ __pycache__/
 /fuzz/target/
 /fuzz/corpus/
 /fuzz/artifacts/
+
+# sbol3-py is excluded from the workspace and builds its own target dir
+/crates/sbol-py/target/

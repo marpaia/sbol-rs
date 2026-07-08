@@ -9,6 +9,14 @@ Entry points to the project's documentation, organized by topic.
   pipeline, conversion machinery, key decision points. **Start here
   if you're new to the codebase.**
 
+## Python SDK
+
+- **[Python SDK (`sbol`)](python.md)**: the `crates/sbol-py` PyO3
+  binding — one package for SBOL 2, SBOL 3, and conversion between
+  them, backed by the Rust core (8–2300× faster than pySBOL3). Install,
+  usage, the develop/build/test workflow, and the benchmark. API
+  reference lives in the [crate README](../crates/sbol-py/README.md).
+
 ## Validation
 
 `sbol-rs` validates both SBOL versions through one shared

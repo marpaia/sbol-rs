@@ -1,0 +1,21 @@
+[package]
+name = "sbol-py"
+version = "0.2.1"
+edition = "2021"
+rust-version = "1.93"
+description = "Idiomatic Python bindings for sbol-rs, built on the ergonomic Design arena."
+license = "MIT OR Apache-2.0"
+publish = false
+
+[lib]
+name = "sbol"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.23", features = ["extension-module"] }
+sbol2 = { path = "../sbol2" }
+sbol3 = { path = "../sbol3" }
+sbol-convert = { path = "../sbol-convert" }
+sbol-utilities = { path = "../sbol-utilities" }
+sbol-fasta = { path = "../sbol-fasta" }
+sbol-genbank = { path = "../sbol-genbank" }
