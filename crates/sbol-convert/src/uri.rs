@@ -47,7 +47,11 @@ pub(crate) fn version_sbol3(uri: &str) -> &str {
         return "";
     };
     let version = &uri[second_last + 1..last];
-    if is_version_valid(version) { version } else { "" }
+    if is_version_valid(version) {
+        version
+    } else {
+        ""
+    }
 }
 
 /// The namespace/prefix: the IRI minus the displayId, and minus the version
@@ -300,7 +304,10 @@ mod tests {
     #[test]
     fn sbol2_decomposition_versioned() {
         let uri = "https://synbiohub.org/public/igem/BBa_E0040/1";
-        assert_eq!(uri_prefix_sbol2(uri), Some("https://synbiohub.org/public/igem"));
+        assert_eq!(
+            uri_prefix_sbol2(uri),
+            Some("https://synbiohub.org/public/igem")
+        );
         assert_eq!(display_id_sbol2(uri), Some("BBa_E0040"));
         assert_eq!(version_sbol2(uri), Some("1"));
     }

@@ -1244,6 +1244,7 @@ name = "sbol-utilities"
 version = "0.2.1"
 dependencies = [
  "sbol3",
+ "thiserror",
 ]
 
 [[package]]

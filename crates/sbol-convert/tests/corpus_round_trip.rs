@@ -53,15 +53,42 @@ const ALLOWLIST: &[(&str, &str)] = &[
     ("igem1.xml", "non-compliant SBOL 2 identity shape"),
     ("igem2.xml", "non-compliant SBOL 2 identity shape"),
     ("igem3.xml", "non-compliant SBOL 2 identity shape"),
-    ("pIKE_pTAK_cassettes_2_orig.xml", "non-compliant SBOL 2 identity shape"),
-    ("pIKE_pTAK_cassettes_orig.xml", "non-compliant SBOL 2 identity shape"),
-    ("pIKE_pTAK_left_right_cassettes_orig.xml", "non-compliant SBOL 2 identity shape"),
-    ("pIKE_pTAK_toggle_switches_orig.xml", "non-compliant SBOL 2: fragment-# IRI yields invalid nested IRI on downgrade"),
-    ("partial_pIKE_left_cassette_orig.xml", "non-compliant SBOL 2 identity shape"),
-    ("partial_pIKE_right_casette_orig.xml", "non-compliant SBOL 2 identity shape"),
-    ("partial_pIKE_right_cassette_orig.xml", "non-compliant SBOL 2 identity shape"),
-    ("partial_pTAK_left_cassette_orig.xml", "non-compliant SBOL 2 identity shape"),
-    ("partial_pTAK_right_cassette_orig.xml", "non-compliant SBOL 2 identity shape"),
+    (
+        "pIKE_pTAK_cassettes_2_orig.xml",
+        "non-compliant SBOL 2 identity shape",
+    ),
+    (
+        "pIKE_pTAK_cassettes_orig.xml",
+        "non-compliant SBOL 2 identity shape",
+    ),
+    (
+        "pIKE_pTAK_left_right_cassettes_orig.xml",
+        "non-compliant SBOL 2 identity shape",
+    ),
+    (
+        "pIKE_pTAK_toggle_switches_orig.xml",
+        "non-compliant SBOL 2: fragment-# IRI yields invalid nested IRI on downgrade",
+    ),
+    (
+        "partial_pIKE_left_cassette_orig.xml",
+        "non-compliant SBOL 2 identity shape",
+    ),
+    (
+        "partial_pIKE_right_casette_orig.xml",
+        "non-compliant SBOL 2 identity shape",
+    ),
+    (
+        "partial_pIKE_right_cassette_orig.xml",
+        "non-compliant SBOL 2 identity shape",
+    ),
+    (
+        "partial_pTAK_left_cassette_orig.xml",
+        "non-compliant SBOL 2 identity shape",
+    ),
+    (
+        "partial_pTAK_right_cassette_orig.xml",
+        "non-compliant SBOL 2 identity shape",
+    ),
 ];
 
 fn is_allowlisted(name: &str) -> bool {

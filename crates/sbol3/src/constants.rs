@@ -66,6 +66,12 @@ pub const SO_LINEAR: Iri = Iri::from_static("https://identifiers.org/SO:0000987"
 // === EDAM: Sequence.encoding values ===
 
 pub const EDAM_IUPAC_DNA: Iri = Iri::from_static("https://identifiers.org/edam:format_1207");
+/// IUPAC nucleic-acid encoding for RNA sequences. Identical to
+/// [`EDAM_IUPAC_DNA`]: SBOL distinguishes RNA from DNA by the `Component`
+/// type (`SBO_RNA` vs `SBO_DNA`), not by the sequence encoding, so both share
+/// EDAM `format_1207`. pySBOL3 likewise defines `IUPAC_RNA_ENCODING` equal to
+/// `IUPAC_DNA_ENCODING`.
+pub const EDAM_IUPAC_RNA: Iri = Iri::from_static("https://identifiers.org/edam:format_1207");
 pub const EDAM_IUPAC_PROTEIN: Iri = Iri::from_static("https://identifiers.org/edam:format_1208");
 pub const EDAM_SMILES: Iri = Iri::from_static("https://identifiers.org/edam:format_1196");
 pub const EDAM_INCHI: Iri = Iri::from_static("https://identifiers.org/edam:format_1197");

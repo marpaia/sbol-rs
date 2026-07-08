@@ -601,10 +601,7 @@ fn next_available_child_iri(
 /// counter skips names already taken — including any real SequenceConstraint
 /// on the same Component — matching the reference converter's per-Component
 /// `createConstraint` numbering.
-fn next_available_constraint_iri(
-    top_level: &str,
-    used: &mut HashSet<String>,
-) -> (String, String) {
+fn next_available_constraint_iri(top_level: &str, used: &mut HashSet<String>) -> (String, String) {
     let mut counter: usize = 1;
     loop {
         let display_id = format!("Constraint{counter}");

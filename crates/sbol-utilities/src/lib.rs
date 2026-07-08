@@ -23,19 +23,33 @@ use sbol3::constants::{SO_CDS, SO_ENGINEERED_REGION, SO_PROMOTER, SO_RBS, SO_TER
 use sbol3::design::{ComponentId, Design, FeatureId};
 use sbol3::prelude::SbolIdentified;
 
+pub mod combinatorial;
+pub mod compute_sequence;
+pub mod verbs;
+
+pub use combinatorial::{ExpandError, expand_derivation, expand_derivations};
+pub use compute_sequence::{ComputeSequenceError, compute_all_sequences, compute_sequence};
+pub use verbs::{FunctionalComponentDraft, MoleculeVerbs};
+
 /// Common imports for authoring designs with the biology verbs.
 pub mod prelude {
-    pub use crate::{ComponentVerbs, Part, PartDraft, RegionDraft};
+    pub use crate::combinatorial::{expand_derivation, expand_derivations};
+    pub use crate::compute_sequence::{compute_all_sequences, compute_sequence};
+    pub use crate::{ComponentVerbs, FunctionalComponentDraft, Molecule, MoleculeVerbs};
+    pub use crate::{Part, PartDraft, RegionDraft};
 }
 
 /// A member of an [`engineered_region`](ComponentVerbs::engineered_region):
 /// either a `Component` (wrapped in a fresh sub-component with its roles
-/// copied) or an already-built feature.
+/// copied) or a detached feature (used as configured). This mirrors the Python
+/// `Union[Component, SubComponent]`.
 #[derive(Clone, Copy, Debug)]
 pub enum Part {
-    /// A component to instantiate as a new sub-component.
+    /// A component to instantiate as a new sub-component, copying its roles.
     Component(ComponentId),
-    /// An existing feature, used as-is.
+    /// A detached feature (from
+    /// [`Design::detached_sub_component`](sbol3::design::Design::detached_sub_component)),
+    /// placed under the region as configured.
     Feature(FeatureId),
 }
 
@@ -49,6 +63,19 @@ impl From<FeatureId> for Part {
     fn from(value: FeatureId) -> Self {
         Part::Feature(value)
     }
+}
+
+/// The molecule type of a biological part. It sets both the `Component` type
+/// (`SBO_DNA` / `SBO_RNA` / `SBO_PROTEIN`) and the matching sequence encoding,
+/// so a part verb states its chemistry once.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Molecule {
+    /// DNA: `SBO_DNA` component type, IUPAC nucleic-acid sequence encoding.
+    Dna,
+    /// RNA: `SBO_RNA` component type, IUPAC nucleic-acid sequence encoding.
+    Rna,
+    /// Protein: `SBO_PROTEIN` component type, IUPAC amino-acid sequence encoding.
+    Protein,
 }
 
 /// Biology-first construction verbs, implemented on [`Design`].
@@ -72,19 +99,19 @@ pub trait ComponentVerbs {
 
 impl ComponentVerbs for Design {
     fn promoter<'d>(&'d mut self, display_id: &str, elements: &str) -> PartDraft<'d> {
-        PartDraft::new(self, display_id, SO_PROMOTER, elements)
+        PartDraft::new(self, display_id, SO_PROMOTER, Molecule::Dna, elements)
     }
 
     fn rbs<'d>(&'d mut self, display_id: &str, elements: &str) -> PartDraft<'d> {
-        PartDraft::new(self, display_id, SO_RBS, elements)
+        PartDraft::new(self, display_id, SO_RBS, Molecule::Dna, elements)
     }
 
     fn cds<'d>(&'d mut self, display_id: &str, elements: &str) -> PartDraft<'d> {
-        PartDraft::new(self, display_id, SO_CDS, elements)
+        PartDraft::new(self, display_id, SO_CDS, Molecule::Dna, elements)
     }
 
     fn terminator<'d>(&'d mut self, display_id: &str, elements: &str) -> PartDraft<'d> {
-        PartDraft::new(self, display_id, SO_TERMINATOR, elements)
+        PartDraft::new(self, display_id, SO_TERMINATOR, Molecule::Dna, elements)
     }
 
     fn engineered_region<'d, I>(&'d mut self, display_id: &str, parts: I) -> RegionDraft<'d>
@@ -110,17 +137,25 @@ pub struct PartDraft<'d> {
     design: &'d mut Design,
     display_id: String,
     role: Iri,
+    molecule: Molecule,
     elements: String,
     name: Option<String>,
     description: Option<String>,
 }
 
 impl<'d> PartDraft<'d> {
-    fn new(design: &'d mut Design, display_id: &str, role: Iri, elements: &str) -> Self {
+    pub(crate) fn new(
+        design: &'d mut Design,
+        display_id: &str,
+        role: Iri,
+        molecule: Molecule,
+        elements: &str,
+    ) -> Self {
         Self {
             design,
             display_id: display_id.to_string(),
             role,
+            molecule,
             elements: elements.to_string(),
             name: None,
             description: None,
@@ -145,6 +180,7 @@ impl<'d> PartDraft<'d> {
             design,
             display_id,
             role,
+            molecule,
             elements,
             name,
             description,
@@ -152,15 +188,21 @@ impl<'d> PartDraft<'d> {
 
         let sequence = design
             .sequence(&format!("{display_id}_seq"))
-            .elements(elements)
-            .dna()
-            .add();
+            .elements(elements);
+        let sequence = match molecule {
+            Molecule::Dna => sequence.dna(),
+            Molecule::Rna => sequence.rna(),
+            Molecule::Protein => sequence.protein(),
+        }
+        .add();
 
-        let mut component = design
-            .component(&display_id)
-            .dna()
-            .role(role)
-            .sequence(sequence);
+        let component = design.component(&display_id);
+        let component = match molecule {
+            Molecule::Dna => component.dna(),
+            Molecule::Rna => component.rna(),
+            Molecule::Protein => component.protein(),
+        };
+        let mut component = component.role(role).sequence(sequence);
         if let Some(name) = name {
             component = component.name(name);
         }
@@ -244,11 +286,12 @@ impl RegionDraft<'_> {
                     }
                     features.push(sub.add());
                 }
-                Part::Feature(_) => {
-                    design.report(format!(
-                        "engineered_region `{display_id}`: passing an existing feature is not \
-                         yet supported; pass the Component instead"
-                    ));
+                Part::Feature(feature) => {
+                    // A pre-built (detached) feature is placed under the region
+                    // as configured — its own roles and roleIntegration are
+                    // kept, not copied from a component. Mirrors the Python
+                    // `add_feature`, which appends a supplied SubComponent as-is.
+                    features.push(design.place_feature(region, feature));
                 }
             }
         }

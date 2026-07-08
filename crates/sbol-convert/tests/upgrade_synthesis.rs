@@ -3,9 +3,6 @@
 
 mod common;
 
-use common::upgrade::*;
-
-use sbol_convert::UpgradeWarning;
 use sbol3::RdfFormat;
 
 #[test]

@@ -89,11 +89,12 @@ impl<'a> Engine<'a> {
                 let new_subject = Resource::Iri(Iri::new_unchecked(
                     self.identity.rewrite_iri(&target_subcomponent).to_owned(),
                 ));
-                let sa_identity =
-                    Resource::Iri(Iri::new_unchecked(subject_iri.to_owned()));
+                let sa_identity = Resource::Iri(Iri::new_unchecked(subject_iri.to_owned()));
                 self.output_triples.push(Triple {
                     subject: new_subject.clone(),
-                    predicate: Iri::from_static(v2::BACKPORT_SBOL2_ORIGINAL_SEQUENCE_ANNOTATION_URI),
+                    predicate: Iri::from_static(
+                        v2::BACKPORT_SBOL2_ORIGINAL_SEQUENCE_ANNOTATION_URI,
+                    ),
                     object: Term::Resource(sa_identity.clone()),
                 });
                 // The SubComponent also records the SequenceAnnotation as an
@@ -221,7 +222,6 @@ impl<'a> Engine<'a> {
                 });
             }
         }
-
 
         self.infer_location_sequences();
         self.synthesize_mapsto_decomposition();
@@ -428,7 +428,9 @@ impl<'a> Engine<'a> {
             self.output_triples.push(Triple {
                 subject: cref_resource.clone(),
                 predicate: Iri::from_static(v2::BACKPORT_SBOL2_ORIGINAL_URI),
-                object: Term::Resource(Resource::Iri(Iri::new_unchecked(original_mapsto.to_owned()))),
+                object: Term::Resource(Resource::Iri(Iri::new_unchecked(
+                    original_mapsto.to_owned(),
+                ))),
             });
         }
 

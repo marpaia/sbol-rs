@@ -1,4 +1,4 @@
-//! Convert FASTA records to SBOL 3 documents.
+//! Convert between FASTA records and SBOL 3 documents.
 //!
 //! FASTA is the lowest-common-denominator sequence exchange format.
 //! NCBI BLAST, the UniProt downloads, every genome project, and most
@@ -32,8 +32,10 @@
 #![forbid(unsafe_code)]
 
 mod alphabet;
+mod exporter;
 mod importer;
 mod parser;
 
 pub use alphabet::Alphabet;
+pub use exporter::{ExportError, ExportReport, FastaExporter};
 pub use importer::{FastaImporter, ImportError, ImportReport, ImportWarning};

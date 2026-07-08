@@ -5,7 +5,7 @@ mod common;
 
 use common::downgrade::*;
 
-use sbol3::{Document, RdfFormat};
+use sbol3::RdfFormat;
 
 /// The killer test: take an SBOL 2 fixture, upgrade to SBOL 3,
 /// downgrade back to SBOL 2, and diff against the original. Anything
@@ -73,12 +73,18 @@ fn normalize_biopax(line: &str) -> String {
 /// spelling between models, so normalizing both sides lets the diff ignore a
 /// difference that is semantically identical.
 fn normalize_ontology(line: &str) -> String {
-    line.replace("http://identifiers.org/so/SO:", "https://identifiers.org/SO:")
-        .replace(
-            "http://identifiers.org/biomodels.sbo/SBO:",
-            "https://identifiers.org/biomodels.sbo/SBO:",
-        )
-        .replace("http://identifiers.org/edam/", "https://identifiers.org/edam:")
+    line.replace(
+        "http://identifiers.org/so/SO:",
+        "https://identifiers.org/SO:",
+    )
+    .replace(
+        "http://identifiers.org/biomodels.sbo/SBO:",
+        "https://identifiers.org/biomodels.sbo/SBO:",
+    )
+    .replace(
+        "http://identifiers.org/edam/",
+        "https://identifiers.org/edam:",
+    )
 }
 
 /// Drops the `https://sbols.org/backport/2_3#` provenance annotations. These

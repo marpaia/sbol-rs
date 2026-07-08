@@ -26,12 +26,12 @@
 use std::fmt;
 
 use crate::constants::{
-    EDAM_IUPAC_DNA, EDAM_IUPAC_PROTEIN, RESTRICTION_MEETS, ROLE_INTEGRATION_MERGE_ROLES, SBO_DNA,
-    SBO_PROTEIN, SBO_RNA,
+    EDAM_IUPAC_DNA, EDAM_IUPAC_PROTEIN, EDAM_IUPAC_RNA, RESTRICTION_MEETS,
+    ROLE_INTEGRATION_MERGE_ROLES, SBO_DNA, SBO_PROTEIN, SBO_RNA,
 };
 use crate::{
-    BuildError, Component, Constraint, Document, Iri, Namespace, Resource, SbolObject, Sequence,
-    SubComponent,
+    BuildError, Component, Constraint, Document, Iri, Namespace, Resource, SbolObject,
+    SbolTopLevel, Sequence, SubComponent,
 };
 
 // ---------------------------------------------------------------------------
@@ -133,12 +133,28 @@ impl std::error::Error for DesignError {}
 // ---------------------------------------------------------------------------
 
 /// A mutable arena for composing SBOL objects, lowered to an immutable
-/// [`Document`] by [`finish`](Design::finish). Each slot is `None` if that
-/// object failed to build (with the reason recorded in `problems`).
+/// [`Document`] by [`finish`](Design::finish). Each handle indexes one slot.
 pub struct Design {
     namespace: Namespace,
-    slots: Vec<Option<SbolObject>>,
+    slots: Vec<Slot>,
     problems: Vec<DesignProblem>,
+}
+
+/// One entry in a [`Design`]'s arena. `Object` is kept inline (the arena holds
+/// one slot per object, dominated by the built-object case); boxing it to even
+/// out variant sizes would add an allocation on the common path.
+#[allow(clippy::large_enum_variant)]
+enum Slot {
+    /// A built object, ready to be lowered into the document.
+    Object(SbolObject),
+    /// A detached sub-component (created by
+    /// [`Design::detached_sub_component`]) whose parent is not yet known.
+    /// [`Design::place_feature`] turns it into a built [`SubComponent`] under a
+    /// parent; if it is never placed it is dropped at [`finish`](Design::finish).
+    Pending(SubComponentSpec),
+    /// An object that failed to build, or a placeholder for a dangling
+    /// reference; the reason is recorded in `problems`.
+    Failed,
 }
 
 impl Design {
@@ -156,6 +172,57 @@ impl Design {
             slots: Vec::new(),
             problems: Vec::new(),
         })
+    }
+
+    /// Loads an existing [`Document`] into a fresh arena so it can be
+    /// inspected and re-emitted, or extended with more objects. Every object
+    /// keeps its original identity; the arena's namespace (used for minting
+    /// identities of objects added afterward) is inferred from the document's
+    /// top-level objects.
+    ///
+    /// This is a read/append path: objects come in intact and
+    /// [`finish`](Self::finish) writes them back out unchanged. The arena does
+    /// not yet support mutating or removing an imported object; use
+    /// [`component_id`](Self::component_id) to obtain a handle for an imported
+    /// component and add children under it.
+    ///
+    /// Fails if the document has no namespaced top-level object to root
+    /// subsequently-added objects under.
+    pub fn from_document(document: &Document) -> Result<Self, DesignError> {
+        let namespace = imported_namespace(document).ok_or_else(|| DesignError {
+            problems: vec![DesignProblem::Custom(
+                "cannot import a document with no namespaced top-level object; \
+                 the arena needs a namespace to root any objects added later"
+                    .to_string(),
+            )],
+        })?;
+        let slots = document
+            .typed_objects()
+            .iter()
+            .cloned()
+            .map(Slot::Object)
+            .collect();
+        Ok(Self {
+            namespace,
+            slots,
+            problems: Vec::new(),
+        })
+    }
+
+    /// Returns a handle to an imported (or built) `Component` by its identity,
+    /// so children can be added under it after [`from_document`](Self::from_document).
+    pub fn component_id(&self, identity: &Resource) -> Option<ComponentId> {
+        self.slots
+            .iter()
+            .enumerate()
+            .find_map(|(index, slot)| match slot {
+                Slot::Object(SbolObject::Component(component))
+                    if &component.identity == identity =>
+                {
+                    Some(ComponentId(index))
+                }
+                _ => None,
+            })
     }
 
     /// Begins a top-level `Component`. Terminate with
@@ -193,7 +260,28 @@ impl Design {
     ) -> SubComponentDraft<'_> {
         SubComponentDraft {
             design: self,
-            parent,
+            parent: Some(parent),
+            display_id: display_id.to_string(),
+            instance_of: None,
+            roles: Vec::new(),
+            role_integration: None,
+            name: None,
+            description: None,
+        }
+    }
+
+    /// Begins a `SubComponent` with no parent yet. Its `.add()` registers a
+    /// *detached* feature, returning a [`FeatureId`] that can later be placed
+    /// under a parent with [`place_feature`](Self::place_feature) (or handed to
+    /// an extension verb that does so). This is the arena's analogue of
+    /// building a `SubComponent` object before appending it to a component, and
+    /// is how features carrying their own roles/`roleIntegration` are supplied
+    /// to helpers like `engineered_region`. A detached feature that is never
+    /// placed is dropped at [`finish`](Self::finish).
+    pub fn detached_sub_component(&mut self, display_id: &str) -> SubComponentDraft<'_> {
+        SubComponentDraft {
+            design: self,
+            parent: None,
             display_id: display_id.to_string(),
             instance_of: None,
             roles: Vec::new(),
@@ -256,7 +344,7 @@ impl Design {
     /// roles onto a sub-component).
     pub fn resolve_component(&self, component: ComponentId) -> Option<&Component> {
         match &self.slots[component.0] {
-            Some(SbolObject::Component(component)) => Some(component),
+            Slot::Object(SbolObject::Component(component)) => Some(component),
             _ => None,
         }
     }
@@ -268,6 +356,30 @@ impl Design {
         self.problems.push(DesignProblem::Custom(message.into()));
     }
 
+    /// Places a detached feature (from [`detached_sub_component`](Self::detached_sub_component))
+    /// under `parent`, building it and returning a handle to the built
+    /// sub-component. The feature is used as configured — its own roles and
+    /// `roleIntegration` are kept, not copied from the instantiated component.
+    ///
+    /// Reports a problem (and returns the original handle) if `feature` is not
+    /// a detached feature — e.g. it already belongs to a parent or failed to
+    /// build. Extension layers use this to adopt caller-supplied features.
+    pub fn place_feature(&mut self, parent: ComponentId, feature: FeatureId) -> FeatureId {
+        let spec = match std::mem::replace(&mut self.slots[feature.0], Slot::Failed) {
+            Slot::Pending(spec) => spec,
+            other => {
+                // Restore the slot; the handle was not a detached feature.
+                self.slots[feature.0] = other;
+                self.report(
+                    "place_feature expects a detached feature from \
+                     `detached_sub_component`; the handle is already placed or invalid",
+                );
+                return feature;
+            }
+        };
+        self.finish_sub_component(parent, spec)
+    }
+
     /// Lowers the arena to an immutable [`Document`]. Returns every recorded
     /// problem if the design is not well-formed. Does not validate the result;
     /// call [`Document::check`] or [`Document::check_complete`] for that.
@@ -277,7 +389,14 @@ impl Design {
                 problems: self.problems,
             });
         }
-        let objects = self.slots.into_iter().flatten().collect();
+        let objects = self
+            .slots
+            .into_iter()
+            .filter_map(|slot| match slot {
+                Slot::Object(object) => Some(object),
+                Slot::Pending(_) | Slot::Failed => None,
+            })
+            .collect();
         Document::from_objects(objects).map_err(|source| DesignError {
             problems: vec![DesignProblem::Assembly(source)],
         })
@@ -286,45 +405,51 @@ impl Design {
     // -- internal --------------------------------------------------------
 
     fn push(&mut self, object: SbolObject) -> usize {
-        self.slots.push(Some(object));
+        self.slots.push(Slot::Object(object));
+        self.slots.len() - 1
+    }
+
+    fn push_pending(&mut self, spec: SubComponentSpec) -> usize {
+        self.slots.push(Slot::Pending(spec));
         self.slots.len() - 1
     }
 
     fn push_failed(&mut self, display_id: String, source: BuildError) -> usize {
         self.problems
             .push(DesignProblem::Build { display_id, source });
-        self.slots.push(None);
+        self.slots.push(Slot::Failed);
         self.slots.len() - 1
     }
 
     fn push_dangling(&mut self, display_id: String) -> usize {
         self.problems
             .push(DesignProblem::DanglingReference { display_id });
-        self.slots.push(None);
+        self.slots.push(Slot::Failed);
         self.slots.len() - 1
     }
 
     fn identity_of(&self, index: usize) -> Option<Resource> {
-        self.slots[index]
-            .as_ref()
-            .map(|object| object.identity().clone())
+        match &self.slots[index] {
+            Slot::Object(object) => Some(object.identity().clone()),
+            Slot::Pending(_) | Slot::Failed => None,
+        }
     }
 
     fn parent_constraint_count(&self, parent: ComponentId) -> usize {
         match &self.slots[parent.0] {
-            Some(SbolObject::Component(component)) => component.constraints.len(),
+            Slot::Object(SbolObject::Component(component)) => component.constraints.len(),
             _ => 0,
         }
     }
 
     fn attach_feature(&mut self, parent: ComponentId, child: Resource) {
-        if let Some(SbolObject::Component(component)) = &mut self.slots[parent.0] {
+        if let Slot::Object(SbolObject::Component(component)) = &mut self.slots[parent.0] {
             component.features.push(child);
         }
     }
 
     fn attach_constraint(&mut self, parent: ComponentId, child: Resource) {
-        if let Some(SbolObject::Component(component)) = &mut self.slots[parent.0] {
+        if let Slot::Object(SbolObject::Component(component)) = &mut self.slots[parent.0] {
             component.constraints.push(child);
         }
     }
@@ -548,10 +673,11 @@ impl SequenceDraft<'_> {
         self
     }
 
-    /// Encodes the elements as IUPAC DNA (RNA shares the IUPAC nucleic-acid
-    /// alphabet).
+    /// Encodes the elements as IUPAC RNA. SBOL uses one nucleic-acid encoding
+    /// for both DNA and RNA (see [`EDAM_IUPAC_RNA`]); the RNA-ness is carried by
+    /// the `Component` type, not the sequence.
     pub fn rna(mut self) -> Self {
-        self.encoding = Some(EDAM_IUPAC_DNA);
+        self.encoding = Some(EDAM_IUPAC_RNA);
         self
     }
 
@@ -597,7 +723,7 @@ impl SequenceDraft<'_> {
 #[must_use = "call `.add()` to register the sub-component in the design"]
 pub struct SubComponentDraft<'d> {
     design: &'d mut Design,
-    parent: ComponentId,
+    parent: Option<ComponentId>,
     display_id: String,
     instance_of: Option<ComponentId>,
     roles: Vec<Iri>,
@@ -644,7 +770,10 @@ impl SubComponentDraft<'_> {
         self
     }
 
-    /// Registers the sub-component and returns its handle.
+    /// Registers the sub-component and returns its handle. A sub-component with
+    /// a parent (from [`Design::sub_component`]) is built immediately; a
+    /// detached one (from [`Design::detached_sub_component`]) is held until
+    /// [`Design::place_feature`] gives it a parent.
     pub fn add(self) -> FeatureId {
         let Self {
             design,
@@ -656,17 +785,18 @@ impl SubComponentDraft<'_> {
             name,
             description,
         } = self;
-        design.finish_sub_component(
-            parent,
-            SubComponentSpec {
-                display_id,
-                instance_of,
-                roles,
-                role_integration,
-                name,
-                description,
-            },
-        )
+        let spec = SubComponentSpec {
+            display_id,
+            instance_of,
+            roles,
+            role_integration,
+            name,
+            description,
+        };
+        match parent {
+            Some(parent) => design.finish_sub_component(parent, spec),
+            None => FeatureId(design.push_pending(spec)),
+        }
     }
 }
 
@@ -684,6 +814,25 @@ struct SubComponentSpec {
 // ---------------------------------------------------------------------------
 // Display ID sanitization
 // ---------------------------------------------------------------------------
+
+/// Infers a namespace for an imported document from the first namespaced
+/// top-level object it can find.
+fn imported_namespace(document: &Document) -> Option<Namespace> {
+    let iri = document
+        .components()
+        .find_map(|component| component.namespace())
+        .or_else(|| {
+            document
+                .sequences()
+                .find_map(|sequence| sequence.namespace())
+        })
+        .or_else(|| {
+            document
+                .collections()
+                .find_map(|collection| collection.namespace())
+        })?;
+    Namespace::new(iri.as_str()).ok()
+}
 
 /// Turns free-text into a valid SBOL `displayId`: the first character must be
 /// an ASCII letter or underscore and the rest ASCII alphanumeric or
