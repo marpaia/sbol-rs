@@ -1,6 +1,6 @@
 [package]
 name = "sbol"
-version = "0.2.1"
+version = "0.2.2"
 edition.workspace = true
 rust-version.workspace = true
 description = "The sbol-rs SDK for SBOL: SBOL 2, SBOL 3, and 2 <-> 3 conversion, selected by cargo feature."
