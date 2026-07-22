@@ -1158,8 +1158,7 @@ term	CHEBI:747342	https://identifiers.org/CHEBI:747342	polymerization initiator	
 term	CHEBI:747343	https://identifiers.org/CHEBI:747343	plastic odor agent	http://purl.obolibrary.org/obo/CHEBI_747343	CHEBI:747326	CHEBI	feature_role	-	-	false	false
 term	CHEBI:747345	https://identifiers.org/CHEBI:747345	polymerization aid	http://purl.obolibrary.org/obo/CHEBI_747345	CHEBI:33232|CHEBI:747334	CHEBI	feature_role	-	-	false	false
 term	CHEBI:747346	https://identifiers.org/CHEBI:747346	non-intentionally added substance	http://purl.obolibrary.org/obo/CHEBI_747346	CHEBI:33232|CHEBI:747325	CHEBI	feature_role	-	-	false	false
-term	CHEBI:747607	https://identifiers.org/CHEBI:747607	Zervimesine	http://purl.obolibrary.org/obo/CHEBI_747607	CHEBI:189683	CHEBI	feature_role	-	-	false	false
-term	CHEBI:747608	https://identifiers.org/CHEBI:747608	detomidine	http://purl.obolibrary.org/obo/CHEBI_747608	CHEBI:35569	CHEBI	feature_role	-	-	false	false
+term	CHEBI:747693	https://identifiers.org/CHEBI:747693	EC 4.1.1.9 (malonyl-CoA decarboxylase) inhibitor	http://purl.obolibrary.org/obo/CHEBI_747693	CHEBI:76906	CHEBI	feature_role	-	-	false	false
 term	CHEBI:74783	https://identifiers.org/CHEBI:74783	astringent	http://purl.obolibrary.org/obo/CHEBI_74783	CHEBI:23888	CHEBI	feature_role	-	-	false	false
 term	CHEBI:74886	https://identifiers.org/CHEBI:74886	neoglycolipid probe	http://purl.obolibrary.org/obo/CHEBI_74886	CHEBI:33232	CHEBI	feature_role	-	-	false	false
 term	CHEBI:74914	https://identifiers.org/CHEBI:74914	microarray analysis reagent	http://purl.obolibrary.org/obo/CHEBI_74914	CHEBI:33893	CHEBI	feature_role	-	-	false	false
@@ -1520,7 +1519,7 @@ term	CHEBI:82933	https://identifiers.org/CHEBI:82933	gut flora metabolite	http:/
 term	CHEBI:82973	https://identifiers.org/CHEBI:82973	EC 3.4.24.11 (neprilysin) inhibitor	http://purl.obolibrary.org/obo/CHEBI_82973	CHEBI:59107	CHEBI	feature_role	-	-	false	false
 term	CHEBI:82974	https://identifiers.org/CHEBI:82974	EC 3.4.24.71 (endothelin-converting enzyme 1) inhibitor	http://purl.obolibrary.org/obo/CHEBI_82974	CHEBI:59107	CHEBI	feature_role	-	-	false	false
 term	CHEBI:83034	https://identifiers.org/CHEBI:83034	EC 4.1.2.27 (sphinganine-1-phosphate aldolase) inhibitor	http://purl.obolibrary.org/obo/CHEBI_83034	CHEBI:83035	CHEBI	feature_role	-	-	false	false
-term	CHEBI:83035	https://identifiers.org/CHEBI:83035	EC 4.1.2.* (aldehyde-lyase) inhibitor	http://purl.obolibrary.org/obo/CHEBI_83035	CHEBI:76906	CHEBI	feature_role	-	-	false	false
+term	CHEBI:83035	https://identifiers.org/CHEBI:83035	EC 4.1.2.* (aldehyde-lyase) inhibitor	http://purl.obolibrary.org/obo/CHEBI_83035	CHEBI:76711	CHEBI	feature_role	-	-	false	false
 term	CHEBI:83038	https://identifiers.org/CHEBI:83038	Daphnia galeata metabolite	http://purl.obolibrary.org/obo/CHEBI_83038	CHEBI:83057	CHEBI	feature_role	-	-	false	false
 term	CHEBI:83039	https://identifiers.org/CHEBI:83039	crustacean metabolite	http://purl.obolibrary.org/obo/CHEBI_83039	CHEBI:75767	CHEBI	feature_role	-	-	false	false
 term	CHEBI:83056	https://identifiers.org/CHEBI:83056	Daphnia magna metabolite	http://purl.obolibrary.org/obo/CHEBI_83056	CHEBI:83057	CHEBI	feature_role	-	-	false	false
@@ -5220,7 +5219,7 @@ term	EDAM:format_3612	https://identifiers.org/edam:format_3612	ENCODE peak forma
 term	EDAM:format_3613	https://identifiers.org/edam:format_3613	ENCODE narrow peak format	http://edamontology.org/format_3613	EDAM:format_3612	EDAM	other	-	other_textual	false	false
 term	EDAM:format_3614	https://identifiers.org/edam:format_3614	ENCODE broad peak format	http://edamontology.org/format_3614	EDAM:format_3612	EDAM	other	-	other_textual	false	false
 term	EDAM:format_3681	https://identifiers.org/edam:format_3681	mzTab	http://edamontology.org/format_3681	EDAM:format_2330	EDAM	other	-	other_textual	false	false
-term	EDAM:format_3687	https://identifiers.org/edam:format_3687	ISA-TAB	http://edamontology.org/format_3687	EDAM:format_2330	EDAM	other	-	other_textual	false	false
+term	EDAM:format_3687	https://identifiers.org/edam:format_3687	ISA-Tab	http://edamontology.org/format_3687	EDAM:format_2330	EDAM	other	-	other_textual	false	false
 term	EDAM:format_3688	https://identifiers.org/edam:format_3688	SBtab	http://edamontology.org/format_3688	EDAM:format_2330	EDAM	other	-	other_textual	false	false
 term	EDAM:format_3691	https://identifiers.org/edam:format_3691	BEL	http://edamontology.org/format_3691	EDAM:format_2330	EDAM	other	-	other_textual	false	false
 term	EDAM:format_3693	https://identifiers.org/edam:format_3693	AGP	http://edamontology.org/format_3693	EDAM:format_2330	EDAM	other	-	other_textual	false	false
@@ -5302,6 +5301,11 @@ term	EDAM:format_4049	https://identifiers.org/edam:format_4049	Snakemake	http://
 term	EDAM:format_4050	https://identifiers.org/edam:format_4050	SDRF	http://edamontology.org/format_4050	EDAM:format_3475	EDAM	other	-	other_textual	false	false
 term	EDAM:format_4058	https://identifiers.org/edam:format_4058	mzTab-M	http://edamontology.org/format_4058	EDAM:format_2330	EDAM	other	-	other_textual	false	false
 term	EDAM:format_4059	https://identifiers.org/edam:format_4059	mzTab-L	http://edamontology.org/format_4059	EDAM:format_4058	EDAM	other	-	other_textual	false	false
+term	EDAM:format_4066	https://identifiers.org/edam:format_4066	ISA-Tab Investigation file	http://edamontology.org/format_4066	EDAM:format_3687	EDAM	other	-	other_textual	false	false
+term	EDAM:format_4067	https://identifiers.org/edam:format_4067	ISA-Tab Study file	http://edamontology.org/format_4067	EDAM:format_3475|EDAM:format_3687	EDAM	other	-	other_textual	false	false
+term	EDAM:format_4068	https://identifiers.org/edam:format_4068	ISA-Tab Assay file	http://edamontology.org/format_4068	EDAM:format_3475|EDAM:format_3687	EDAM	other	-	other_textual	false	false
+term	EDAM:format_4070	https://identifiers.org/edam:format_4070	mwTab	http://edamontology.org/format_4070	EDAM:format_2330	EDAM	other	-	other_textual	false	false
+term	EDAM:format_4073	https://identifiers.org/edam:format_4073	MetaboLights MAF	http://edamontology.org/format_4073	EDAM:format_2330	EDAM	other	-	other_textual	false	false
 term	GO:0000006	https://identifiers.org/GO:0000006	high-affinity zinc transmembrane transporter activity	http://purl.obolibrary.org/obo/GO_0000006	GO:0005385	GO	feature_role	-	-	false	false
 term	GO:0000007	https://identifiers.org/GO:0000007	low-affinity zinc ion transmembrane transporter activity	http://purl.obolibrary.org/obo/GO_0000007	GO:0005385	GO	feature_role	-	-	false	false
 term	GO:0000009	https://identifiers.org/GO:0000009	alpha-1,6-mannosyltransferase activity	http://purl.obolibrary.org/obo/GO_0000009	GO:0000030	GO	feature_role	-	-	false	false
@@ -17104,8 +17108,7 @@ branch	CHEBI:747342	CHEBI:50906
 branch	CHEBI:747343	CHEBI:50906
 branch	CHEBI:747345	CHEBI:50906
 branch	CHEBI:747346	CHEBI:50906
-branch	CHEBI:747607	CHEBI:50906
-branch	CHEBI:747608	CHEBI:50906
+branch	CHEBI:747693	CHEBI:50906
 branch	CHEBI:74783	CHEBI:50906
 branch	CHEBI:74886	CHEBI:50906
 branch	CHEBI:74914	CHEBI:50906
@@ -21244,6 +21247,11 @@ branch	EDAM:format_4049	EDAM:format_2330
 branch	EDAM:format_4050	EDAM:format_2330
 branch	EDAM:format_4058	EDAM:format_2330
 branch	EDAM:format_4059	EDAM:format_2330
+branch	EDAM:format_4066	EDAM:format_2330
+branch	EDAM:format_4067	EDAM:format_2330
+branch	EDAM:format_4068	EDAM:format_2330
+branch	EDAM:format_4070	EDAM:format_2330
+branch	EDAM:format_4073	EDAM:format_2330
 branch	GO:0000006	GO:0003674
 branch	GO:0000007	GO:0003674
 branch	GO:0000009	GO:0003674

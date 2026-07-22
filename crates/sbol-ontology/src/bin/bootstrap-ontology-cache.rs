@@ -20,7 +20,7 @@ const SOURCES: &[Source] = &[
     Source {
         name: "EDAM.owl",
         url: "http://edamontology.org/EDAM.owl",
-        sha256: "3da855ccb0f4b021477cb12bfd7949726e21d2376e7a2bbffb5666a984da6250",
+        sha256: "a3ebbd7df78f845854c285389f5e788bb6a4852bb50cc6f7a991843dbc538158",
     },
     Source {
         name: "sbo.owl",
@@ -40,7 +40,7 @@ const SOURCES: &[Source] = &[
     Source {
         name: "chebi.owl",
         url: "http://purl.obolibrary.org/obo/chebi.owl",
-        sha256: "f5c24b13626c3822341d5b788a0b6a198d6d453d67252181cdb8c2a9b8286db3",
+        sha256: "f0a91ba0cfc60e252a2bd08e85d953991df07c500725b56c1e52d7eba61f98ab",
     },
     Source {
         name: "cl-basic.obo",
